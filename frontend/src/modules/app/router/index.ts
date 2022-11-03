@@ -1,17 +1,17 @@
 export default [
-    {
-        path: '/',
-        name: 'app',
-        meta: { requiresAuth: true },
-        redirect: { name: 'dashboard' },
-        component: () => import(/* webpackChunkName: "AppMain" */ '@/modules/app/AppMain.vue'),
-        children: [
-            {
-                path: 'dashboard',
-                name: 'dashboard',
-                meta: { requiresAuth: true },
-                component: () => import(/* webpackChunkName: "dashboardMain" */ '@/modules/app/views/dashboard/Main.vue')
-            },
-        ]
-    }
-] 
+  {
+    path: "/",
+    name: "home",
+    redirect: { name: "DashboardMain" },
+    component: () => import(/* webpackChunkName: "home" */ "@/modules/dashboard/views/Main.vue"),
+  },
+  {
+    path: '/404',
+    name: 'PageNotExist',
+    component: () => import('@/modules/app/views/PageNotFound.vue'),
+  },
+  {
+    path: "/:catchAll(.*)", // Unrecognized path automatically matches 404
+    redirect: '/404',
+  },
+];

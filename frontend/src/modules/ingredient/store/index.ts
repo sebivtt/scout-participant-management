@@ -3,6 +3,9 @@ import { defineStore } from "pinia";
 import IngredientApi from "@/modules/ingredient/services/ingredient";
 import PortionsApi from "@/modules/ingredient/services/portion";
 
+import { useCommonStore } from "@/modules/common/store/index.ts";
+const commonStore = useCommonStore();
+
 export const useIngredientStore = defineStore("ingredient", {
   state: () => ({
     _ingredients: [],
@@ -27,6 +30,34 @@ export const useIngredientStore = defineStore("ingredient", {
       } catch (error) {
         alert(error);
         console.log(error);
+      }
+    },
+    async createIngredient(data: object) {
+      try {
+        return await IngredientApi.create(data);
+      } catch (error) {
+        if (error.response.status === 400) {
+          commonStore.showError(error.response.data);
+        } else if (error.response.status === 500) {
+          commonStore.showError('Schwerer Server Fehler');
+        }
+      }
+    },
+    async updateIngredient(data: object) {
+      try {
+        return await IngredientApi.update(data);
+      } catch (error) {
+        if (error.response.status === 400) {
+          commonStore.showError(error.response.data);
+        } else if (error.response.status === 500) {
+          commonStore.showError('Schwerer Server Fehler');
+        }
+      }
+    },
+    async deleteIngredient(data: object) {
+      try {
+        return await IngredientApi.delete(data);
+      } catch (error) {
       }
     },
     async fetchPortions(params = {}) {
