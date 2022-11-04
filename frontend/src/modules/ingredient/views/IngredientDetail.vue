@@ -86,6 +86,7 @@ const ingredientDetail = computed(() => {
 watch(
   () => route,
   () => {
+    refreshData()
     onTabClicked(route.name);
   },
   { immediate: true, deep: true }
@@ -101,8 +102,12 @@ function onTabClicked(selectedName: string) {
   });
 }
 
-onMounted(() => {
+function refreshData() {
   const id = route.params.id;
   ingredientStore.fetchIngredientById(id);
+}
+
+onMounted(() => {
+  refreshData();
 });
 </script>
