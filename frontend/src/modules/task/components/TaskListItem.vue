@@ -49,15 +49,15 @@ import moment from "moment";
 
 function getColorByStatus(status) {
   switch (status) {
-    case 'Abgelehnt': {
+    case 'abgelehnt': {
       return "bg-red-400";
       break;
     }
-    case 'Akzeptiert': {
+    case 'akzeptiert': {
       return "bg-green-400";
       break;
     }
-    case 'Nicht überprüft': {
+    case 'offen': {
       return "bg-yellow-500";
       break;
     }
