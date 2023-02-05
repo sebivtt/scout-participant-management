@@ -111,7 +111,7 @@ const query = { ...router.currentRoute.value.query };
       name: "Offen",
       linkName: { name: "AllTasks", query: { status: "offen" } },
       count: myRequests.value.filter(q => q.status === 'offen').length,
-      current: query.status === 'offen' || !query.status,
+      current: query.status === 'offen',
     },
     {
       name: "Genemigt",
