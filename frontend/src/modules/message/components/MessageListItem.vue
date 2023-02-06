@@ -17,7 +17,7 @@
     <div>
       <div class="text-sm">
         <div class="font-medium text-gray-600">
-          {{ item.createdByEmail }}
+          {{ item.createdByEmail ? `Extern: ${item.createdByEmail}` : `${item?.createdBy?.scoutName} (${item?.createdBy?.username})` }}
         </div>
       </div>
       <div class="text-sm">
