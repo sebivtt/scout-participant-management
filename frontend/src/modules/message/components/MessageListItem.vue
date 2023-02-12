@@ -1,19 +1,5 @@
 <template>
   <div class="flex space-x-3">
-    <div class="flex-shrink-0">
-      <span
-        :class="[
-          getColorByProcessed(item.isProcessed),
-          'h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white',
-        ]"
-      >
-        <component
-          :is="getIconByMessageType(item.messageType.id)"
-          class="h-5 w-5 text-white"
-          aria-hidden="true"
-        />
-      </span>
-    </div>
     <div>
       <div class="text-sm">
         <div class="font-medium text-gray-600">
@@ -22,7 +8,7 @@
       </div>
       <div class="text-sm">
         <div class="pt-1 text-sm font-medium text-gray-900">
-          {{ item.subject }}
+          Betreff: {{ item.issue?.issueSubject }}
         </div>
       </div>
       <div class="mt-1 text-sm text-gray-700">
@@ -37,7 +23,7 @@
         }}</span>
         <span class="font-medium text-gray-500">&middot;</span>
         <span class="font-medium text-gray-400">
-          {{ item.messageType.name }}
+          <!-- {{ item.issueType.name }} -->
         </span>
       </div>
     </div>
@@ -76,7 +62,7 @@ function getColorByProcessed(isProcessed) {
   }
 }
 
-function getIconByMessageType(id) {
+function getIconByissueType(id) {
   switch (id) {
     case 1: {
       return BugAntIcon;

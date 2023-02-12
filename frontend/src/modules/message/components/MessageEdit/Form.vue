@@ -2,26 +2,11 @@
   <div>
     <BaseField
       component="Toggle"
-      label="Erfolgreich Bearbeitet?"
-      techName="isProcessed"
-      v-model="state.isProcessed"
-      :errors="errors.isProcessed?.$errors"
-    />
-    <BaseField
-      component="Select"
-      v-model="state.messageType"
-      techName="messageType"
-      label="Typ"
-      :items="messageTypes"
-      :errors="errors.messageType?.$errors"
-    />
-    <BaseField
-      component="Text"
-      label="Betreff"
-      techName="messageSubject"
+      label="Öffentlich?"
+      techName="is_public"
       :disabled="true"
-      v-model="state.messageSubject"
-      :errors="errors.messageSubject?.$errors"
+      v-model="state.is_public"
+      :errors="errors.is_public?.$errors"
     />
     <BaseField
       component="TextArea"
@@ -31,20 +16,18 @@
       v-model="state.messageBody"
       :errors="errors.messageBody?.$errors"
     />
-    <BaseField
-      component="TextArea"
-      label="Interner Vermerk"
-      techName="internalComment"
-      v-model="state.internalComment"
-      :errors="errors.internalComment?.$errors"
+    <PrimaryButton
+      @click="onSaveClicked"
+      :isLoading="!!isLoading"
+      label="Nachricht speichern"
     />
-    <PrimaryButton @click="onSaveClicked" :isLoading="!!isLoading" label="Nachricht speichern" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useCommonStore } from "@/modules/common/store/index";
 const commonStore = useCommonStore();
+import moment from "moment";
 
 import { reactive, onMounted, ref, watch, computed } from "vue";
 import BaseField from "@/components/field/Base.vue";
@@ -58,30 +41,12 @@ import { useAuthStore } from "@/modules/auth/store/index";
 const authStore = useAuthStore();
 
 const state = reactive({
-  id: null,
-  createdByEmail: "",
-  createdBy: {},
-  supervisor: {},
-  internalComment: "",
-  isProcessed: false,
-  messageType: null,
-  messageSubject: "",
+  issue: null,
   messageBody: "",
+  isPublic: false,
 });
 
 const rules = {
-  createdByEmail: {
-    email,
-  },
-  isProcessed: {
-    required,
-  },
-  messageType: {
-    required,
-  },
-  messageSubject: {
-    required,
-  },
   messageBody: {
     required,
   },
@@ -102,10 +67,9 @@ const isLoading = ref(false);
 
 const messageStore = useMessageStore();
 
-const messageTypes = computed(() => {
-  return messageStore.messageTypes;
+const issueTypes = computed(() => {
+  return messageStore.issueTypes;
 });
-
 
 function onSaveClicked() {
   v$.value.$validate();
@@ -118,19 +82,13 @@ function onSaveClicked() {
   isLoading.value = true;
 
   messageStore
-    .updateMessage({
-      id: state.id,
-      createdByEmail: state.createdByEmail,
-      createdBy: state.createdBy?.id,
-      supervisor: null,
-      internalComment: state.internalComment,
-      isProcessed: state.isProcessed,
-      messageSubject: state.messageSubject,
+    .createMessage({
+      issue: state.issue,
       messageBody: state.messageBody,
-      messageType: state.messageType.id,
+      isPublic: state.isPublic,
     })
     .then((response: any) => {
-      goToRoute(response.data.id)
+      goToRoute(response.data.id);
     });
 }
 
@@ -153,20 +111,6 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 
 onMounted(() => {
-  messageStore.fetchMessageTypes();
-  setTimeout(function () {
-    state.id = props.items?.id;
-    state.createdByEmail = props.items?.createdByEmail;
-    state.createdBy = props.items?.createdBy;
-    state.supervisor = props.items?.supervisor;
-    state.internalComment = props.items?.internalComment;
-    state.isProcessed = props.items?.isProcessed;
-    state.messageSubject = props.items?.messageSubject;
-    state.messageBody = props.items?.messageBody;
-    state.messageType = messageTypes.value.filter(
-      (item) => item?.id === props.items?.messageType?.id
-    )[0];
-    console.log(state);
-  }, 300);
+  state.issue = props.items?.id
 });
 </script>
