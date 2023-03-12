@@ -1,6 +1,6 @@
 <template>
   <TransitionRoot as="template" :show="props.open">
-    <Dialog as="div" class="relative z-10" @close="close">
+    <Dialog as="div" class="relative z-100" @close="close">
       <TransitionChild
         as="template"
         enter="ease-out duration-300"
@@ -41,6 +41,7 @@
                 relative
                 transform
                 overflow-hidden
+                z-100
                 rounded-lg
                 bg-white
                 text-left
@@ -81,21 +82,24 @@
                         {{ props.text }}
                       </p>
                       <BaseField
+                      class="z-15"
                         component="AutoComplete"
                         :label="'Benutzer'"
                         techName="scoutGroup"
                         v-model="state.user"
                         :errors="errors.user?.$errors"
-                        :items="users"
+                        :items="inevitableMembers"
                         hint="Wähle einen User ein."
                         :lookupListDisplay="[
-                          'scoutName',
+                          'username',
+                          '$ - ',
+                          'email',
                           '$ - ',
                           'firstName',
                           '$ - Stamm: ',
                           'stamm_bund',
                         ]"
-                        :searchField="['scoutName']"
+                        :searchField="['username']"
                       />
                     </div>
                   </div>
@@ -227,6 +231,9 @@ const rules = {
 import { usePersonStore } from "@/modules/person/store/index";
 const personStore = usePersonStore();
 
+import { useGroupStore } from "@/modules/group/store/index";
+const groupStore = useGroupStore();
+
 const v$ = useVuelidate(rules, state);
 const errors = reactive(v$);
 
@@ -235,11 +242,14 @@ const route = useRoute();
 const isLoading = computed(() => {
   return personStore.isLoading;
 });
-const users = computed(() => {
-  return personStore.users;
+const inevitableMembers = computed(() => {
+  return groupStore.inevitableMembers;
 });
 
 onMounted(() => {
-  personStore.fetchUsers();
+  const id = route.params.id;
+  if (id) {
+    groupStore.fetchInevitableMembersById(id);
+  }
 });
 </script>

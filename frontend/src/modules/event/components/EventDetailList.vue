@@ -10,7 +10,7 @@
               <span
                 class="inline-block h-8 w-8 overflow-hidden rounded-full bg-gray-100"
               >
-                <InboxIcon />
+                <CalendarIcon />
               </span>
             </div>
             <div class="ml-4">
@@ -29,70 +29,38 @@
             :icon="PencilIcon"
             class="mx-0 my-2"
           >
-            Issue Bearbeiten
+            Veranstaltung Bearbeiten
           </PrimaryButton>
         </div>
       </div>
     </div>
     <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
       <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-        <div v-if="event.createdByEmail" class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500">
-            E-Mail vom Nichtangemeldeten
-          </dt>
-          <dd class="mt-1 text-sm text-gray-900">
-            {{ event.createdByEmail }}
-          </dd>
+        <div class="sm:col-span-1">
+          <dt class="text-sm font-medium text-gray-500">Einladungstext</dt>
+          <dd
+            class="mt-1 text-sm text-gray-900"
+            v-html="event.longDescription"
+          ></dd>
         </div>
-        <div v-if="event.createdBy" class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500">Username</dt>
+        <div class="sm:col-span-1">
+          <dt class="text-sm font-medium text-gray-500">Start</dt>
           <dd class="mt-1 text-sm text-gray-900">
-            {{ event.createdBy.username }}
+            {{ moment(event.startDate).format("llll") }}
           </dd>
         </div>
         <div class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500">Erstellt</dt>
+          <dt class="text-sm font-medium text-gray-500">Ende</dt>
           <dd class="mt-1 text-sm text-gray-900">
-            {{
-              event.createdAt ? moment(event.createdAt).format("llll") : ""
-            }}
+            {{ moment(event.endDate).format("llll") }}
           </dd>
         </div>
         <div class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500">Status</dt>
+          <dt class="text-sm font-medium text-gray-500">Anmeldeschluss</dt>
           <dd class="mt-1 text-sm text-gray-900">
-            {{ event.status }}
+            {{ moment(event.registrationDeadline).format("llll") }}
           </dd>
         </div>
-        <div class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500">Prioität</dt>
-          <dd class="mt-1 text-sm text-gray-900">
-            {{ event.priority }}
-          </dd>
-        </div>
-        <div class="sm:col-span-2">
-          <h2>Nachrichten</h2>
-        </div>
-        <div
-          class="sm:col-span-2 border border-1 px-2 py-2"
-          v-for="item in event.messages"
-          :key="item.id"
-        >
-          <dt class="text-sm font-medium text-gray-500">
-            von {{ item.createdBy ? item.createdBy.username : "Extern" }}
-          </dt>
-          <dd class="mt-1 text-sm text-gray-900">{{ item.messageBody }}</dd>
-          <dd class="mt-1 text-xs text-gray-500">
-            {{ moment(item.createdAt).format("llll") }}
-          </dd>
-        </div>
-        <PrimaryButton
-          @click="onEventUpdateClicked"
-          :icon="ChatBubbleLeftIcon"
-          class="mx-0 my-2"
-        >
-          antworten
-        </PrimaryButton>
       </dl>
     </div>
     <MessageEditOverlay
@@ -121,6 +89,7 @@ import {
   InboxIcon,
   PhoneIcon,
   EnvelopeIcon,
+  CalendarIcon,
 } from "@heroicons/vue/24/outline";
 import PrimaryButton from "@/components/button/Primary.vue";
 

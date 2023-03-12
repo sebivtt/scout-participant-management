@@ -8,6 +8,16 @@ export default {
       params: params,
     });
   },
+  fetchMyEvents(params: any) {
+    return axios.get(`${BASE_URL}/my-events/`, {
+      params: params,
+    });
+  },
+  fetchMyInvitations(params: any) {
+    return axios.get(`${BASE_URL}/event/my-invitations/`, {
+      params: params,
+    });
+  },
   fetchAllOverviews(params: any) {
     return axios.get(`${BASE_URL}/${SERVICE}-overview/`, {
       params: params,
