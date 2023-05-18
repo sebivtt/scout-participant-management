@@ -185,7 +185,7 @@ const search = debounce(async (id, searchQuery) => {
   isLoading.value = true;
   let { data } = groupStore.fetchKickableMembersById(id, searchQuery);
   isLoading.value = false;
-}, 250);
+}, 1000);
 
 function fetchKickableMembersById(searchQuery) {
   updateData(searchQuery);
