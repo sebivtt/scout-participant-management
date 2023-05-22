@@ -7,12 +7,12 @@
       :sortOptions="sortOptions"
       :filters="filters"
       :buttonList="buttonList"
-      mainPageLink="EventStatisticSummary"
+      mainPageLink="EventStatisticRegistration"
       detailPageLink="RegistrationsDetail"
       :isLoading="isLoading"
     >
       <template #listitem="{ item }">
-        <RegListItem :item="item"/>
+        <RegListItem :item="item" />
       </template>
     </List>
   </div>
@@ -38,11 +38,10 @@ const eventSummary = computed(() => {
   return eventStore.eventSummary.results;
 });
 
-const searchValue = ref()
+const searchValue = ref();
 
-
-const groups = computed(() => {
-  return eventStore.groups;
+const eventCashSummary = computed(() => {
+  return eventStore.eventCashSummary;
 });
 
 const isAuth = computed(() => {
@@ -50,7 +49,7 @@ const isAuth = computed(() => {
 });
 
 const isLoading = computed(() => {
-  return false
+  return eventStore.isLoading;
 });
 
 onMounted(() => {
@@ -72,7 +71,12 @@ function updateSearch(params) {
   }
 }
 
-const sortOptions = [];
+const sortOptions = [
+  { name: "A-Z", value: "scout_organisation__name", current: false },
+  { name: "Neuste", value: "-created_at", current: true },
+  { name: "Größte", value: "biggest", current: false },
+  { name: "Kleinste", value: "smallest", current: false },
+];
 
 const filters = [];
 const buttonList = [];
