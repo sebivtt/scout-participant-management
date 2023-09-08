@@ -4,7 +4,9 @@
       <dt class="text-md font-medium text-gray-800">
         <div class="flex">
           <div class="flex-none">
-            {{ props.data.attributeModule.title }}
+            <p class="text-sm font-medium text-gray-800">
+              {{ props.data?.title }}
+            </p>
           </div>
           <div class="flex-1 w-64">
             <button
@@ -21,17 +23,21 @@
         </div>
       </dt>
       <dt class="text-sm font-medium text-gray-500">
-        {{ props.data.attributeModule.text }}
+        {{ props.data?.text }}
       </dt>
       <dd class="mt-1 text-sm text-gray-900">
         {{ props.data.stringField }}
+      </dd>
+      <dd class="mt-1 text-sm">
+        Wert: {{ props.value?.stringField || "kein Wert" }}
       </dd>
     </div>
     <RegEditOverlay
       :open="openEventEdit"
       :items="itemData"
+      :value="valueData"
       @close="onEventClosedClicked"
-      header="bearbeiten"
+      header="Wert bearbeiten"
       :formNo="eventEditForm"
     />
   </div>
@@ -42,6 +48,7 @@ import { ref } from "vue";
 
 const props = defineProps({
   data: { type: Object, required: true },
+  value: { type: Object, required: false },
 });
 
 import { PencilSquareIcon } from "@heroicons/vue/24/outline";
@@ -51,17 +58,16 @@ import RegEditOverlay from "@/modules/event/components/registration/regEdit/Over
 const openEventEdit = ref(false);
 const eventEditForm = ref(0);
 const itemData = ref({});
+const valueData = ref({});
 
 function onEventClosedClicked() {
   openEventEdit.value = false;
   itemData.value = {};
 }
 
-function onEventEditClicked(formNo, child = null) {
+function onEventEditClicked() {
   openEventEdit.value = true;
-  eventEditForm.value = formNo;
-  if (child === null) {
-    itemData.value = props.data;
-  }
+  itemData.value = props.data;
+  valueData.value = props.value;
 }
 </script>
