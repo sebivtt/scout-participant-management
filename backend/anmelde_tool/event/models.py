@@ -43,6 +43,17 @@ class Event(basic_models.TimeStampMixin):
     registration_deadline = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True)
     registration_start = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True)
     last_possible_update = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True)
+    # Fristregeln (Stand 14.10.2026, siehe anmelde_tool/event/deadlines.py):
+    # - registration_deadline ist der offizielle Anmeldeschluss und sperrt nichts.
+    # - registration_closes_at sperrt neue Anmeldungen ab diesem Zeitpunkt (optional).
+    # - registration_closed sperrt neue Anmeldungen sofort (manuell).
+    # - last_possible_update: Änderungen möglich bis; leer = Veranstaltungsbeginn.
+    # - changes_closed sperrt Änderungen sofort (manuell).
+    registration_closes_at = models.DateTimeField(
+        null=True, blank=True, verbose_name='Neue Anmeldungen technisch sperren ab',
+    )
+    registration_closed = models.BooleanField(default=False, verbose_name='Neue Anmeldungen gesperrt')
+    changes_closed = models.BooleanField(default=False, verbose_name='Änderungen gesperrt')
     is_public = models.BooleanField(default=False)
     responsible_persons = models.ManyToManyField(User)
     view_group = models.ForeignKey(

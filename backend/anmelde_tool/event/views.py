@@ -1,3 +1,4 @@
+from django.utils.dateparse import parse_datetime
 from copy import deepcopy
 from queue import Queue
 
@@ -109,48 +110,35 @@ class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = event_serializers.EventCompleteSerializer
 
-    def check_event_dates(self, request, event: Event) -> bool:
-        edited = False
-        start_date = request.data.get('start_date')
-        if start_date is None:
-            start_date = event.start_date
-        else:
-            edited = True
+    def check_event_dates(self, request, event) -> bool:
+        """Prüft, ob die Daten zueinander passen (Fristregeln vom 14.10.2026).
 
-        end_date = request.data.get('end_date')
-        if end_date is None:
-            end_date = event.end_date
-        else:
-            edited = True
+        event ist eine Veranstaltung oder ein dict mit validierten Daten.
+        """
+        def current(field):
+            value = request.data.get(field)
+            if value is None:
+                value = event.get(field) if isinstance(event, dict) else getattr(event, field, None)
+            if isinstance(value, str):
+                value = parse_datetime(value)
+            return value
 
-        registration_deadline = request.data.get('registration_deadline')
-        if registration_deadline is None:
-            registration_deadline = event.registration_deadline
-        else:
-            edited = True
-
-        registration_start = request.data.get('registration_start')
-        if registration_start is None:
-            registration_start = event.registration_start
-        else:
-            edited = True
-
-        last_possible_update = request.data.get('last_possible_update')
-        if last_possible_update is None:
-            last_possible_update = event.last_possible_update
-        else:
-            edited = True
-
-        if not edited:
+        fields = ('start_date', 'end_date', 'registration_start', 'registration_deadline',
+                  'last_possible_update', 'registration_closes_at')
+        if not any(request.data.get(field) is not None for field in fields):
             return True
+        start_date, end_date, registration_start, registration_deadline, last_possible_update, closes_at = (
+            current(field) for field in fields
+        )
 
-        if end_date < start_date:
+        if start_date and end_date and end_date < start_date:
             raise event_api_exceptions.EndBeforeStart
-        if start_date <= last_possible_update:
+        if registration_start and registration_deadline and registration_deadline < registration_start:
+            raise event_api_exceptions.RegistrationDeadlineBeforeRegistrationStart
+        # Änderungen enden spätestens mit Veranstaltungsbeginn
+        if start_date and last_possible_update and last_possible_update > start_date:
             raise event_api_exceptions.StartBeforeLastChange
-        if last_possible_update <= registration_deadline:
-            raise event_api_exceptions.LastChangeBeforeRegistrationDeadline
-        if registration_deadline < registration_start:
+        if registration_start and closes_at and closes_at < registration_start:
             raise event_api_exceptions.RegistrationDeadlineBeforeRegistrationStart
         return True
 

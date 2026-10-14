@@ -197,3 +197,32 @@ class IsSubRegistrationResponsiblePerson(permissions.BasePermission):
         if registration_id is None:
             registration_id: str = view.kwargs.get('pk', None)
         return check_registration_permission(registration_id, request)
+
+
+def is_event_manager(request, event) -> bool:
+    """Veranstaltungsleitung (oder Superuser): von allen Fristsperren ausgenommen."""
+    if request.user.is_superuser:
+        return True
+    return check_event_permission(event, request, admin_only=True) == EventRole.ADMIN_ROLE
+
+
+def require_registration_open(request, event) -> None:
+    from anmelde_tool.event import deadlines
+    from anmelde_tool.event.api_exceptions import RegistrationClosed, TooEarly
+    if is_event_manager(request, event):
+        return
+    if not deadlines.registration_started(event):
+        raise TooEarly()
+    if not deadlines.can_register(event):
+        raise RegistrationClosed()
+
+
+def require_changes_open(request, event) -> None:
+    from anmelde_tool.event import deadlines
+    from anmelde_tool.event.api_exceptions import ChangesClosed, TooEarly
+    if is_event_manager(request, event):
+        return
+    if not deadlines.registration_started(event):
+        raise TooEarly()
+    if not deadlines.can_change(event):
+        raise ChangesClosed()

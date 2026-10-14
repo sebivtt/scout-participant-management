@@ -102,31 +102,7 @@ class TestAnmeldendeLeitung:
         response = api(anmeldende_leitung).delete(reg_url(anmeldung_adler))
         assert response.status_code >= 400
 
-    @pytest.mark.xfail(strict=True, reason=(
-        'Bekannter Fehler: Die Fristprüfung in RegistrationSingleParticipantViewSet '
-        'prüft eine Klasse statt eines Rechts und greift deshalb nie.'
-    ))
-    def test_kann_teilnehmende_nach_letzter_aenderung_nicht_mehr_aendern(
-            self, api, anmeldende_leitung, lager, anmeldung_adler):
-        lager.last_possible_update = timezone.now() - timedelta(days=1)
-        lager.save()
-        teilnehmend = anmeldung_adler.registrationparticipant_set.first()
-        response = api(anmeldende_leitung).put(
-            reg_url(anmeldung_adler, f'single-participant/{teilnehmend.id}/'),
-            {'firstName': 'Kim', 'lastName': 'Geändert', 'gender': 'N'},
-            format='json',
-        )
-        assert response.status_code >= 400
-
-    @pytest.mark.xfail(strict=True, reason=(
-        'Bekannter Fehler: Neue Anmeldungen werden auch nach Anmeldeschluss angenommen.'
-    ))
-    def test_keine_neue_anmeldung_nach_anmeldeschluss(self, api, anmeldende_leitung, lager, stamm_adler):
-        lager.registration_deadline = timezone.now() - timedelta(days=1)
-        lager.save()
-        response = api(anmeldende_leitung).post(
-            '/event/registration/', {'event': str(lager.id), 'scoutOrganisation': stamm_adler.id}, format='json')
-        assert response.status_code >= 400
+    # Fristen: siehe tests/test_fristen.py
 
 
 # --- Teilnehmende ohne eigene Anmeldung -------------------------------------
