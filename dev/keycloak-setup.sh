@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Richtet einen lokalen Keycloak-Realm für das Scout-Tool ein (nur Entwicklung!).
-# Voraussetzung: Keycloak läuft mit --features=admin-fine-grained-authz:v1
 # Standard: Keycloak aus dev/docker-compose.yml. Für ein lokal entpacktes
 # Keycloak: KCADM=/pfad/zu/keycloak/bin/kcadm.sh ./keycloak-setup.sh
 # Das Skript kann gefahrlos mehrfach laufen.
@@ -62,17 +61,6 @@ if ! $KCADM get clients -r "$REALM" -q clientId=scout-backend --fields id | grep
     -s secret="$BACKEND_SECRET" -s serviceAccountsEnabled=true -s standardFlowEnabled=false >/dev/null
   $KCADM add-roles -r "$REALM" --uusername service-account-scout-backend --cclientid realm-management --rolename realm-admin >/dev/null
 fi
-
-# Feingranulare Admin-Rechte am realm-management-Client aktivieren
-RM_ID=$($KCADM get clients -r "$REALM" -q clientId=realm-management --fields id --format csv --noquotes)
-$KCADM update "realms/$REALM/users-management-permissions" -s enabled=true >/dev/null
-GROUP_ID=$($KCADM get groups -r "$REALM" --fields id --format csv --noquotes | head -1 || true)
-if [ -z "$GROUP_ID" ]; then
-  # Mindestens eine Gruppe nötig, damit die Autorisierung am realm-management-Client initialisiert wird
-  $KCADM create groups -r "$REALM" -s name=_init >/dev/null
-  GROUP_ID=$($KCADM get groups -r "$REALM" --fields id --format csv --noquotes | head -1)
-fi
-$KCADM update "groups/$GROUP_ID/management/permissions" -r "$REALM" -s enabled=true >/dev/null
 
 # Rolle für das Organisationsteam und Testbenutzer
 $KCADM create roles -r "$REALM" -s name=anmelde_tool_team >/dev/null 2>&1 || true

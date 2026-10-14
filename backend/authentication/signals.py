@@ -1,4 +1,6 @@
 from celery import shared_task
+
+from keycloak_auth.access import users_with_admin
 from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
@@ -178,23 +180,7 @@ def move_user_into_group(instance_pk):
 @shared_task
 def create_notification_async(instance_pk):
     instance = RequestGroupAccess.objects.get(id=instance_pk)
-    admin_name = f'group-{instance.group.keycloak_id}-admin-role'
-
-    all_group_recipients = keycloak_admin.get_client_role_groups(
-        keycloak_admin.realm_management_client_id,
-        admin_name
-    )
-    all_user_recipients = keycloak_admin.get_client_role_members(
-        keycloak_admin.realm_management_client_id,
-        admin_name
-    )
-    recipient_ids = [val['id'] for val in all_user_recipients if val['enabled']]
-
-    for group_recipient in all_group_recipients:
-        group_members = keycloak_admin.get_group_members(group_recipient['id'])
-        recipient_ids.extend([val['id'] for val in group_members if val['enabled']])
-
-    recipients = User.objects.filter(keycloak_id__in=recipient_ids)
+    recipients = User.objects.filter(pk__in=[user.pk for user in users_with_admin(instance.group)])
     if recipients.count() == 0:
         recipients = User.objects.filter(is_staff=True)
     notify.send(

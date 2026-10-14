@@ -4,7 +4,8 @@ from backend.settings import keycloak_admin
 from basic.choices import ScoutOrganisationLevelChoices
 from basic.models import ScoutHierarchy
 from keycloak_auth.helper import get_or_create_keycloak_model
-from keycloak_auth.models import KeycloakGroup
+from keycloak_auth.access import grant
+from keycloak_auth.models import GroupPermission, KeycloakGroup
 
 additional_level_groups = {
     str(ScoutOrganisationLevelChoices.BUND): ['Bundesführung', 'Stellv. Bundesführung', 'Schatzamt'],
@@ -36,6 +37,8 @@ class InitKeycloakScoutHierarchies:
             for group in self.groups_added:
                 print(group)
 
+        granted = grant_hierarchy_permissions()
+        print(f'Gruppenrechte geprüft, {granted} neu vergeben')
         print('Checks completed')
 
     def recursive_group_initialisation(self, head: ScoutHierarchy, add_children: bool = True) -> None:
@@ -106,24 +109,17 @@ class InitKeycloakScoutHierarchies:
         group = keycloak_admin.get_group(new_group_id)
 
         if level:
-            view_role, admin_role = keycloak_admin.add_group_permissions(group, False)
-
+            group_model, _ = get_or_create_keycloak_model(group, parent_id)
             if level == str(ScoutOrganisationLevelChoices.STAMM):
-                keycloak_admin.assign_group_client_roles(
-                    new_group_id, keycloak_admin.realm_management_client_id,
-                    [view_role]
-                )
+                # Mitglieder eines Stamms sehen ihren Stamm
+                grant(group_model, GroupPermission.Role.VIEW, via_group=group_model)
 
-            extra_groups = additional_level_groups[level]
-            for extra_group_name in extra_groups:
-                extra_group_payload = {'name': extra_group_name}
-                extra_group_id = keycloak_admin.create_group(payload=extra_group_payload, parent=new_group_id)
+            for extra_group_name in additional_level_groups[level]:
+                extra_group_id = keycloak_admin.create_group(payload={'name': extra_group_name}, parent=new_group_id)
                 extra_group = keycloak_admin.get_group(extra_group_id)
-                keycloak_admin.assign_group_client_roles(
-                    extra_group_id, keycloak_admin.realm_management_client_id,
-                    [admin_role]
-                )
-                keycloak_admin.add_group_permissions(extra_group, True)
+                extra_model, _ = get_or_create_keycloak_model(extra_group, group_model)
+                # Führungsgruppen verwalten die Ebene darüber
+                grant(group_model, GroupPermission.Role.ADMIN, via_group=extra_model)
         return new_group_id
 
     def get_keycloak_group(self, keycloak_id, head) -> [dict, bool]:
@@ -147,7 +143,30 @@ class InitKeycloakScoutHierarchies:
             keycloak_group.parent = parent
             keycloak_group.save()
 
-        # keycloak_admin.add_group_permissions(group, True)
 
-        for sub_group in group['subGroups']:
+        for sub_group in keycloak_admin.get_subgroups(group):
             self.get_subgroup(sub_group, keycloak_group)
+
+
+def grant_hierarchy_permissions() -> int:
+    """Vergibt die Standardrechte für bereits vorhandene Gruppen.
+
+    - Führungsgruppen (z. B. "Stammesführung" unter einem Stamm) erhalten
+      Admin-Recht auf ihre Obergruppe.
+    - Mitglieder eines Stamms erhalten Ansichtsrecht auf ihren Stamm.
+
+    Kann gefahrlos mehrfach laufen. Gibt die Zahl neu vergebener Rechte zurück.
+    """
+    before = GroupPermission.objects.count()
+    leader_names = {name for names in additional_level_groups.values() for name in names}
+
+    for leader_group in KeycloakGroup.objects.filter(name__in=leader_names, parent__isnull=False).select_related('parent'):
+        grant(leader_group.parent, GroupPermission.Role.ADMIN, via_group=leader_group)
+
+    stamm_groups = KeycloakGroup.objects.filter(
+        scouthierarchy__level_choice=str(ScoutOrganisationLevelChoices.STAMM)
+    )
+    for stamm_group in stamm_groups:
+        grant(stamm_group, GroupPermission.Role.VIEW, via_group=stamm_group)
+
+    return GroupPermission.objects.count() - before

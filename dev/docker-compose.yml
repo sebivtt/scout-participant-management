@@ -30,12 +30,7 @@ services:
   keycloak:
     # Gleiche Version wie beim Verband (dpvonline/azure-docker, Stand Juli 2026)
     image: quay.io/keycloak/keycloak:26.7
-    # admin-fine-grained-authz:v1 braucht das Backend derzeit zwingend.
-    # Der Schalter ist in Keycloak als veraltet markiert und beim Verband
-    # nicht aktiv. Die Ablösung ist Teil der Stabilisierung.
-    command: >
-      start-dev --http-port=8180
-      --features=admin-fine-grained-authz:v1
+    command: start-dev --http-port=8180
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin

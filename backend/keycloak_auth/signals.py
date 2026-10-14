@@ -22,19 +22,11 @@ def post_save_keycloak_group(sender: KeycloakGroup, instance: KeycloakGroup, cre
         instance.save()
     else:
         group = keycloak_admin.get_group(instance.keycloak_id)
-        name_edited = False
-        parent_edited = False
 
         if instance.name != group['name']:
-            name_edited = True
-        if instance.keycloak_group_name != group['path']:
-            parent_edited = True
-
-        payload = {'name': instance.name}
-        if parent_edited:
-            keycloak_admin.move_group(payload, parent=instance.parent.keycloak_id)
-        elif name_edited:
-            keycloak_admin.move_group(payload)
+            keycloak_admin.rename_group(instance.keycloak_id, instance.name)
+        if instance.parent and instance.keycloak_group_name != group['path']:
+            keycloak_admin.move_group(instance.keycloak_id, instance.name, parent=instance.parent.keycloak_id)
 
 
 @receiver(post_delete, sender=KeycloakGroup, dispatch_uid='post_delete_keycloak_group')

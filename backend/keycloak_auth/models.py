@@ -38,6 +38,53 @@ class KeycloakGroup(models.Model):
             return f"{self.name} ({self.parent.name})"
         return f"{self.name}"
 
+class GroupPermission(models.Model):
+    """Wer darf eine Gruppe verwalten (admin) oder einsehen (view)?
+
+    Ein Recht gilt entweder für eine einzelne Person (user) oder für alle
+    Mitglieder einer anderen Gruppe (via_group), z. B. "Mitglieder der Gruppe
+    Stammesführung verwalten den Stamm". Rechte gelten auch für alle
+    Untergruppen. Admin schließt Ansicht ein.
+
+    Ersetzt die früheren Client-Rollen "group-<id>-admin-role" in Keycloak,
+    die die veraltete Keycloak-Funktion admin-fine-grained-authz:v1 brauchten.
+    """
+
+    class Role(models.TextChoices):
+        ADMIN = 'admin', 'Administrator'
+        VIEW = 'view', 'Ansicht'
+
+    id = models.AutoField(primary_key=True)
+    group = models.ForeignKey(KeycloakGroup, on_delete=models.CASCADE, related_name='permissions')
+    role = models.CharField(max_length=10, choices=Role.choices)
+    user = models.ForeignKey(
+        'authentication.CustomUser', null=True, blank=True, on_delete=models.CASCADE, related_name='group_permissions'
+    )
+    via_group = models.ForeignKey(
+        KeycloakGroup, null=True, blank=True, on_delete=models.CASCADE, related_name='granted_permissions'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Gruppenrecht'
+        verbose_name_plural = 'Gruppenrechte'
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    models.Q(user__isnull=False, via_group__isnull=True)
+                    | models.Q(user__isnull=True, via_group__isnull=False)
+                ),
+                name='grouppermission_user_xor_via_group',
+            ),
+            models.UniqueConstraint(fields=['group', 'role', 'user'], name='grouppermission_unique_user'),
+            models.UniqueConstraint(fields=['group', 'role', 'via_group'], name='grouppermission_unique_via_group'),
+        ]
+
+    def __str__(self):
+        holder = self.user or f'Mitglieder von {self.via_group}'
+        return f'{holder}: {self.get_role_display()} für {self.group}'
+
+
 class ExternalLinks(models.Model):
     id = models.AutoField(primary_key=True)
     wiki = models.URLField(blank=True, null=True)
