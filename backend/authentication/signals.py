@@ -57,87 +57,64 @@ logger = get_task_logger(__name__)
 #         save_keycloak_person(instance)
 
 
+# Felder, die Keycloak bei einer Aktualisierung mitgeschickt bekommen muss.
+# Keycloak ab Version 24 behandelt eine Aktualisierung als vollständiges
+# Profil: Was fehlt, wird gelöscht. Früher gingen so E-Mail, Vor- und
+# Nachname verloren, und die Person konnte sich danach nicht mehr anmelden.
+_KEYCLOAK_PROFILE_FIELDS = ('username', 'email', 'firstName', 'lastName', 'enabled', 'emailVerified')
+
+
+def update_keycloak_profile(keycloak_id: str, fields: dict | None = None, attributes: dict | None = None) -> None:
+    """Ändert einzelne Felder eines Keycloak-Kontos, ohne die übrigen zu verlieren.
+
+    attributes: {name: wert}; ein leerer Wert entfernt das Attribut.
+    """
+    current = keycloak_admin.get_user(keycloak_id)
+    payload = {key: current[key] for key in _KEYCLOAK_PROFILE_FIELDS if key in current}
+    payload.update({key: value for key, value in (fields or {}).items() if value is not None})
+
+    merged = dict(current.get('attributes') or {})
+    for name, value in (attributes or {}).items():
+        if value:
+            merged[name] = [value]
+        else:
+            merged.pop(name, None)
+    payload['attributes'] = merged
+
+    try:
+        keycloak_admin.update_user(keycloak_id, payload)
+    except KeycloakPutError as exc:
+        raise KeycloakError(exc.error_message)
+
+
 def save_keycloak_user(instance: User):
     if not instance.keycloak_id:
         return
-
     keycloak_user = keycloak_admin.get_user(instance.keycloak_id)
-
-    if keycloak_user['username'] == instance.username:
-        first_name = keycloak_user['firstName']
-        last_name = keycloak_user['lastName']
-        email = keycloak_user['email']
-
-        if first_name != instance.first_name:
-            first_name = instance.first_name
-
-        if last_name != instance.last_name:
-            last_name = instance.last_name
-
-        if email != instance.email:
-            email = instance.email
-
-        try:
-            keycloak_admin.update_user(
-                instance.keycloak_id, {
-                    'email': email,
-                    'firstName': first_name,
-                    'lastName': last_name,
-                }
-            )
-        except KeycloakPutError as exc:
-            raise KeycloakError(exc.error_message)
+    if keycloak_user['username'] != instance.username:
+        return
+    update_keycloak_profile(instance.keycloak_id, fields={
+        'email': instance.email or None,
+        'firstName': instance.first_name or None,
+        'lastName': instance.last_name or None,
+    })
 
 
 def save_keycloak_person(instance: Person):
     if not instance.user or not instance.user.keycloak_id:
         return
-
     keycloak_user = keycloak_admin.get_user(instance.user.keycloak_id)
+    if keycloak_user['username'] != instance.user.username:
+        return
 
-    if keycloak_user['username'] == instance.user.username:
-        verband = keycloak_user.get('attributes', {}).get('verband')
-        bund = keycloak_user.get('attributes', {}).get('bund')
-        stamm = keycloak_user.get('attributes', {}).get('stamm')
-        fahrtenname = keycloak_user.get('attributes', {}).get('fahrtenname')
-
-        if verband:
-            verband = verband[0]
-
-        if bund:
-            bund = bund[0]
-
-        if fahrtenname:
-            fahrtenname = fahrtenname[0]
-
-        if stamm:
-            stamm = stamm[0]
-
-        if instance.scout_group and verband != instance.scout_group.verband:
-            verband = instance.scout_group.verband
-
-        if instance.scout_group and bund != instance.scout_group.bund:
-            bund = instance.scout_group.bund
-
-        if instance.scout_group and stamm != instance.scout_group.name:
-            stamm = instance.scout_group.name
-
-        if fahrtenname != instance.scout_name:
-            fahrtenname = instance.scout_name
-
-        try:
-            keycloak_admin.update_user(
-                instance.user.keycloak_id, {
-                    'attributes': {
-                        'verband': verband,
-                        'fahrtenname': fahrtenname,
-                        'bund': bund,
-                        'stamm': stamm
-                    }
-                }
-            )
-        except KeycloakPutError as exc:
-            raise KeycloakError(exc.error_message)
+    attributes = {'fahrtenname': instance.scout_name}
+    if instance.scout_group:
+        attributes.update({
+            'verband': instance.scout_group.verband,
+            'bund': instance.scout_group.bund,
+            'stamm': instance.scout_group.name,
+        })
+    update_keycloak_profile(instance.user.keycloak_id, attributes=attributes)
 
 
 @receiver(post_save, sender=RequestGroupAccess, dispatch_uid='post_save_request_group_access')
