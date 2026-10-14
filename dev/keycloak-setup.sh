@@ -73,6 +73,19 @@ create_user () { # username password first last fahrtenname team?
   [ "${6:-}" = team ] && $KCADM add-roles -r "$REALM" --uusername "$1" --rolename anmelde_tool_team || true
 }
 create_user leitung leitung123 Lena Leitung Lux team
+create_user stammesleitung stamm123 Sina Stamm Eule
 create_user teilnehmer teilnehmer123 Tim Teilnehmer Fuchs
+
+# Testgruppe für Veranstaltungen: Beim Anlegen einer Veranstaltung muss man
+# Gruppen wählen, in denen man selbst Mitglied ist.
+TESTGRUPPE="Testgruppe Lagerteam"
+if ! $KCADM get groups -r "$REALM" -q search="$TESTGRUPPE" --fields name | grep -q "\"$TESTGRUPPE\""; then
+  $KCADM create groups -r "$REALM" -s name="$TESTGRUPPE" >/dev/null
+fi
+GROUP_ID=$($KCADM get groups -r "$REALM" -q search="$TESTGRUPPE" --fields id,name --format csv --noquotes | grep ",$TESTGRUPPE$" | cut -d, -f1)
+for U in leitung stammesleitung; do
+  USER_ID=$($KCADM get users -r "$REALM" -q username="$U" -q exact=true --fields id --format csv --noquotes)
+  $KCADM update "users/$USER_ID/groups/$GROUP_ID" -r "$REALM" -n >/dev/null
+done
 
 echo "Keycloak-Realm '$REALM' ist eingerichtet ($KC_URL)."

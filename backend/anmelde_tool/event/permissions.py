@@ -43,6 +43,9 @@ def check_event_permission(event_id: [str, Event], request, admin_only=False) ->
     if user.is_superuser:
         return EventRole.ADMIN_ROLE
     event = get_event(event_id)
+    if event is None:
+        # z. B. Listenaufruf ohne ID: früher Fehler 500, jetzt "kein Recht"
+        return EventRole.NONE
     token = request.META.get('HTTP_AUTHORIZATION')
     child_ids = get_groups_of_user(token, user.keycloak_id)
     if not admin_only and event.view_group and any(event.view_group.keycloak_id == child_id for child_id in child_ids):
@@ -56,6 +59,8 @@ def check_event_permission(event_id: [str, Event], request, admin_only=False) ->
 
 def check_leader_permission(event_id: [str, Event], user: User) -> LeadershipRole:
     event: Event = get_event(event_id)
+    if event is None:
+        return LeadershipRole.NONE
     if event.view_allow_subgroup:
         perm_name = 'dpv_bundesfuehrungen'
         perm_name_dpbm = 'dpbm_ringfuehrungen'
@@ -72,6 +77,8 @@ def check_leader_permission(event_id: [str, Event], user: User) -> LeadershipRol
 
 def check_registration_permission(registration_id: str, request) -> bool:
     registration: Registration = get_registration(registration_id)
+    if registration is None:
+        return False
     return registration.responsible_persons.contains(request.user) \
         or check_event_permission(registration.event, request, admin_only=True) != EventRole.NONE
 
@@ -147,7 +154,7 @@ class IsLeaderPerson(permissions.BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
         event_id: str = view.kwargs.get('event_pk', None)
-        return check_leader_permission(event_id, request.user) != EventRole.NONE
+        return check_leader_permission(event_id, request.user) != LeadershipRole.NONE
 
 
 class IsSubEventResponsiblePersonOrReadOnly(permissions.BasePermission):

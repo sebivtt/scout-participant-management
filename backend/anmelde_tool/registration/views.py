@@ -236,6 +236,7 @@ class RegistrationSingleParticipantViewSet(viewsets.ModelViewSet):
         return registration
 
 class CheckPersonViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [event_permissions.IsSubRegistrationResponsiblePerson]
 
     def participant_initialization(self, request) -> Registration:
         input_serializer = (
@@ -251,9 +252,11 @@ class CheckPersonViewSet(viewsets.ReadOnlyModelViewSet):
         return registration
 
     def create(self, request, *args, **kwargs) -> Response:
-        event_id = self.kwargs.get("registration_pk", None)
+        # Früher wurde die Anmelde-ID als Veranstaltungs-ID verwendet,
+        # dadurch fand die Dublettenprüfung nie etwas.
+        registration = get_object_or_404(Registration, id=self.kwargs.get("registration_pk"))
 
-        check_for_double_participants(request, event_id)
+        check_for_double_participants(request, registration.event_id)
 
         return Response('Person ist nicht vorhanden.', status=status.HTTP_200_OK)
 
@@ -261,7 +264,7 @@ class CheckPersonViewSet(viewsets.ReadOnlyModelViewSet):
 class RegistrationBooleanAttributeViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [event_permissions.IsSubRegistrationResponsiblePerson]
 
     def create(self, request, *args, **kwargs) -> Response:
         post_serializer = BooleanAttributePostSerializer(data=request.data)
@@ -282,7 +285,7 @@ class RegistrationBooleanAttributeViewSet(
 class RegistrationStringAttributeViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [event_permissions.IsSubRegistrationResponsiblePerson]
 
     def create(self, request, *args, **kwargs) -> Response:
         post_serializer = StringAttributePostSerializer(data=request.data)
@@ -303,7 +306,7 @@ class RegistrationStringAttributeViewSet(
 class RegistrationIntegerAttributeViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [event_permissions.IsSubRegistrationResponsiblePerson]
 
     def create(self, request, *args, **kwargs) -> Response:
         post_serializer = IntegerAttributePostSerializer(data=request.data)
@@ -324,7 +327,7 @@ class RegistrationIntegerAttributeViewSet(
 class RegistrationFloatAttributeViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [event_permissions.IsSubRegistrationResponsiblePerson]
 
     def create(self, request, *args, **kwargs) -> Response:
         post_serializer = FloatAttributePostSerializer(data=request.data)
@@ -345,7 +348,7 @@ class RegistrationFloatAttributeViewSet(
 class RegistrationDateTimeAttributeViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [event_permissions.IsSubRegistrationResponsiblePerson]
 
     def create(self, request, *args, **kwargs) -> Response:
         post_serializer = DateTimeAttributePostSerializer(data=request.data)
@@ -366,7 +369,7 @@ class RegistrationDateTimeAttributeViewSet(
 class RegistrationTravelAttributeViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [event_permissions.IsSubRegistrationResponsiblePerson]
 
     def create(self, request, *args, **kwargs) -> Response:
         post_serializer = TravelAttributePostSerializer(data=request.data)
@@ -491,10 +494,9 @@ class RegistrationViewSet(
             return registration_serializers.RegistrationPostSerializer
         elif self.request.method == "GET":
             return registration_serializers.RegistrationGetSerializer
-        elif self.request.method == "PUT":
-            return registration_serializers.RegistrationPutSerializer
-        elif self.request.method == "DESTROY":
-            return registration_serializers.RegistrationPutSerializer
+        # PATCH und DELETE fehlten früher ("DESTROY" ist keine HTTP-Methode),
+        # dadurch stürzten Teiländerungen mit Fehler 500 ab.
+        return registration_serializers.RegistrationPutSerializer
 
 
 class MyRegistrationViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -524,5 +526,9 @@ class SendConfirmationMail(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
 
 class RegistrationRatingViewSet(viewsets.ModelViewSet):
-    queryset = RegistrationRating.objects.all()
+    # Früher ohne Rechteprüfung und für alle Anmeldungen zugleich
+    permission_classes = [event_permissions.IsSubRegistrationResponsiblePerson]
     serializer_class = registration_serializers.RegistrationRatingSerializer
+
+    def get_queryset(self):
+        return RegistrationRating.objects.filter(registration=self.kwargs.get('registration_pk'))

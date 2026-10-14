@@ -112,7 +112,8 @@ if env.bool('USE_RDS_DB'):
             'HOST': env('RDS_HOSTNAME'),
             'PORT': env('RDS_PORT'),
             'CONN_MAX_AGE': 600,
-            'OPTIONS': {'sslmode': 'require'},
+            # Standard bleibt verschlüsselt. Lokal ohne Zertifikat: DB_SSLMODE=disable
+            'OPTIONS': {'sslmode': env('DB_SSLMODE', default='require')},
         }
     }
 else:
@@ -238,6 +239,11 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend'
+    ],
+    # Sicherer Standard: ohne eigene Angabe braucht jeder Endpunkt einen Login.
+    # Öffentliche Endpunkte setzen permission_classes = [AllowAny] ausdrücklich.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'mozilla_django_oidc.contrib.drf.OIDCAuthentication',

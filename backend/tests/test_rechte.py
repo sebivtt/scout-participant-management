@@ -169,9 +169,18 @@ def test_ohne_login_kein_zugriff(client, pfad):
     assert client.get(pfad).status_code == 401
 
 
-# --- Bekannte Serverfehler ---------------------------------------------------
+# --- Listen ohne ID (früher Fehler 500) --------------------------------------
 
-@pytest.mark.xfail(strict=True, reason='Bekannter Fehler: Liste ohne ID führt zu Serverfehler 500 statt 403.')
 @pytest.mark.parametrize('pfad', ['/event/event/', '/event/registration/'])
 def test_listen_ohne_id_liefern_keinen_serverfehler(api, teilnehmer, pfad):
     assert api(teilnehmer).get(pfad).status_code in (403, 405)
+
+
+def test_eigene_anmeldung_teilweise_aendern(api, anmeldende_leitung, fremde_leitung, anmeldung_adler):
+    # PATCH stürzte früher mit Fehler 500 ab. Über diesen Endpunkt lassen sich
+    # die verantwortlichen Personen einer Anmeldung ändern (z. B. Co-Leitung).
+    response = api(anmeldende_leitung).patch(
+        f'/event/registration/{anmeldung_adler.id}/',
+        {'responsiblePersons': [anmeldende_leitung.id, fremde_leitung.id]}, format='json')
+    assert response.status_code == 200
+    assert set(anmeldung_adler.responsible_persons.all()) == {anmeldende_leitung, fremde_leitung}

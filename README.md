@@ -29,12 +29,15 @@ Das Skript legt den Realm `dpv`, die Clients und zwei Testkonten an:
 
 | Benutzer | Passwort | Rolle |
 | --- | --- | --- |
-| `leitung` | `leitung123` | Anmeldeteam |
+| `leitung` | `leitung123` | Anmeldeteam (Staff) |
+| `stammesleitung` | `stamm123` | normale Leitung ohne Sonderrechte |
 | `teilnehmer` | `teilnehmer123` | normale Person |
+
+`leitung` und `stammesleitung` sind Mitglied der Gruppe „Testgruppe Lagerteam“. Diese Gruppe beim Anlegen einer Veranstaltung als Leitungs- und Ansichtsgruppe wählen.
 
 Keycloak-Verwaltung: http://localhost:8180 (admin / admin)
 
-Hinweis: `leitung` hat die Rolle „Anmeldeteam“ und ist damit im Tool Staff. Staff darf alle Gruppen verwalten. Zum Ausprobieren normaler Rechte ein weiteres Konto ohne diese Rolle anlegen.
+Hinweis: `leitung` hat die Rolle „Anmeldeteam“ und ist damit im Tool Staff. Staff darf alle Gruppen verwalten. Normale Rechte lassen sich mit `stammesleitung` ausprobieren.
 
 ### 2. Backend
 
@@ -45,7 +48,8 @@ source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp ../dev/backend.env.example backend/.env
 python manage.py migrate
-python manage.py loaddata data/main/*.json   # Stammdaten: Bünde, Stämme, PLZ
+python manage.py loaddata data/main/*.json   # Stammdaten: Bünde, Stämme, PLZ, Vorlagen
+python manage.py sync_keycloak_groups        # Gruppen aus Keycloak übernehmen
 python manage.py runserver
 ```
 
@@ -94,7 +98,6 @@ pytest
 
 ## Bekannte Einschränkungen
 
-- **SSL zur Datenbank** ist im Code fest vorgeschrieben. Lokal nutzt Postgres dafür ein Testzertifikat.
 - Die Docker-Variante der Hilfsdienste ist noch nicht auf einem echten Rechner erprobt. Der gleiche Aufbau ohne Docker (Postgres 16, Redis, Keycloak 26.7.5) wurde am 14.10.2026 vollständig getestet.
 
 ## Lizenz
