@@ -60,6 +60,18 @@ yarn dev
 
 Das Frontend läuft auf http://localhost:8080.
 
+## Tests
+
+Die Backend-Tests brauchen weder Datenbankserver noch Keycloak:
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+pytest
+```
+
+`tests/test_rechte.py` prüft die Rechteregeln (wer sieht und bearbeitet welche Anmeldung). Tests mit der Markierung `xfail` beschreiben bekannte Fehler, die noch offen sind. Bei jeder Änderung auf GitHub laufen die Backend-Tests und der Frontend-Build automatisch (`.github/workflows/ci.yml`).
+
 ## Bekannte Einschränkungen
 
 - **Keycloak-Schalter:** Das Backend braucht in Keycloak die veraltete Funktion `admin-fine-grained-authz:v1`. Ohne sie startet es nicht. Beim Verband (Keycloak 26.7) ist sie nicht aktiv. Lokal schaltet `dev/docker-compose.yml` sie ein. Die Ablösung ist der erste Punkt der Stabilisierung.

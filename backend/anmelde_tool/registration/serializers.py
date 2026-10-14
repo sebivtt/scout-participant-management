@@ -159,7 +159,8 @@ class RegistrationParticipantReadSerializer(serializers.ModelSerializer):
 class RegistrationParticipantShortSerializer(serializers.ModelSerializer):
     booking_option = RegistrationSummaryBookingOptionSerializer(
         many=False, read_only=True)
-    scout_level = serializers.CharField(source='get_scout_level_display')
+    # Seit März 2025 ist scout_level ein freies Textfeld ohne Auswahlliste,
+    # get_scout_level_display gibt es daher nicht mehr (führte zu Fehler 500).
     eat_habit = serializers.SlugRelatedField(
         many=True,
         read_only=False,
