@@ -1,0 +1,240 @@
+[
+  {
+    "model": "basic.eathabit",
+    "pk": 1,
+    "fields": {
+      "name": "Kein Fleisch (Vegetarisch)"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 2,
+    "fields": {
+      "name": "Keine Tierprodukte (Vegan)"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 3,
+    "fields": {
+      "name": "Keine Nüsse"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 4,
+    "fields": {
+      "name": "Kein Gluten"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 5,
+    "fields": {
+      "name": "Keine Hülsenfrüchte"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 6,
+    "fields": {
+      "name": "Kein Laktose"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 7,
+    "fields": {
+      "name": "Keine Eier"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 8,
+    "fields": {
+      "name": "Kein Kohl"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 9,
+    "fields": {
+      "name": "Keine Erdnüsse"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 10,
+    "fields": {
+      "name": "Kein Soja"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 14,
+    "fields": {
+      "name": "Keine Kuhmilch"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 18,
+    "fields": {
+      "name": "Kein Kernobst"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 23,
+    "fields": {
+      "name": "Kein Käse/Saucen"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 29,
+    "fields": {
+      "name": "Kein Fisch"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 32,
+    "fields": {
+      "name": "Die Mahlzeiten bitte auch kalorienarm gestalten und viel Obst und Gemüse"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 33,
+    "fields": {
+      "name": " Bitte Reiswaffeln (als Brotalternative) und kalorienarme Brotbeläge anbieten"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 36,
+    "fields": {
+      "name": "Kein Apfel"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 37,
+    "fields": {
+      "name": "Keine Paprika"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 38,
+    "fields": {
+      "name": "Kein Mais"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 39,
+    "fields": {
+      "name": "Keine Zitrusfrüchte"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 40,
+    "fields": {
+      "name": "Auch Keine Laktoseersatzprodukte"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 41,
+    "fields": {
+      "name": "Allergische Reaktionen Beim Verzehr Von Gurkenschalen"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 42,
+    "fields": {
+      "name": "Fruktoseintollerant"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 43,
+    "fields": {
+      "name": "Kokos Allergie"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 44,
+    "fields": {
+      "name": "Keine Oliven Auf Der Lasagne"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 45,
+    "fields": {
+      "name": "Keine Allergien (Wenig Schweinefleisch)"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 46,
+    "fields": {
+      "name": "Karotten"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 47,
+    "fields": {
+      "name": "Die Mahlzeiten Bitte Auch Kalorienarm Gestalten Und Viel Obst Und Gemüse"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 48,
+    "fields": {
+      "name": "Bitte Reiswaffeln (Als Brotalternative) Und Kalorienarme Brotbeläge Anbieten"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 49,
+    "fields": {
+      "name": "Allergie Gegen Zimt"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 50,
+    "fields": {
+      "name": "Keine Pilze"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 51,
+    "fields": {
+      "name": "Beifuß"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 52,
+    "fields": {
+      "name": "Keine Großen Mengen An Haselnuss"
+    }
+  },
+  {
+    "model": "basic.eathabit",
+    "pk": 53,
+    "fields": {
+      "name": "Kein Schweinefleisch"
+    }
+  }
+]

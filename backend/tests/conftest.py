@@ -27,6 +27,9 @@ class FakeKeycloak:
     def get_user_groups(self, user_id, brief_representation=True, **kwargs):
         return [{'id': group_id} for group_id in self.user_groups.get(user_id, [])]
 
+    def get_users(self, query=None):
+        return []
+
     def __getattr__(self, name):
         raise AssertionError(f'Unerwarteter Keycloak-Aufruf im Test: keycloak_admin.{name}')
 

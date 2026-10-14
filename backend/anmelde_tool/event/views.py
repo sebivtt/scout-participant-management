@@ -205,13 +205,21 @@ class EventPartialUpdateViewSet(viewsets.ModelViewSet):
     '''
     You just need to provide the field which is to be modified.
     '''
+    # Früher ohne Rechteprüfung: jede Person, auch ohne Login, konnte
+    # beliebige Veranstaltungen ändern.
+    permission_classes = [event_permissions.IsEventSuperResponsiblePerson]
     queryset = Event.objects.all()
     serializer_class = event_serializers.EventCompleteSerializer
+    check_event_dates = EventViewSet.check_event_dates
 
-    def put(self, request, *args, **kwargs):
-        event: Event = self.get_object()
-        self.check_event_dates(request, event)
-        return self.partial_update(request, *args, **kwargs)
+    def update(self, request, *args, **kwargs):
+        # PUT und PATCH ändern hier immer nur die mitgeschickten Felder
+        self.check_event_dates(request, self.get_object())
+        kwargs['partial'] = True
+        return super().update(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class BookingOptionViewSet(viewsets.ModelViewSet):

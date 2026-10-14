@@ -4,7 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 from rest_framework import viewsets, status
 from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from basic import models as basic_models
@@ -75,6 +75,7 @@ def find_zip_code(value, keycloak_param, *filter_args, **filter_kwargs):
 
 
 class CheckZipCodeViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [AllowAny]  # Registrierung vor dem Login
     def create(self, request, *args, **kwargs) -> Response:
         serializer = basic_serializers.CheckZipCodeSerializer(
             data=request.data, many=False)
@@ -133,6 +134,7 @@ class FrontendThemeViewSet(viewsets.ModelViewSet):
 
 
 class GenderViewSet(viewsets.ViewSet):
+    permission_classes = [AllowAny]  # Auswahlliste für die Registrierung
 
     def list(self, request) -> Response:
         result = choice_to_json(Gender.choices)

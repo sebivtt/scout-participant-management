@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from anmelde_tool.event.choices import choices as event_choices
@@ -29,6 +29,7 @@ class LeaderTypesViewSet(RegistrationTypeGroupViewSet):
 
 
 class ScoutLevelTypesViewSet(viewsets.ViewSet):
+    permission_classes = [AllowAny]  # Auswahlliste für die Registrierung
 
     def list(self, request) -> Response:
         result = choice_to_json(event_choices.ScoutLevelTypes.choices)

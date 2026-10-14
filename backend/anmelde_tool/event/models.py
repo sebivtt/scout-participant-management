@@ -77,10 +77,11 @@ class Event(basic_models.TimeStampMixin):
         on_delete=models.SET_DEFAULT,
         default=5
     )
+    # Früher default=1: In einer frischen Datenbank gibt es kein Thema 1,
+    # dadurch ließ sich keine Veranstaltung anlegen.
     theme = models.ForeignKey(
         basic_models.FrontendTheme,
         on_delete=models.SET_NULL,
-        default=1,
         null=True,
         blank=True
     )

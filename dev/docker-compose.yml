@@ -10,12 +10,6 @@ services:
       POSTGRES_USER: scout
       POSTGRES_PASSWORD: scout
       POSTGRES_DB: scout
-    # Das Backend erzwingt derzeit SSL zur Datenbank (sslmode=require).
-    # Das Testzertifikat des Images reicht dafür lokal aus.
-    command: >
-      postgres -c ssl=on
-      -c ssl_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
-      -c ssl_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
     ports:
       - "5432:5432"
     volumes:

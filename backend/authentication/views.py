@@ -12,7 +12,7 @@ from rest_framework import status, viewsets, mixins
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -281,6 +281,7 @@ class BundesPostViewSet(viewsets.ViewSet):
 
 
 class RegisterViewSet(viewsets.ViewSet):
+    permission_classes = [AllowAny]  # Registrierung vor dem Login
     def create(self, request, *args, **kwargs):
         zip_code_obj = get_zipcode(request)
         serializers = RegisterSerializer(data=request.data)
@@ -480,6 +481,7 @@ def find_user(value, keycloak_param, *filter_args, **filter_kwargs):
 
 
 class CheckUsername(viewsets.ViewSet):
+    permission_classes = [AllowAny]  # Registrierung vor dem Login
     def create(self, request, *args, **kwargs) -> Response:
         serializer = CheckUsernameSerializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
@@ -506,6 +508,7 @@ class CheckUsername(viewsets.ViewSet):
 
 
 class CheckEmail(viewsets.ViewSet):
+    permission_classes = [AllowAny]  # Registrierung vor dem Login
     def create(self, request, *args, **kwargs) -> Response:
         serializer = CheckEmailSerializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
@@ -521,6 +524,7 @@ class CheckEmail(viewsets.ViewSet):
 
 
 class CheckPassword(viewsets.ViewSet):
+    permission_classes = [AllowAny]  # Registrierung vor dem Login
     def create(self, request, *args, **kwargs) -> Response:
         serializer = CheckPasswordSerializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)

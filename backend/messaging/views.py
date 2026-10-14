@@ -1,17 +1,29 @@
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status, viewsets
 
-from backend.settings import keycloak_user
+from keycloak_auth.access import member_group_ids
+from keycloak_auth.permissions import IsStaffOrReadOnly
 from messaging.models import Message, IssueType, Issue
 from messaging.serializers import MessageSerializer, IssueReadSerializer, IssueTypeSerializer, IssueTypeReadSerializer, \
     IssueTypeReadShortSerializer, MessageReadSerializer, IssueSerializer
 from basic.helper.choice_to_json import choice_to_json
 from .choices import MessagePriorityChoise, MessageStatusChoise
 from authentication.models import CustomUser
+
+
+def visible_issues(request):
+    """Anfragen, die die Person sehen darf: eigene, und solche, für deren Typ
+    eine ihrer Gruppen zuständig ist. Staff sieht alle."""
+    if request.user.is_staff:
+        return Issue.objects.all().order_by('-created_at')
+    return Issue.objects.filter(
+        Q(created_by=request.user)
+        | Q(issue_type__responsable_groups__keycloak_id__in=member_group_ids(request))
+    ).distinct().order_by('-created_at')
 
 
 # Issue
@@ -21,21 +33,7 @@ class IssueReadViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            return Issue.objects.all().order_by('-created_at')
-        else:
-            try:
-                token = self.request.META.get('HTTP_AUTHORIZATION')
-                keycloak_groups = keycloak_user.get_user_groups(token, self.request.user.keycloak_id)
-                ids = [val['id'] for val in keycloak_groups]
-                return Issue.objects.filter(
-                    Q(created_by=self.request.user)
-                    | Q(issue_type__responsable_groups__keycloak_id__in=ids)
-                ).order_by('-created_at')
-            except Exception as e:
-                print(e)
-
-        return Issue.objects.filter(created_by=self.request.user)
+        return visible_issues(self.request)
 
 
 class IssueViewSet(viewsets.ModelViewSet):
@@ -50,8 +48,14 @@ class IssueViewSet(viewsets.ModelViewSet):
 
 
 class IssueInitCreateViewSet(viewsets.ModelViewSet):
+    """Kontaktformular: Anlegen geht auch ohne Login, alles andere nur für Staff."""
     queryset = Issue.objects.all()
     serializer_class = IssueReadSerializer
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        return [IsAdminUser()]
 
     def create(self, request, *args, **kwargs):
         if request.user.id:
@@ -86,16 +90,23 @@ class IssueInitCreateViewSet(viewsets.ModelViewSet):
 
 class MessageReadViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = Message.objects.all().order_by('-created_at')
     serializer_class = MessageReadSerializer
+
+    def get_queryset(self):
+        return Message.objects.filter(issue__in=visible_issues(self.request)).order_by('-created_at')
 
 
 class MessageViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = Message.objects.all().order_by('-created_at')
     serializer_class = MessageSerializer
 
+    def get_queryset(self):
+        return Message.objects.filter(issue__in=visible_issues(self.request)).order_by('-created_at')
+
     def create(self, request, *args, **kwargs) -> Response:
+        # Nur zu Anfragen schreiben, die man sehen darf
+        if not visible_issues(request).filter(id=request.data.get('issue')).exists():
+            return Response('Keine Berechtigung für diese Anfrage.', status=status.HTTP_403_FORBIDDEN)
         request.data['created_by'] = request.user.id
         return super().create(request, *args, **kwargs)
 
@@ -103,16 +114,19 @@ class MessageViewSet(viewsets.ModelViewSet):
 # Issue-type
 
 class IssueTypeReadViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsStaffOrReadOnly]
     queryset = IssueType.objects.all()
     serializer_class = IssueTypeReadSerializer
 
 
 class IssueTypeViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsStaffOrReadOnly]
     queryset = IssueType.objects.all()
     serializer_class = IssueTypeSerializer
 
 
 class IssueTypeReadShortViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsStaffOrReadOnly]  # Auswahl im Kontaktformular
     queryset = IssueType.objects.all()
     serializer_class = IssueTypeReadShortSerializer
 
@@ -123,6 +137,7 @@ class MessagePriorityChoiceViewSet(viewsets.ViewSet):
     """
     Viewset for message priorities
     """
+    permission_classes = [AllowAny]
 
     # pylint: disable=no-self-use
     def list(self, request) -> Response:
@@ -140,6 +155,7 @@ class MessageStatusChoiceViewSet(viewsets.ViewSet):
     """
     Viewset for message statues
     """
+    permission_classes = [AllowAny]
 
     # pylint: disable=no-self-use
     def list(self, request) -> Response:

@@ -43,6 +43,10 @@ def filter_registration_by_leadership(request, event_id: str, registrations: Que
     user = request.user
     leader_ship = event_permissions.check_leader_permission(event, user)
     event_role = event_permissions.check_event_permission(event, request)
+    if event_role == event_permissions.EventRole.NONE and leader_ship == event_permissions.LeadershipRole.NONE:
+        # Weder Veranstaltungs- noch Bundes-/Ringleitung: keine Anmeldungen.
+        # Früher kamen hier alle Anmeldungen der Veranstaltung zurück.
+        return Registration.objects.none()
     if event_role == event_permissions.EventRole.NONE and leader_ship != event_permissions.LeadershipRole.NONE:
         scout_orga = get_bund_or_ring(
             user.person.scout_group,

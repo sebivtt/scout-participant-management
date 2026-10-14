@@ -598,6 +598,10 @@ class EventAlcoholAgeGroupsSummaryViewSet(EventFoodSummaryViewSet):
 
 
 class CashSummaryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    permission_classes = [
+        event_permissions.IsSubEventResponsiblePerson | event_permissions.IsLeaderPerson
+    ]
+
     def list(self, request, *args, **kwargs) -> Response:
         registrations: QuerySet[Registration] = self.get_queryset()
         event_id = self.kwargs.get("event_pk", None)
