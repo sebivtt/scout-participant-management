@@ -9,8 +9,8 @@ from basic.serializers import ScoutHierarchySerializer
 from keycloak_auth.api_exceptions import NotAuthorized
 from keycloak_auth.choices import CreateGroupChoices
 from keycloak_auth.enums import PermissionType
-from keycloak_auth.helper import get_groups_of_user
 from keycloak_auth.models import KeycloakGroup, ExternalLinks
+from keycloak_auth.access import member_group_ids
 from keycloak_auth.permissions import request_group_access
 
 User: CustomUser = get_user_model()
@@ -187,14 +187,8 @@ class FullGroupSerializer(serializers.ModelSerializer):
 
     def get_is_member(self, obj: KeycloakGroup) -> bool:
         request = self.context.get('request')
-        if request and request.META:
-            token = request.META.get('HTTP_AUTHORIZATION')
-            ids = get_groups_of_user(token, request.user.keycloak_id)
-
-            if any(obj.keycloak_id == group_id for group_id in ids):
-                return True
-
-        return False
+        # member_group_ids fragt Keycloak nur einmal pro Anfrage, nicht pro Gruppe
+        return bool(request) and obj.keycloak_id in member_group_ids(request)
 
     def get_display_name(self, obj: KeycloakGroup):
         return get_display_name_group(obj)

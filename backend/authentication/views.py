@@ -31,6 +31,7 @@ from keycloak_auth.helper import (
     check_group_admin_permission,
     get_groups_of_user,
 )
+from keycloak_auth.access import direct_group_roles
 from keycloak_auth.models import KeycloakGroup
 from keycloak_auth.serializers import FullGroupSerializer
 from .choices import BundesPostTextChoice
@@ -456,13 +457,13 @@ class UserPermissionViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
     def list(self, request) -> Response:
-        composite_client_roles = keycloak_admin.get_composite_client_roles_of_user(
-            request.user.keycloak_id,
-            keycloak_admin.realm_management_client_id,
-            brief_representation=True,
-        )
-        ids = [val["name"] for val in composite_client_roles]
-        return Response(ids, status=status.HTTP_200_OK)
+        # Gleiches Format wie früher die Keycloak-Client-Rollen:
+        # group-<keycloak-id>-admin-role / group-<keycloak-id>-view-role
+        names = [
+            f'group-{group_id}-{role}-role'
+            for group_id, role in direct_group_roles(request)
+        ]
+        return Response(names, status=status.HTTP_200_OK)
 
 
 def find_user(value, keycloak_param, *filter_args, **filter_kwargs):
