@@ -1,0 +1,9 @@
+# Lokale Konfiguration und Daten
+.env
+.env.local
+*.sqlite3
+.venv/
+node_modules/
+.DS_Store
+.idea/
+.vscode/

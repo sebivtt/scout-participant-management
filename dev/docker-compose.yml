@@ -1,0 +1,52 @@
+# Hilfsdienste für die lokale Entwicklung: Datenbank, Redis, Keycloak.
+# Backend und Frontend laufen direkt auf dem Rechner (siehe README.md).
+# NICHT für den Echtbetrieb verwenden.
+name: scout-dev
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: scout
+      POSTGRES_PASSWORD: scout
+      POSTGRES_DB: scout
+    # Das Backend erzwingt derzeit SSL zur Datenbank (sslmode=require).
+    # Das Testzertifikat des Images reicht dafür lokal aus.
+    command: >
+      postgres -c ssl=on
+      -c ssl_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+      -c ssl_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  keycloak:
+    # Gleiche Version wie beim Verband (dpvonline/azure-docker, Stand Juli 2026)
+    image: quay.io/keycloak/keycloak:26.7
+    # admin-fine-grained-authz:v1 braucht das Backend derzeit zwingend.
+    # Der Schalter ist in Keycloak als veraltet markiert und beim Verband
+    # nicht aktiv. Die Ablösung ist Teil der Stabilisierung.
+    command: >
+      start-dev --http-port=8180
+      --features=admin-fine-grained-authz:v1
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: scout
+      KC_DB_PASSWORD: scout
+    ports:
+      - "8180:8180"
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:
