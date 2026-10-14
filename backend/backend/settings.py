@@ -5,6 +5,7 @@ import environ
 from celery.schedules import crontab
 from keycloak import KeycloakAdmin
 from django.conf.global_settings import DATETIME_INPUT_FORMATS
+from django.utils.functional import SimpleLazyObject
 
 from authentication.KeycloakOpenIDExtended import KeycloakOpenIDExtended
 from authentication.choices import EmailNotificationType
@@ -265,9 +266,12 @@ GRAPHENE = {
     "SCHEMA": "basic.schema.schema"
 }
 
-CELERY_BROKER_URL = env('CELERY_BROKER')
-CELERY_RESULT_BACKEND = env('CELERY_BROKER')
-USE_CELERY = env('USE_CELERY')
+CELERY_BROKER_URL = env('CELERY_BROKER', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+# Früher als Text gelesen: "False" galt dadurch als wahr.
+USE_CELERY = env.bool('USE_CELERY', default=False)
+# Ohne Celery laufen Hintergrundaufgaben direkt im Webprozess.
+CELERY_TASK_ALWAYS_EAGER = not USE_CELERY
 CELERY_TIMEZONE = 'Europe/Berlin'
 CELERY_BEAT_SCHEDULE = {
     "import_keycloak_members": {
@@ -296,21 +300,26 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-keycloak_admin = KeycloakAdminExtended(
-    server_url=env('BASE_URI'),
-    client_id=env('KEYCLOAK_ADMIN_USER'),
-    client_secret_key=env('KEYCLOAK_ADMIN_PASSWORD'),
-    realm_name=env('KEYCLOAK_APP_REALM'),
-    user_realm_name=env('KEYCLOAK_APP_REALM'),
-    verify=True,
-    auto_refresh_token=['get', 'put', 'post', 'delete']
-)
+_keycloak_admin_settings = {
+    'server_url': BASE_URI,
+    'client_id': env('KEYCLOAK_ADMIN_USER'),
+    'client_secret_key': env('KEYCLOAK_ADMIN_PASSWORD'),
+    'realm_name': env('KEYCLOAK_APP_REALM'),
+    'user_realm_name': env('KEYCLOAK_APP_REALM'),
+    'verify': True,
+    'auto_refresh_token': ['get', 'put', 'post', 'delete'],
+}
 
-keycloak_user = KeycloakOpenIDExtended(
-    server_url=env('BASE_URI'),
-    client_id=env('OIDC_RP_CLIENT_ID'),
+# Keycloak wird erst beim ersten Zugriff kontaktiert, nicht schon beim Laden
+# der Einstellungen. So starten Webserver, Migrationen und Tests auch dann,
+# wenn Keycloak gerade nicht erreichbar ist.
+keycloak_admin = SimpleLazyObject(lambda: KeycloakAdminExtended(**_keycloak_admin_settings))
+
+keycloak_user = SimpleLazyObject(lambda: KeycloakOpenIDExtended(
+    server_url=BASE_URI,
+    client_id=OIDC_RP_CLIENT_ID,
     realm_name=env('OIDC_RP_REALMNAME'),
-)
+))
 
 if not DEBUG:
     SERVER_EMAIL = 'error@anmelde-tool.de'

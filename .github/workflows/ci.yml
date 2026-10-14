@@ -1,0 +1,59 @@
+name: Prüfungen
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend-Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DJANGO_SETTINGS_MODULE: backend.settings_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - name: Abhängigkeiten installieren
+        run: pip install -r requirements-dev.txt
+      - name: Django-Systemprüfung
+        run: python manage.py check
+      - name: Fehlen Migrationen?
+        run: python manage.py makemigrations --check --dry-run
+      - name: Tests
+        run: pytest -p no:warnings -rxX
+
+  frontend:
+    name: Frontend-Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      CYPRESS_INSTALL_BINARY: '0'
+      VITE_APP_API: http://localhost:8000
+      VITE_APP_URL: http://localhost:8080
+      VITE_APP_KEYCLOAK_URL: http://localhost:8180/
+      VITE_APP_KEYCLOAK_REALM: dpv
+      VITE_APP_KEYCLOAK_CLIENT_ID: scout-frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+      - name: Abhängigkeiten installieren
+        run: yarn install --frozen-lockfile
+      - name: Produktions-Build
+        run: yarn build
