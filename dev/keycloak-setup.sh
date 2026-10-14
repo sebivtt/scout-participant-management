@@ -65,10 +65,15 @@ fi
 # Rolle für das Organisationsteam und Testbenutzer
 $KCADM create roles -r "$REALM" -s name=anmelde_tool_team >/dev/null 2>&1 || true
 create_user () { # username password first last fahrtenname team?
-  if ! $KCADM get users -r "$REALM" -q username="$1" --fields id | grep -q id; then
+  if ! $KCADM get users -r "$REALM" -q username="$1" -q exact=true --fields id | grep -q id; then
     $KCADM create users -r "$REALM" -s username="$1" -s email="$1@example.org" -s emailVerified=true \
       -s firstName="$3" -s lastName="$4" -s enabled=true -s "attributes.fahrtenname=$5" >/dev/null
     $KCADM set-password -r "$REALM" --username "$1" --new-password "$2"
+  else
+    # Repariert Testkonten, deren Profil verloren ging (Fehler vor Oktober 2026)
+    USER_ID=$($KCADM get users -r "$REALM" -q username="$1" -q exact=true --fields id --format csv --noquotes)
+    $KCADM update "users/$USER_ID" -r "$REALM" -s email="$1@example.org" -s emailVerified=true \
+      -s firstName="$3" -s lastName="$4" >/dev/null
   fi
   [ "${6:-}" = team ] && $KCADM add-roles -r "$REALM" --uusername "$1" --rolename anmelde_tool_team || true
 }
