@@ -5,6 +5,7 @@ from rest_framework import serializers
 
 from anmelde_tool.attributes.serializers import AttributeModuleEventReadSerializer
 from anmelde_tool.email_services import serializers as email_services_serializers
+from anmelde_tool.event import deadlines
 from anmelde_tool.event import models as event_models
 from anmelde_tool.event import permissions as event_permissions
 from anmelde_tool.event.models import EventModule
@@ -72,6 +73,9 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
             'registration_deadline',
             'registration_start',
             'last_possible_update',
+            'registration_closes_at',
+            'registration_closed',
+            'changes_closed',
             'cloud_link',
         )
 
@@ -116,7 +120,23 @@ class EventPostSerializer(serializers.ModelSerializer):
         }
 
 
-class EventCompleteSerializer(serializers.ModelSerializer):
+class DeadlineFieldsMixin(serializers.Serializer):
+    """Eindeutige Angaben zu den Fristen, siehe anmelde_tool/event/deadlines.py."""
+    registration_open = serializers.SerializerMethodField()
+    changes_open = serializers.SerializerMethodField()
+    phase = serializers.SerializerMethodField()
+
+    def get_registration_open(self, obj: event_models.Event) -> bool:
+        return deadlines.can_register(obj)
+
+    def get_changes_open(self, obj: event_models.Event) -> bool:
+        return deadlines.can_change(obj)
+
+    def get_phase(self, obj: event_models.Event) -> str:
+        return deadlines.phase(obj)
+
+
+class EventCompleteSerializer(DeadlineFieldsMixin, serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     existing_register = serializers.SerializerMethodField()
     responsible_persons = serializers.SlugRelatedField(
@@ -135,12 +155,10 @@ class EventCompleteSerializer(serializers.ModelSerializer):
             .filter(event=obj.id, responsible_persons=self.context['request'].user) \
             .exists()
 
-        if obj.registration_deadline > timezone.now():
-            return 'pending'
-        elif obj.registration_deadline <= timezone.now():
-            return 'expired'
-        else:
-            return 'error'
+        # "pending" schaltet in der Oberfläche das Bearbeiten frei. Seit den
+        # Fristregeln vom 14.10.2026 entscheidet die Änderungsfrist, nicht der
+        # offizielle Anmeldeschluss.
+        return 'pending' if deadlines.can_change(obj) else 'expired'
 
     def get_existing_register(self, obj: event_models.Event) -> Registration:
         registration = Registration.objects \
@@ -178,7 +196,7 @@ class EventReadModuleSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
-class EventReadSerializer(serializers.ModelSerializer):
+class EventReadSerializer(DeadlineFieldsMixin, serializers.ModelSerializer):
     location = EventLocationShortSerializer(many=False, read_only=True)
     eventmodule_set = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
@@ -203,12 +221,10 @@ class EventReadSerializer(serializers.ModelSerializer):
 
     def get_status(self, obj: event_models.Event) -> str:
 
-        if obj.registration_deadline > timezone.now():
-            return 'pending'
-        elif obj.registration_deadline <= timezone.now():
-            return 'expired'
-        else:
-            return 'error'
+        # "pending" schaltet in der Oberfläche das Bearbeiten frei. Seit den
+        # Fristregeln vom 14.10.2026 entscheidet die Änderungsfrist, nicht der
+        # offizielle Anmeldeschluss.
+        return 'pending' if deadlines.can_change(obj) else 'expired'
 
     def get_booking_options(self, obj: event_models.Event) -> list:
         booking_options = event_models.BookingOption.objects.filter(event=obj.id)
@@ -282,7 +298,7 @@ class RegistrationReadSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class MyInvitationsSerializer(serializers.ModelSerializer):
+class MyInvitationsSerializer(DeadlineFieldsMixin, serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     booking_options = serializers.SerializerMethodField()
     location = EventLocationShortSerializer(many=False, read_only=True)
@@ -308,22 +324,17 @@ class MyInvitationsSerializer(serializers.ModelSerializer):
             'last_possible_update',
             'booking_options',
             'existing_register',
-            'expired_since'
+            'expired_since',
+            'registration_closes_at',
+            'registration_closed',
+            'changes_closed',
+            'registration_open',
+            'changes_open',
+            'phase',
         )
 
     def get_status(self, obj: event_models.Event) -> str:
-        if obj.registration_start > timezone.now():
-            return 'upcoming'
-        elif obj.registration_deadline > timezone.now():
-            return 'pending'
-        elif obj.registration_deadline <= timezone.now() < obj.last_possible_update:
-            return 'just_editable'
-        elif obj.registration_deadline <= timezone.now() < obj.end_date:
-            return 'expired'
-        elif obj.end_date <= timezone.now():
-            return 'archived'
-        else:
-            return 'error'
+        return deadlines.phase(obj)
 
     def get_expired_since(self, obj: event_models.Event) -> int:
         return (timezone.now() - obj.registration_deadline).days

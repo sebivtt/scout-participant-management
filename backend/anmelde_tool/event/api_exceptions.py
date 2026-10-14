@@ -108,7 +108,7 @@ class EndBeforeStart(APIException):
 
 class StartBeforeLastChange(APIException):
     status_code = 400
-    default_detail = "Es dürfen noch Daten geändert werden, nachdem die Fahrt gestartet ist."
+    default_detail = "Änderungen an Anmeldungen dürfen höchstens bis zum Veranstaltungsbeginn möglich sein."
     default_code = 'wrong_order'
 
 
@@ -212,3 +212,15 @@ class ScoutHierarchyAtThisLevelNotPossible(APIException):
     status_code = 403
     default_detail = 'Gruppen können nur auf Stammesebene angelegt werden.'
     default_code = 'wrong_level'
+
+
+class RegistrationClosed(APIException):
+    status_code = 403
+    default_detail = 'Für diese Veranstaltung sind keine neuen Anmeldungen mehr möglich. Bitte wende dich an die Veranstaltungsleitung.'
+    default_code = 'registration_closed'
+
+
+class ChangesClosed(APIException):
+    status_code = 403
+    default_detail = 'Änderungen an Anmeldungen sind für diese Veranstaltung nicht mehr möglich. Bitte wende dich an die Veranstaltungsleitung.'
+    default_code = 'changes_closed'

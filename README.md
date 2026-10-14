@@ -84,6 +84,21 @@ Wer welche Gruppe verwalten oder einsehen darf, steht in der Tabelle **Gruppenre
 
 Die veraltete Keycloak-Funktion `admin-fine-grained-authz` wird nicht mehr benötigt. Der Service-Account des Backends kommt mit Standard-Rollen des Clients `realm-management` aus. Voraussichtlich reichen `view-users`, `query-groups`, `manage-users`, `manage-realm` und `manage-clients`. Getestet ist bisher nur mit `realm-admin`, die Prüfung der kleineren Rollenauswahl folgt.
 
+## Fristen
+
+Regeln vom 14.10.2026, umgesetzt in `backend/anmelde_tool/event/deadlines.py`:
+
+| Einstellung der Veranstaltung | Wirkung |
+| --- | --- |
+| Anmeldestart (`registration_start`) | vorher keine Anmeldung möglich |
+| Offizieller Anmeldeschluss (`registration_deadline`) | wird angezeigt, sperrt nichts |
+| Technische Sperre ab (`registration_closes_at`, optional) | danach keine neuen Anmeldungen |
+| Neue Anmeldungen gesperrt (`registration_closed`) | manuell, sofort |
+| Letzte Änderung möglich (`last_possible_update`, optional) | danach keine Änderungen; leer = Veranstaltungsbeginn |
+| Änderungen gesperrt (`changes_closed`) | manuell, sofort; sperrt auch neue Anmeldungen |
+
+Die Veranstaltungsleitung ist von allen Sperren ausgenommen. Die neuen Schalter lassen sich vorerst über die API und die Django-Verwaltung setzen, die Oberfläche folgt in Phase 4.
+
 ## Tests
 
 Die Backend-Tests brauchen weder Datenbankserver noch Keycloak:

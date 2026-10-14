@@ -79,9 +79,11 @@ def create_missing_eat_habits(request) -> [str]:
     return result
 
 
-def get_attribute_params(kwargs, post_serializer):
+def get_attribute_params(kwargs, post_serializer, request=None):
     registration_id = kwargs.get("registration_pk")
     registration = get_object_or_404(Registration, id=registration_id)
+    if request is not None:
+        event_permissions.require_changes_open(request, registration.event)
     attribute_module_id = post_serializer.data["attribute_module"]
     attribute_module = get_object_or_404(AttributeModule, id=attribute_module_id)
     return attribute_module, registration
@@ -224,14 +226,9 @@ class RegistrationSingleParticipantViewSet(viewsets.ModelViewSet):
         registration_id = self.kwargs.get("registration_pk", None)
         registration: Registration = get_registration(registration_id)
 
-        if not event_permissions.IsEventSuperResponsiblePerson:
-            if registration.event.registration_start > timezone.now():
-                raise event_api_exceptions.TooEarly
-            elif (
-                    self.action != "destroy"
-                    and registration.event.last_possible_update < timezone.now()
-            ):
-                raise event_api_exceptions.TooLate
+        # Früher: "if not IsEventSuperResponsiblePerson" prüfte eine Klasse
+        # (immer wahr) und die Fristen griffen nie.
+        event_permissions.require_changes_open(request, registration.event)
 
         return registration
 
@@ -270,7 +267,7 @@ class RegistrationBooleanAttributeViewSet(
         post_serializer = BooleanAttributePostSerializer(data=request.data)
         post_serializer.is_valid(raise_exception=True)
 
-        attribute_module, registration = get_attribute_params(kwargs, post_serializer)
+        attribute_module, registration = get_attribute_params(kwargs, post_serializer, request)
 
         attribute = BooleanAttribute.objects.create(
             attribute_module=attribute_module,
@@ -291,7 +288,7 @@ class RegistrationStringAttributeViewSet(
         post_serializer = StringAttributePostSerializer(data=request.data)
         post_serializer.is_valid(raise_exception=True)
 
-        attribute_module, registration = get_attribute_params(kwargs, post_serializer)
+        attribute_module, registration = get_attribute_params(kwargs, post_serializer, request)
 
         attribute = StringAttribute.objects.create(
             attribute_module=attribute_module,
@@ -312,7 +309,7 @@ class RegistrationIntegerAttributeViewSet(
         post_serializer = IntegerAttributePostSerializer(data=request.data)
         post_serializer.is_valid(raise_exception=True)
 
-        attribute_module, registration = get_attribute_params(kwargs, post_serializer)
+        attribute_module, registration = get_attribute_params(kwargs, post_serializer, request)
 
         attribute = IntegerAttribute.objects.create(
             attribute_module=attribute_module,
@@ -333,7 +330,7 @@ class RegistrationFloatAttributeViewSet(
         post_serializer = FloatAttributePostSerializer(data=request.data)
         post_serializer.is_valid(raise_exception=True)
 
-        attribute_module, registration = get_attribute_params(kwargs, post_serializer)
+        attribute_module, registration = get_attribute_params(kwargs, post_serializer, request)
 
         attribute = FloatAttribute.objects.create(
             attribute_module=attribute_module,
@@ -354,7 +351,7 @@ class RegistrationDateTimeAttributeViewSet(
         post_serializer = DateTimeAttributePostSerializer(data=request.data)
         post_serializer.is_valid(raise_exception=True)
 
-        attribute_module, registration = get_attribute_params(kwargs, post_serializer)
+        attribute_module, registration = get_attribute_params(kwargs, post_serializer, request)
 
         attribute = DateTimeAttribute.objects.create(
             attribute_module=attribute_module,
@@ -375,7 +372,7 @@ class RegistrationTravelAttributeViewSet(
         post_serializer = TravelAttributePostSerializer(data=request.data)
         post_serializer.is_valid(raise_exception=True)
 
-        attribute_module, registration = get_attribute_params(kwargs, post_serializer)
+        attribute_module, registration = get_attribute_params(kwargs, post_serializer, request)
 
         attribute = TravelAttribute.objects.create(
             attribute_module=attribute_module,
@@ -416,6 +413,7 @@ class RegistrationViewSet(
         event: event_models.Event = get_object_or_404(
             event_models.Event, pk=serializer.data["event"]
         )
+        event_permissions.require_registration_open(request, event)
 
         scout_organisation_id = serializer.data["scout_organisation"]
         err_msg = f"Element (Bund, Ring, Stamm) mit der Id {scout_organisation_id}"
@@ -447,6 +445,7 @@ class RegistrationViewSet(
     def update(self, request, *args, **kwargs) -> Response:
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
+        event_permissions.require_changes_open(request, instance.event)
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         tmp: Registration = serializer.save()
@@ -461,21 +460,10 @@ class RegistrationViewSet(
         participants_count = RegistrationParticipant.objects.filter(
             registration=registration.id
         ).count()
-        if participants_count == 0:
-
-            BooleanAttribute.objects.filter(registration=registration.id).delete()
-            StringAttribute.objects.filter(registration=registration.id).delete()
-            DateTimeAttribute.objects.filter(registration=registration.id).delete()
-            IntegerAttribute.objects.filter(registration=registration.id).delete()
-            FloatAttribute.objects.filter(registration=registration.id).delete()
-            TravelAttribute.objects.filter(registration=registration.id).delete()
-
-            return super().destroy(request, *args, **kwargs)
-
-        if registration.event.last_possible_update < timezone.now():
-            raise event_api_exceptions.TooLate
-        elif registration.event.registration_deadline < timezone.now():
-            raise event_api_exceptions.TooManyParticipants
+        # Eine leere Anmeldung darf immer gelöscht werden. Mit Personen gilt
+        # die Änderungsfrist. Der offizielle Anmeldeschluss sperrt nicht mehr.
+        if participants_count > 0:
+            event_permissions.require_changes_open(request, registration.event)
 
         BooleanAttribute.objects.filter(registration=registration.id).delete()
         StringAttribute.objects.filter(registration=registration.id).delete()
