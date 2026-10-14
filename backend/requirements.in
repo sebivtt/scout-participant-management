@@ -1,0 +1,45 @@
+# Direkte Abhängigkeiten des Backends.
+# requirements.txt wird daraus erzeugt (alle Versionen festgeschrieben):
+#   pip install pip-tools
+#   pip-compile --strip-extras requirements.in
+# Aktualisieren aller Pakete: pip-compile --upgrade --strip-extras requirements.in
+
+# Grundgerüst
+Django~=5.2.0                 # LTS, Sicherheitsupdates bis April 2028
+djangorestframework
+djangorestframework-camel-case
+drf-nested-routers
+django-filter
+django-cors-headers
+django-environ
+django-extensions
+drf-api-logger
+
+# Login und Keycloak
+mozilla-django-oidc
+python-keycloak
+
+# Hintergrundaufgaben
+celery[redis]
+
+# Dateien, Mails, Speicher
+django-storages[s3]
+django-ses
+django-stdimage
+Pillow
+openpyxl
+
+# Sonstige Funktionen
+django-colorfield
+# notifications: als eigenes Modul übernommen (backend/notifications), braucht:
+jsonfield
+django-model-utils
+swapper
+geopy
+python-dateutil
+pytz
+requests
+
+# Betrieb
+gunicorn
+psycopg2-binary

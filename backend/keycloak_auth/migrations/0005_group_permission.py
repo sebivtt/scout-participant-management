@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="grouppermission",
             constraint=models.CheckConstraint(
-                check=models.Q(
+                condition=models.Q(
                     models.Q(("user__isnull", False), ("via_group__isnull", True)),
                     models.Q(("user__isnull", True), ("via_group__isnull", False)),
                     _connector="OR",

@@ -4,7 +4,7 @@ import logging
 from django.db.models import QuerySet
 from keycloak import KeycloakGetError, KeycloakAuthenticationError
 
-from backend.settings import keycloak_user, keycloak_admin
+from backend.settings import keycloak_admin
 from keycloak_auth.api_exceptions import NotAuthorized
 from keycloak_auth.models import KeycloakGroup
 

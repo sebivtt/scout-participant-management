@@ -3,11 +3,9 @@ from pathlib import Path
 
 import environ
 from celery.schedules import crontab
-from keycloak import KeycloakAdmin
 from django.conf.global_settings import DATETIME_INPUT_FORMATS
 from django.utils.functional import SimpleLazyObject
 
-from authentication.KeycloakOpenIDExtended import KeycloakOpenIDExtended
 from authentication.choices import EmailNotificationType
 from keycloak_auth.KeycloakAdminExtended import KeycloakAdminExtended
 
@@ -197,13 +195,17 @@ else:
 
 AUTH_USER_MODEL = 'authentication.CustomUser'
 
-CORS_ORIGIN_WHITELIST = env.list("CORS_ORIGIN_WHITELIST")
-CSRF_TRUSTED_ORIGINS = env.list("CORS_ORIGIN_WHITELIST")
+# Umgebungsvariable heißt weiter CORS_ORIGIN_WHITELIST (bestehende .env-Dateien)
+CORS_ALLOWED_ORIGINS = env.list("CORS_ORIGIN_WHITELIST")
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_ALLOW_ALL = False
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+CORS_ALLOW_ALL_ORIGINS = False
+# HTTPS: Im Echtbetrieb läuft das Tool hinter einem Proxy (Caddy/nginx), der
+# HTTPS übernimmt. Cookies nur über HTTPS, sobald DEBUG aus ist.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
+SESSION_COOKIE_SECURE = env.bool('SECURE_COOKIES', default=not DEBUG)
+CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
 SECURE_HSTS_SECONDS = 60
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
@@ -313,7 +315,6 @@ _keycloak_admin_settings = {
     'realm_name': env('KEYCLOAK_APP_REALM'),
     'user_realm_name': env('KEYCLOAK_APP_REALM'),
     'verify': True,
-    'auto_refresh_token': ['get', 'put', 'post', 'delete'],
 }
 
 # Keycloak wird erst beim ersten Zugriff kontaktiert, nicht schon beim Laden
@@ -321,11 +322,6 @@ _keycloak_admin_settings = {
 # wenn Keycloak gerade nicht erreichbar ist.
 keycloak_admin = SimpleLazyObject(lambda: KeycloakAdminExtended(**_keycloak_admin_settings))
 
-keycloak_user = SimpleLazyObject(lambda: KeycloakOpenIDExtended(
-    server_url=BASE_URI,
-    client_id=OIDC_RP_CLIENT_ID,
-    realm_name=env('OIDC_RP_REALMNAME'),
-))
 
 if not DEBUG:
     SERVER_EMAIL = 'error@anmelde-tool.de'

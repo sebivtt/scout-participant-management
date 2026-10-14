@@ -82,7 +82,7 @@ class SyncKeycloakGroups:
         name = self.generate_name(keycloak_group)
         self.groups[name] = True
 
-        for sub_group in keycloak_admin.get_subgroups(group):
+        for sub_group in keycloak_admin.get_child_groups(group):
             self.get_subgroup(sub_group, keycloak_group)
 
     def generate_name(self, group: KeycloakGroup):

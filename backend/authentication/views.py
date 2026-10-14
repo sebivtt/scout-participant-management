@@ -19,7 +19,7 @@ from rest_framework.viewsets import GenericViewSet
 from anmelde_tool.registration.views import create_missing_eat_habits
 from authentication import models as auth_models
 from authentication import serializers as auth_serializer
-from backend.settings import env, keycloak_admin, keycloak_user
+from backend.settings import env, keycloak_admin
 from basic.api_exceptions import TooManySearchResults, NoSearchResults, ZipCodeNotFound
 from basic.choices import Gender
 from basic.helper.choice_to_json import choice_to_json
@@ -31,7 +31,8 @@ from keycloak_auth.helper import (
     check_group_admin_permission,
     get_groups_of_user,
 )
-from keycloak_auth.access import direct_group_roles
+from keycloak_auth.access import direct_group_roles, has_group_permission
+from keycloak_auth.enums import PermissionType
 from keycloak_auth.models import KeycloakGroup
 from keycloak_auth.serializers import FullGroupSerializer
 from .choices import BundesPostTextChoice
@@ -581,20 +582,14 @@ class MyMembersViewSet(viewsets.ModelViewSet):
     pagination_class = BigResultsSetPagination
 
     def get_queryset(self):
-        token = self.request.META.get("HTTP_AUTHORIZATION")
         scout_group = self.request.user.person.scout_group
 
         if not scout_group or not scout_group.keycloak:
             return Person.objects.none()
 
-        group_id = scout_group.keycloak.keycloak_id
-
-        all_users = True
-
-        try:
-            keycloak_user.get_group_users(token, group_id)
-        except KeycloakGetError:
-            all_users = False
+        # Alle Personen des Stamms nur für dessen Leitung (Admin-Recht).
+        # Früher genügte es, Mitglied des Stamms zu sein.
+        all_users = has_group_permission(self.request, scout_group.keycloak, PermissionType.ADMIN)
 
         if all_users:
             users = Person.objects.filter(
@@ -783,12 +778,7 @@ class MyTribeVerifiedViewSet(viewsets.ViewSet):
                 status=status.HTTP_200_OK,
             )
 
-        group_id = user.person.scout_group.keycloak.keycloak_id
-        token = self.request.META.get("HTTP_AUTHORIZATION")
-
-        try:
-            keycloak_user.get_group_users(token, group_id)
-        except KeycloakGetError:
+        if not has_group_permission(request, user.person.scout_group.keycloak, PermissionType.VIEW):
             return Response(
                 {
                     "status": "Du bist nicht berechtigt auf diesen Stamm zuzugreifen. Bitte deine Stammesführung dich zu authorisieren.",
@@ -812,19 +802,13 @@ class AddablePersons(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
 
     def get_queryset(self):
-        token = self.request.META.get("HTTP_AUTHORIZATION")
         scout_group = self.request.user.person.scout_group
 
         if not scout_group or not scout_group.keycloak:
             return auth_models.Person.objects.none()
 
-        group_id = scout_group.keycloak.keycloak_id
-
-        all_users = True
-        try:
-            keycloak_user.get_group_users(token, group_id)
-        except KeycloakGetError:
-            all_users = False
+        # Alle Personen des Stamms nur für dessen Leitung (Admin-Recht)
+        all_users = has_group_permission(self.request, scout_group.keycloak, PermissionType.ADMIN)
 
         if all_users:
             users = Person.objects.filter(
