@@ -17,8 +17,9 @@ Lies und befolge `CONTRIBUTING.md`. Kurzfassung:
 
 ## Vor jeder Änderung
 
-1. Fachliche Regeln stehen in `docs/entscheidungen.md`. Widerspricht eine Anfrage einer dort festgehaltenen Entscheidung, frag nach, statt sie still zu ändern.
-2. Begriffe: `docs/glossar.md`. Aufbau des Systems: `docs/architektur.md`.
+1. Stand, nächste Schritte und bekannte Anforderungen: `docs/fahrplan.md`. Erledigte Punkte dort abhaken, neue ergänzen.
+2. Fachliche Regeln stehen in `docs/entscheidungen.md`. Widerspricht eine Anfrage einer dort festgehaltenen Entscheidung, frag nach, statt sie still zu ändern.
+3. Begriffe: `docs/glossar.md`. Aufbau des Systems: `docs/architektur.md`.
 
 ## Arbeitsweise
 

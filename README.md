@@ -17,6 +17,7 @@ Neben dem Anmeldetool enthält das Backend weitere Module (Essensplanung, Inspi,
 | Datei | Inhalt |
 | --- | --- |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Regeln für die Entwicklung |
+| [`docs/fahrplan.md`](docs/fahrplan.md) | **Einstieg:** Stand, nächste Schritte, bekannte Anforderungen |
 | [`docs/architektur.md`](docs/architektur.md) | Aufbau des Systems, Ablauf einer Anmeldung, wo was liegt |
 | [`docs/entscheidungen.md`](docs/entscheidungen.md) | Fachliche und technische Entscheidungen mit Begründung |
 | [`docs/glossar.md`](docs/glossar.md) | Deutsche Fachbegriffe und ihre Namen im Code |
