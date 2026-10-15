@@ -10,8 +10,12 @@ permissions:
 
 jobs:
   backend:
-    name: Backend-Tests
+    name: Backend-Tests (Python ${{ matrix.python }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12', '3.13']
     defaults:
       run:
         working-directory: backend
@@ -21,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python }}
           cache: pip
           cache-dependency-path: backend/requirements*.txt
       - name: Abhängigkeiten installieren
@@ -32,6 +36,11 @@ jobs:
         run: python manage.py makemigrations --check --dry-run
       - name: Tests
         run: pytest -p no:warnings -rxX
+      - name: Bekannte Sicherheitslücken in Paketen?
+        if: matrix.python == '3.13'
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt
 
   frontend:
     name: Frontend-Build

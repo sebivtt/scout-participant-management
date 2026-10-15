@@ -39,3 +39,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 SEND_MAIL = False
 CELERY_TASK_ALWAYS_EAGER = True
 LOGGING = {'version': 1, 'disable_existing_loggers': False}
+# Der API-Logger schreibt in einem Hintergrund-Thread. In Tests kollidiert das
+# mit dem Aufräumen der Testdatenbank und führt zu zufälligen Fehlern.
+MIDDLEWARE = [m for m in MIDDLEWARE if not m.startswith('drf_api_logger.')]

@@ -6,7 +6,7 @@ Das Projekt baut auf dem archivierten DPV-Tool auf ([scout-tool-backend](https:/
 
 | Ordner | Inhalt | Ursprung |
 | --- | --- | --- |
-| `backend/` | Django REST API (Python 3.11) | `scout-tool-backend`, Zweig `main` (451ace1, 12.03.2025) |
+| `backend/` | Django 5.2 LTS REST API (Python 3.11 bis 3.13) | `scout-tool-backend`, Zweig `main` (451ace1, 12.03.2025) |
 | `frontend/` | Vue 3 + Vite + Tailwind | `scout-tool-frontend`, Commit `ce97a2d` (23.03.2025), der letzte lauffähige Stand |
 | `dev/` | Lokale Entwicklungsumgebung | neu |
 
@@ -14,7 +14,7 @@ Neben dem Anmeldetool enthält das Backend weitere Module (Essensplanung, Inspi,
 
 ## Lokal starten
 
-Voraussetzungen: Docker, Python 3.11, Node.js 20 oder neuer, Yarn.
+Voraussetzungen: Docker, Python 3.11 bis 3.13, Node.js 20 oder neuer, Yarn.
 
 ### 1. Hilfsdienste starten (Datenbank, Redis, Keycloak)
 
@@ -45,7 +45,7 @@ Hinweis: `leitung` hat die Rolle „Anmeldeteam“ und ist damit im Tool Staff. 
 cd backend
 python3.11 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 cp ../dev/backend.env.example backend/.env
 python manage.py migrate
 python manage.py loaddata data/main/*.json   # Stammdaten: Bünde, Stämme, PLZ, Vorlagen
@@ -98,6 +98,19 @@ Regeln vom 14.10.2026, umgesetzt in `backend/anmelde_tool/event/deadlines.py`:
 | Änderungen gesperrt (`changes_closed`) | manuell, sofort; sperrt auch neue Anmeldungen |
 
 Die Veranstaltungsleitung ist von allen Sperren ausgenommen. Die neuen Schalter lassen sich vorerst über die API und die Django-Verwaltung setzen, die Oberfläche folgt in Phase 4.
+
+## Pakete aktualisieren
+
+`backend/requirements.in` enthält nur die direkt genutzten Pakete, `requirements.txt` wird daraus erzeugt und hält alle Versionen fest:
+
+```bash
+cd backend
+pip install pip-tools
+pip-compile --upgrade --strip-extras requirements.in   # alle Pakete auf den neuesten Stand
+pip install -r requirements-dev.txt && pytest           # prüfen
+```
+
+Bei jeder Änderung prüft GitHub die Pakete zusätzlich auf bekannte Sicherheitslücken.
 
 ## Tests
 

@@ -144,7 +144,7 @@ class InitKeycloakScoutHierarchies:
             keycloak_group.save()
 
 
-        for sub_group in keycloak_admin.get_subgroups(group):
+        for sub_group in keycloak_admin.get_child_groups(group):
             self.get_subgroup(sub_group, keycloak_group)
 
 

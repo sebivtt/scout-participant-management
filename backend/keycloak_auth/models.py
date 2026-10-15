@@ -70,7 +70,7 @@ class GroupPermission(models.Model):
         verbose_name_plural = 'Gruppenrechte'
         constraints = [
             models.CheckConstraint(
-                check=(
+                condition=(
                     models.Q(user__isnull=False, via_group__isnull=True)
                     | models.Q(user__isnull=True, via_group__isnull=False)
                 ),
