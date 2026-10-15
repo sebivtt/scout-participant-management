@@ -181,3 +181,16 @@ Gemessen am 14.10.2026, Prüfung mit eslint. Wird in Phase 4 Teil der automatisc
 | eslint-Warnungen | ca. 2.800 (v. a. ungenutzte Variablen und Formatierung) |
 | Tests | keine |
 | Größte Programmdatei nach dem Bauen | 1,2 MB, wird bei jedem Aufruf komplett geladen |
+
+### Sicherheitslücken in Frontend-Paketen
+
+Gemessen am 15.10.2026 mit `yarn audit` im Ordner `frontend/`, vor und nach dem Sicherheitsupdate innerhalb der Hauptversionen.
+
+| Messung | Vorher | Nachher |
+| --- | --- | --- |
+| Pakete des Programms (`--groups dependencies`) | 63 (1 kritisch, 31 hoch, 30 mittel, 1 niedrig) | 4 (2 hoch, 2 mittel) |
+| alle Pakete, auch Entwicklungswerkzeuge | 329 | 242 |
+
+Übrig sind im Programm nur die bewusst offenen Pakete: `@vue/server-renderer` (zweimal gezählt, weil zwei Vue-Fassungen enthalten sind), `uuid` und `quill`. Sie folgen mit den großen Versionssprüngen (Phase 3d). Die übrigen 238 betreffen Entwicklungswerkzeuge wie Vite, eslint und Cypress, die nur auf dem eigenen Rechner bzw. beim Bauen laufen.
+
+Richtigstellung: Die Zahl 63 stand im Fahrplan als „Lücken in Code, der im Browser läuft“. `yarn audit` zählt aber alles, was an Programmpaketen hängt, auch deren Werkzeuge. Im Browser laufen davon `axios`, `moment`, `quill` und `uuid`. `@vue/server-renderer` ist mitgeliefert, wird aber nur beim Rendern auf dem Server genutzt, das dieses Tool nicht verwendet. `postcss`, `nanoid` und `source-map-js` laufen nur beim Bauen, `form-data` und `follow-redirects` nur im Server-Teil von axios. Für diese beiden ist nachgeprüft, dass sie im gebauten Frontend nicht enthalten sind.

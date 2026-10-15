@@ -6,6 +6,12 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-15 · Sicherheitsupdates: Hauptversion und mitgebrachte Pakete
+
+**Entscheidung:** Bei Sicherheitsupdates verlässt kein Paket, das wir selbst wählen, seine Hauptversion. Das gilt für Pakete in `package.json` und für Vorgaben über `resolutions`. Was ein aktualisiertes Paket zwingend selbst verlangt, darf mitkommen, auch in einer neuen Hauptversion. Jedes solche Paket wird im Pull Request einzeln genannt und begründet.
+**Begründung:** axios 1.20.0 schließt 33 Sicherheitslücken und verlangt dafür ein Hilfspaket in neuer Hauptversion (`proxy-from-env` 2) sowie ein neues Hilfspaket (`https-proxy-agent`). Beide laufen nur auf Servern, nicht im Browser. axios deshalb alt zu lassen, hätte bekannte Lücken offengelassen.
+**Umsetzung:** `docs/fahrplan.md` (Anleitung im Abschnitt „Übergabe“ bzw. Phase 3d), erstmals angewendet beim Sicherheitsupdate des Frontends
+
 ## 2026-10-15 · Abgleich Frontend und Backend als automatische Prüfung
 
 **Entscheidung (technisch):** Jede Anfrage des Frontends muss eine vorhandene Backend-Adresse mit erlaubter Anfrageart treffen. Ein Test prüft das bei jeder Änderung, und die Karte `docs/schnittstellen.md` wird aus dem Code erzeugt statt von Hand gepflegt.
