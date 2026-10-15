@@ -35,14 +35,15 @@ Qualität II, KI-Fehlerprüfung, bisher:
 
 Phase 3d:
 - **PR #16:** Sicherheitsupdates im Frontend innerhalb der Hauptversionen. Bekannte Lücken in den Programmpaketen von 63 auf 4, übrig sind nur die bewusst offenen (`uuid`, `quill`, `@vue/server-renderer`).
-- **PR #17:** TypeScript 4.6 → 6.0 und eslint 8 → 10, neue eslint-Einstellung `frontend/eslint.config.mjs`, Aufruf `yarn lint`. Dabei drei echte Fehler im Frontend gefunden (Fahrplan, Phase 4).
+- **PR #17:** TypeScript 4.6 → 6.0 und eslint 8 → 10, neue eslint-Einstellung `frontend/eslint.config.mjs`, Aufruf `yarn lint`. Dabei zwei echte Fehler und eine tote Datei im Frontend gefunden (Fahrplan, Phase 4).
 - Reihenfolge geändert (Entscheidung vom 15.10.2026, Weg C): erst die risikoarmen Sprünge, dann Rauchtests, dann die riskanten.
 
 Tests: 228 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). Ergebnisse in `docs/qualitaet.md`, Entscheidungen in `docs/entscheidungen.md`.
 
 ### Nächster Schritt: `uuid` 9 → 11
 
-- Genutzt an einer Stelle: `frontend/src/modules/event/store/register.ts` (Kennungen für Einträge im Anmeldeablauf). Das Änderungsprotokoll von 10 und 11 gegen diesen Aufruf lesen.
+- Genutzt an einer Stelle: `frontend/src/modules/event/store/register.ts` (`v4` für Kennungen von Einträgen im Anmeldeablauf). Das Änderungsprotokoll gegen diesen Aufruf lesen.
+- Zielversion begründen: Die Lücke ist ab 11.1.1 behoben, aktuell ist aber 14 (Stand 15.10.2026). Prüfen, ob 12 bis 14 mit Vite 2.9 und Node 20.19/22 gehen, sonst 11.
 - Schließt eine der vier verbleibenden Lücken in den Programmpaketen.
 - Prüfen wie in Phase 3d beschrieben: `yarn build`, `yarn lint` und `npx tsc --noEmit` vorher und nachher vergleichen, Backend-Tests, `yarn audit --groups dependencies --summary`. Klickliste: eine Anmeldung mit zwei Personen anlegen und eine davon wieder entfernen.
 - Danach Vue 3.5 (siehe Reihenfolge).
@@ -170,13 +171,12 @@ Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia
   - Für Frontend-Pakete gibt es noch keine automatische Prüfung auf Sicherheitslücken wie `pip-audit` im Backend. Mit eslint in die automatischen Prüfungen aufnehmen und `CONTRIBUTING.md` Abschnitt 5 dann ergänzen.
   - Prüfen: `yarn build`, eslint und `npx tsc --noEmit` vorher und nachher vergleichen, Backend-Tests, `yarn audit --groups dependencies --summary`, Änderungsprotokoll des Pakets gegen unsere Aufrufe lesen.
   - Die `resolutions` (`postcss`, `nanoid`, `source-map-js`) beim Sprung auf Vue 3.5 und Vite neu bewerten und entfernen, wenn die neuen Fassungen behobene Versionen selbst verlangen.
-- [x] TypeScript 4.6 → 6.0 und eslint 8 → 10 (PR #17). eslint nutzt jetzt `frontend/eslint.config.mjs` statt `.eslintrc.js`, Aufruf mit `yarn lint`. Die Regeln entsprechen den bisherigen, Unterschiede und Zahlen in `docs/qualitaet.md`. Drei unbenutzte eslint-Zusatzbausteine (`eslint-plugin-import`, `-node`, `-promise`) sind entfernt.
+- [x] TypeScript 4.6 → 6.0 und eslint 8 → 10 (PR #17). eslint nutzt jetzt `frontend/eslint.config.mjs` statt `.eslintrc.js`, Aufruf mit `yarn lint`. Die Regeln entsprechen weitgehend den bisherigen. Unterschiede und Zahlen stehen in `docs/qualitaet.md`. Die Regel `comma-dangle` fällt mit eslint 11 weg. Drei unbenutzte eslint-Zusatzbausteine (`eslint-plugin-import`, `-node`, `-promise`) sind entfernt.
 - [ ] Risikoarm, vor den Rauchtests (Entscheidung vom 15.10.2026): `uuid` (9 → 11), Vue 3.5 (schließt die Lücke in `@vue/server-renderer`; doppelte Vue-Fassung über `@vue-leaflet/vue-leaflet` beachten; wandert nach hinten, falls es einen neueren `@vitejs/plugin-vue` verlangt).
-- [ ] Riskant, nach den Rauchtests: Vite, Pinia, vue-router, `quill` (über `@vueup/vue-quill`, ggf. Ersatz), Tailwind (zusätzlich Aussehen prüfen).
+- [ ] Riskant, nach den Rauchtests, einzeln je ein Pull Request mit Rauchtests und Klicktest: Vite, Pinia, vue-router, `quill` (über `@vueup/vue-quill`, ggf. Ersatz), Tailwind (zusätzlich Aussehen prüfen).
 - [ ] Rauchtests: jede Seite lädt ohne Fehler, Anmeldeablauf läuft durch. Werkzeug voraussichtlich Playwright (steuert einen echten Browser, unabhängig von der Vite-Version); als neues Paket mit Begründung.
 - [ ] Anleitung, das Tool lokal mit Beispieldaten zu starten (dieselben Beispieldaten nutzen die Rauchtests).
-- [ ] eslint in die automatischen Prüfungen auf GitHub. Nach PR #17: 259 Fehler und 2.796 Warnungen (`yarn lint`, Aufschlüsselung in `docs/qualitaet.md`): zuerst die Fehler, Warnungen schrittweise. Die vorübergehend gelockerten Stufen in `eslint.config.mjs` dabei bewusst einzeln schärfer stellen.
-- [ ] Große Versionssprünge einzeln, je ein Pull Request mit Rauchtests und Klicktest.
+- [ ] eslint in die automatischen Prüfungen auf GitHub. Nach PR #17: 260 Fehler und 2.796 Warnungen (`yarn lint`, Aufschlüsselung in `docs/qualitaet.md`): zuerst die Fehler, Warnungen schrittweise. Die vorübergehend gelockerten Stufen in `eslint.config.mjs` dabei bewusst einzeln schärfer stellen.
 
 ## Abstimmung der Funktionen und Abläufe
 
@@ -225,9 +225,9 @@ Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit i
 - [ ] Die **Schalter für Fristen und Sperren** aus Phase 3b sind im Backend fertig, haben aber keine Bedienelemente im Frontend.
 
 - [ ] **Funde von eslint 10** (PR #17), je mit Test oder Klickprüfung beheben:
-  - `frontend/src/modules/event/components/eventModule/Form.vue` (Zeile 148): Die Position eines neuen Bausteins wird berechnet und verworfen, die Funktion liefert immer 1. Vermutlich landen neue Bausteine deshalb an falscher Stelle.
-  - `frontend/src/components/stepper/StepFrame.vue`: `isLoading` ist zugleich Eigenschaft von außen (Prop) und eigener Wert. Welcher im Formular gilt, ist unklar.
-  - `frontend/src/modules/help/store/index.ts`: Die Abfragen `task` und `isLoading` geben nie etwas zurück. Erst prüfen, ob das Hilfe-Modul überhaupt eingebunden ist.
+  - `frontend/src/modules/event/components/eventModule/Form.vue` (Zeile 148): Die Position eines neuen Bausteins wird berechnet und verworfen, die Funktion liefert immer 1. Das Backend sortiert nach Position, neue Bausteine landen also vorn. Hat die Veranstaltung genau einen Baustein, greift der Ausdruck auf `modules[-1]` zu, und das Speichern bricht mit einem Fehler ab. Beim Beheben `length - 2` nicht übernehmen: gemeint ist vermutlich die Position des letzten Bausteins plus 1.
+  - `frontend/src/components/stepper/StepFrame.vue`: `isLoading` ist zugleich Eigenschaft von außen (Prop) und eigener Wert `ref(false)`. Das Formular nutzt die Prop, die Knöpfe „weiter“ und „speichern“ den eigenen Wert, der immer `false` ist. Die Knöpfe zeigen deshalb nie den Ladezustand, obwohl neun Seiten ihn übergeben. Behebung: den eigenen Wert entfernen.
+  - `frontend/src/modules/help/store/index.ts`: tote Datei. Eine Kopie von `modules/task/store` mit derselben Kennung, nirgends importiert. Die Abfragen `task` und `isLoading` geben nie etwas zurück, das wirkt aber nirgends. Behebung: Datei löschen.
 
 ### Technische Grundlage Frontend
 

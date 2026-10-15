@@ -177,7 +177,7 @@ Gemessen am 14.10.2026, aktualisiert am 15.10.2026 nach dem Wechsel auf eslint 1
 | Messung | Wert |
 | --- | --- |
 | Umfang | ca. 34.000 Zeilen |
-| eslint-Fehler | 259 (mit eslint 8: 198, Erklärung unten) |
+| eslint-Fehler | 260 (mit eslint 8: 198, Erklärung unten) |
 | eslint-Warnungen | 2.796 (mit eslint 8: 2.780; v. a. ungenutzte Variablen und Formatierung) |
 | Meldungen der Typprüfung (`npx tsc --noEmit`) | 87 (mit TypeScript 4.6: 107) |
 | Tests | keine |
@@ -185,21 +185,22 @@ Gemessen am 14.10.2026, aktualisiert am 15.10.2026 nach dem Wechsel auf eslint 1
 
 ### Wechsel auf eslint 10 und TypeScript 6 (PR #17)
 
-Die neue Einstellung (`frontend/eslint.config.mjs`) prüft mit denselben Regelsätzen wie bisher: Vue 3, TypeScript, Sicherheit, ohne Formatierungsregeln. Regeln, die `typescript-eslint` 8 strenger eingestuft oder aus seinem Standardsatz genommen hat, stehen auf der alten Stufe. Woher die Unterschiede kommen:
+Die neue Einstellung (`frontend/eslint.config.mjs`) prüft mit denselben Regelsätzen wie bisher: Vue 3, TypeScript, Sicherheit, ohne Formatierungsregeln. Regeln, die `typescript-eslint` 8 strenger eingestuft oder aus seinem Standardsatz genommen hat, stehen auf der alten Stufe. Für zwei weggefallene Regeln ist die Nachfolgerin eingeschaltet. Umbenannte Regeln laufen unter neuem Namen weiter. Neu aktiv sind außerdem einige Regeln ohne einen einzigen Fund, z. B. elf weitere Vue-Regeln und zwei Sicherheitsregeln gegen unsichtbare Zeichen. Woher die Unterschiede in den Zahlen kommen:
 
 | Regel | eslint 8 | eslint 10 | Grund |
 | --- | --- | --- | --- |
 | `ban-types` → `no-wrapper-object-types`, `no-empty-object-type` | 24 | 23 | dieselbe Regel, aufgeteilt. Eine Stelle (`Number` als Typ in `components/field/Base.vue`) meldet die Nachfolgerin nicht mehr |
 | `prefer-const` | 0 | 32 | galt bisher nur in `.ts`-Dateien, jetzt auch in `.vue` |
 | `vue/block-lang` | – | 25 | neu: `<script>` ohne Angabe der Sprache |
-| `no-unused-expressions` | – | 4 | neu: Ausdrücke ohne Wirkung. Zwei davon sind echte Fehler (Fahrplan, Phase 4) |
-| `vue/no-dupe-keys` | 0 | 1 | genauer: doppelter Name in `StepFrame.vue` (Fahrplan, Phase 4) |
+| `no-unused-expressions` | – | 4 | neu: Ausdrücke ohne Wirkung. Einer ist ein wirksamer Fehler (`eventModule/Form.vue`), zwei liegen in einer toten Datei (Fahrplan, Phase 4) |
+| `vue/no-dupe-keys` | 0 | 1 | genauer: doppelter Name in `StepFrame.vue`, ein wirksamer Fehler (Fahrplan, Phase 4) |
+| `vue/no-setup-props-destructure` → `vue/no-setup-props-reactivity-loss` | 0 | 1 | Nachfolgerin erkennt mehr: `components/field/Currency.vue` |
 | `no-unused-vars` (Warnung) | 1.176 | 1.189 | genauer |
 | `vue/no-required-prop-with-default` (Warnung) | – | 2 | neu |
 | Kommentar ohne Wirkung (Warnung) | – | 2 | neu: zwei `eslint-disable`-Kommentare in `router.ts` schalten Regeln ab, die gar nicht aktiv sind |
 | `security/detect-non-literal-fs-filename` (Warnung) | 1 | 0 | genauer |
 
-Die Typprüfung meldet weniger, weil TypeScript mit der neuen Einstellung `moduleResolution: bundler` Pakete so findet wie Vite und z. B. die Typen von `keycloak-js` jetzt kennt. Drei Meldungen sind neu: Für `vue3-apexcharts` und `@pinia/testing` findet sie keine Typen mehr, und der Import der CSS-Datei in `main.ts` wird jetzt geprüft. Die Typprüfung läuft nicht beim Bauen, das Programm ist davon nicht betroffen.
+Die Typprüfung meldet weniger vor allem wegen TypeScript 6 selbst: Es fasst in `register.ts` 38 gleichartige Meldungen zu zwei zusammen (107 → 89, nachgeprüft mit der alten Einstellung `moduleResolution: node`). Die neue Einstellung `moduleResolution: bundler` findet Pakete so wie Vite und kennt dadurch die Typen von `keycloak-js` (5 Meldungen weniger). Sie findet aber keine Typen mehr für `vue3-apexcharts` und `@pinia/testing`, deren Paketbeschreibung keine nennt (3 Meldungen mehr). Neu prüft TypeScript 6 auch den Import der CSS-Datei in `main.ts`. Zusammen 87. Die Typprüfung läuft nicht beim Bauen, das Programm ist davon nicht betroffen.
 
 ### Sicherheitslücken in Frontend-Paketen
 
@@ -212,6 +213,6 @@ Gemessen am 15.10.2026 mit `yarn audit` im Ordner `frontend/`, vor und nach dem 
 
 Nach PR #17 (eslint 10, TypeScript 6): alle Pakete 172. Das alte eslint brachte viele veraltete Hilfspakete mit.
 
-Übrig sind im Programm nur die bewusst offenen Pakete: `@vue/server-renderer` (zweimal gezählt, weil zwei Vue-Fassungen enthalten sind), `uuid` und `quill`. Sie folgen mit den großen Versionssprüngen (Phase 3d). Die übrigen 238 betreffen Entwicklungswerkzeuge wie Vite, eslint und Cypress, die nur auf dem eigenen Rechner bzw. beim Bauen laufen. Darunter erscheinen auch `axios` und `uuid` noch einmal: Das Startwerkzeug `wait-on` bringt eine alte axios-Fassung (0.25) mit, Cypress eine eigene uuid-Fassung. Sie gehören nicht zum Programm.
+Übrig sind im Programm nur die bewusst offenen Pakete (Stand PR #16, gilt auch nach PR #17): `@vue/server-renderer` (zweimal gezählt, weil zwei Vue-Fassungen enthalten sind), `uuid` und `quill`. Sie folgen mit den großen Versionssprüngen (Phase 3d). Die übrigen 238 (Stand PR #16) betreffen Entwicklungswerkzeuge wie Vite, eslint und Cypress, die nur auf dem eigenen Rechner bzw. beim Bauen laufen. Darunter erscheinen auch `axios` und `uuid` noch einmal: Das Startwerkzeug `wait-on` bringt eine alte axios-Fassung (0.25) mit, Cypress eine eigene uuid-Fassung. Sie gehören nicht zum Programm.
 
 Richtigstellung: Die Zahl 63 stand im Fahrplan als „Lücken in Code, der im Browser läuft“. `yarn audit` zählt aber alles, was an Programmpaketen hängt, auch deren Werkzeuge. Im Browser laufen davon `axios`, `moment`, `quill` und `uuid`. `@vue/server-renderer` ist mitgeliefert, wird aber nur beim Rendern auf dem Server genutzt, das dieses Tool nicht verwendet. `postcss`, `nanoid` und `source-map-js` laufen nur beim Bauen, `form-data` und `follow-redirects` nur im Server-Teil von axios. Für diese beiden ist nachgeprüft, dass sie im gebauten Frontend nicht enthalten sind.

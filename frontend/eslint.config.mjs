@@ -21,6 +21,8 @@ const autoImportGlobals = JSON.parse(
 // Geprüft wird nur der Programmcode in `src/`, wie bisher: `yarn lint`
 // ruft `eslint src` auf (früher `eslint --ext .ts,.vue src`).
 export default defineConfigWithVueTs(
+  // Gebaute Dateien nie prüfen, auch nicht bei einem Aufruf wie `eslint .`.
+  { ignores: ['dist/**'] },
   pluginVue.configs['flat/recommended'],
   vueTsConfigs.recommended,
   pluginSecurity.configs.recommended,
@@ -47,9 +49,16 @@ export default defineConfigWithVueTs(
       '@typescript-eslint/adjacent-overload-signatures': 'error',
       '@typescript-eslint/no-empty-function': 'error',
       '@typescript-eslint/no-inferrable-types': 'error',
+      // Nachfolger zweier Regeln, die es nicht mehr gibt: `no-loss-of-precision`
+      // übernimmt die gleichnamige TypeScript-Regel, und
+      // `vue/no-setup-props-reactivity-loss` ersetzt `vue/no-setup-props-destructure`.
+      'no-loss-of-precision': 'error',
+      'vue/no-setup-props-reactivity-loss': 'error',
       'no-var': 'error',
       'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
       'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+      // Veraltet in eslint, fällt mit eslint 11 weg. Dann durch die Regel aus
+      // `@stylistic/eslint-plugin` ersetzen oder Prettier überlassen.
       'comma-dangle': ['error', 'only-multiline'],
     },
   },
