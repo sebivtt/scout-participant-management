@@ -179,7 +179,7 @@ Gemessen am 14.10.2026, aktualisiert am 15.10.2026 nach dem Wechsel auf eslint 1
 | Umfang | ca. 34.000 Zeilen |
 | eslint-Fehler | 260 (mit eslint 8: 198, Erklärung unten) |
 | eslint-Warnungen | 2.796 (mit eslint 8: 2.780; v. a. ungenutzte Variablen und Formatierung) |
-| Meldungen der Typprüfung (`npx tsc --noEmit`) | 87 (mit TypeScript 4.6: 107) |
+| Meldungen der Typprüfung (`npx tsc --noEmit`) | 86 (mit TypeScript 4.6: 107; seit PR #18 bringt `uuid` eigene Typen mit) |
 | Tests | keine |
 | Größte Programmdatei nach dem Bauen | 1,2 MB, wird bei jedem Aufruf komplett geladen |
 
@@ -211,7 +211,7 @@ Gemessen am 15.10.2026 mit `yarn audit` im Ordner `frontend/`, vor und nach dem 
 | Pakete des Programms (`--groups dependencies`) | 63 (1 kritisch, 31 hoch, 30 mittel, 1 niedrig) | 4 (2 hoch, 2 mittel) |
 | alle Pakete, auch Entwicklungswerkzeuge | 329 | 242 |
 
-Nach PR #17 (eslint 10, TypeScript 6): alle Pakete 172. Das alte eslint brachte viele veraltete Hilfspakete mit.
+Nach PR #17 (eslint 10, TypeScript 6): alle Pakete 172. Das alte eslint brachte viele veraltete Hilfspakete mit. Nach PR #18 (`uuid` 14): alle Pakete 171, in den Programmpaketen 3 (`quill`, zweimal `@vue/server-renderer`).
 
 Übrig sind im Programm nur die bewusst offenen Pakete (Stand PR #16, gilt auch nach PR #17): `@vue/server-renderer` (zweimal gezählt, weil zwei Vue-Fassungen enthalten sind), `uuid` und `quill`. Sie folgen mit den großen Versionssprüngen (Phase 3d). Die übrigen 238 (Stand PR #16) betreffen Entwicklungswerkzeuge wie Vite, eslint und Cypress, die nur auf dem eigenen Rechner bzw. beim Bauen laufen. Darunter erscheinen auch `axios` und `uuid` noch einmal: Das Startwerkzeug `wait-on` bringt eine alte axios-Fassung (0.25) mit, Cypress eine eigene uuid-Fassung. Sie gehören nicht zum Programm.
 

@@ -22,7 +22,7 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 - Fachliche Fragen (wer darf was, welche Fristen gelten) entscheidet er. Technische Fragen entscheidet die KI und begründet sie.
 - Pull Requests werden nicht aufeinander aufgebaut. Der nächste beginnt erst, wenn der vorige in `main` ist. (PR #12 landete sonst im falschen Branch und musste mit PR #13 nachgeholt werden.)
 
-## Übergabe (Stand 15.10.2026, nach PR #17)
+## Übergabe (Stand 15.10.2026, nach PR #18)
 
 ### Was erledigt ist
 
@@ -35,18 +35,19 @@ Qualität II, KI-Fehlerprüfung, bisher:
 
 Phase 3d:
 - **PR #16:** Sicherheitsupdates im Frontend innerhalb der Hauptversionen. Bekannte Lücken in den Programmpaketen von 63 auf 4, übrig sind nur die bewusst offenen (`uuid`, `quill`, `@vue/server-renderer`).
+- **PR #18:** `uuid` 9 → 14. Schließt eine Lücke, uuid bringt jetzt eigene Typbeschreibungen mit.
 - **PR #17:** TypeScript 4.6 → 6.0 und eslint 8 → 10, neue eslint-Einstellung `frontend/eslint.config.mjs`, Aufruf `yarn lint`. Dabei zwei echte Fehler und eine tote Datei im Frontend gefunden (Fahrplan, Phase 4).
 - Reihenfolge geändert (Entscheidung vom 15.10.2026, Weg C): erst die risikoarmen Sprünge, dann Rauchtests, dann die riskanten.
 
 Tests: 228 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). Ergebnisse in `docs/qualitaet.md`, Entscheidungen in `docs/entscheidungen.md`.
 
-### Nächster Schritt: `uuid` 9 → 11
+### Nächster Schritt: Vue 3.3 → 3.5
 
-- Genutzt an einer Stelle: `frontend/src/modules/event/store/register.ts` (`v4` für Kennungen von Einträgen im Anmeldeablauf). Das Änderungsprotokoll gegen diesen Aufruf lesen.
-- Zielversion begründen: Die Lücke ist ab 11.1.1 behoben, aktuell ist aber 14 (Stand 15.10.2026). Prüfen, ob 12 bis 14 mit Vite 2.9 und Node 20.19/22 gehen, sonst 11.
-- Schließt eine der vier verbleibenden Lücken in den Programmpaketen.
-- Prüfen wie in Phase 3d beschrieben: `yarn build`, `yarn lint` und `npx tsc --noEmit` vorher und nachher vergleichen, Backend-Tests, `yarn audit --groups dependencies --summary`. Klickliste: eine Anmeldung mit zwei Personen anlegen und eine davon wieder entfernen.
-- Danach Vue 3.5 (siehe Reihenfolge).
+- Schließt die letzten hohen Lücken in den Programmpaketen (`@vue/server-renderer`, zweimal gezählt). Danach bleibt nur `quill`.
+- `yarn.lock` enthält zwei Vue-Fassungen: 3.3.4 direkt und 3.4.15 über `@vue-leaflet/vue-leaflet` (verlangt `^3.2.25`). Ziel ist eine einzige Fassung 3.5.x.
+- `@vitejs/plugin-vue` 2.3.4 erlaubt laut Angabe `vue ^3.2.25`, also auch 3.5. Ob der alte Baustein mit dem Übersetzer von Vue 3.5 tatsächlich zurechtkommt, zeigt erst der Build. Verlangt Vue 3.5 einen neueren `@vitejs/plugin-vue` (der Vite 5+ braucht), wandert der Schritt zu den riskanten Sprüngen nach den Rauchtests (Entscheidung vom 15.10.2026).
+- Die `resolutions` aus PR #16 (`postcss`, `nanoid`, `source-map-js`) dabei neu bewerten: Verlangt Vue 3.5 die behobenen Versionen selbst, entfallen sie.
+- Prüfen wie bei `uuid`: `yarn build`, `yarn lint`, `npx tsc --noEmit` vorher und nachher, Backend-Tests, `yarn audit`. Dazu das Änderungsprotokoll von Vue 3.4 und 3.5 gegen unseren Code lesen. Klickliste mit mehreren Seiten, weil Vue alles im Browser betrifft.
 
 ### Vorarbeit für die Rauchtests (Schritt 4)
 
@@ -106,8 +107,8 @@ Am 15.10.2026 geklärt:
 2. ✅ **Sicherheitsupdates im Frontend innerhalb der Hauptversionen** (PR #16). Bekannte Lücken in den Programmpaketen von 63 auf 4.
 3. **Risikoarme Versionssprünge im Frontend** (Entscheidung vom 15.10.2026, Weg C), je ein Pull Request mit Klickliste, in dieser Reihenfolge:
    - ✅ **TypeScript 4.6 → 6.0 und eslint 8 → 10** (PR #17), gemeinsam, weil das neue eslint mindestens TypeScript 4.8 verlangt. TypeScript 7 lässt sich noch nicht nutzen, siehe Phase 3d.
-   - **← als Nächstes: `uuid` 9 → 11**
-   - Vue 3.3 → 3.5. Verlangt es einen neueren Vite-Baustein (`@vitejs/plugin-vue`), wandert es zu den riskanten Sprüngen.
+   - ✅ **`uuid` 9 → 14** (PR #18)
+   - **← als Nächstes: Vue 3.3 → 3.5.** Verlangt es einen neueren Vite-Baustein (`@vitejs/plugin-vue`), wandert es zu den riskanten Sprüngen.
 4. **Rauchtests für das Frontend**, Details im Abschnitt „Übergabe“: jede Seite einmal öffnen, dazu ein Durchlauf des Anmeldeablaufs. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test.
 4a. **Qualität II, Schritt 2b: Feldnamen abgleichen.** Nach den Rauchtests, weil diese viele Feldfehler direkt zeigen (eine Seite bleibt leer oder meldet Fehler).
 4b. **Phase 3d, riskante Versionssprünge**: Vite, Pinia, vue-router, `quill`, Tailwind, einzeln, je mit Rauchtests und Klicktest, bei Tailwind zusätzlich Prüfung des Aussehens. Vor Phase 4, damit der neue Anmeldeablauf nicht auf dem alten Fundament entsteht.
@@ -160,7 +161,7 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 
 ## Phase 3d: Modernisierung Frontend
 
-Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 6.0 (7, siehe unten), eslint 10 (10). Bekannte Sicherheitslücken nach PR #17: 172, davon 4 in den Programmpaketen (`uuid`, `quill`, zweimal `@vue/server-renderer`), der Rest in Entwicklungswerkzeugen. Nach PR #16 waren es 242, davor 329 bzw. 63. Die 63 waren nicht alle Code, der im Browser läuft, siehe `docs/qualitaet.md`.
+Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 6.0 (7, siehe unten), eslint 10 (10). Bekannte Sicherheitslücken nach PR #18: 171, davon 3 in den Programmpaketen (`quill`, zweimal `@vue/server-renderer`), der Rest in Entwicklungswerkzeugen. Nach PR #17 waren es 172, nach PR #16 242, davor 329 bzw. 63. Die 63 waren nicht alle Code, der im Browser läuft, siehe `docs/qualitaet.md`.
 
 **TypeScript 7** ist neu geschrieben und hat noch keine feste Schnittstelle für andere Werkzeuge. `typescript-eslint` unterstützt deshalb nur TypeScript bis 6.0 (Stand 15.10.2026, `typescript-eslint` 8.71). Erst aktualisieren, wenn `typescript-eslint` TypeScript 7 unterstützt. Die Einstellung `moduleResolution: bundler` in `tsconfig.json` ist dafür schon vorbereitet.
 
@@ -172,7 +173,8 @@ Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia
   - Prüfen: `yarn build`, eslint und `npx tsc --noEmit` vorher und nachher vergleichen, Backend-Tests, `yarn audit --groups dependencies --summary`, Änderungsprotokoll des Pakets gegen unsere Aufrufe lesen.
   - Die `resolutions` (`postcss`, `nanoid`, `source-map-js`) beim Sprung auf Vue 3.5 und Vite neu bewerten und entfernen, wenn die neuen Fassungen behobene Versionen selbst verlangen.
 - [x] TypeScript 4.6 → 6.0 und eslint 8 → 10 (PR #17). eslint nutzt jetzt `frontend/eslint.config.mjs` statt `.eslintrc.js`, Aufruf mit `yarn lint`. Die Regeln entsprechen weitgehend den bisherigen. Unterschiede und Zahlen stehen in `docs/qualitaet.md`. Die Regel `comma-dangle` fällt mit eslint 11 weg. Drei unbenutzte eslint-Zusatzbausteine (`eslint-plugin-import`, `-node`, `-promise`) sind entfernt.
-- [ ] Risikoarm, vor den Rauchtests (Entscheidung vom 15.10.2026): `uuid` (9 → 11), Vue 3.5 (schließt die Lücke in `@vue/server-renderer`; doppelte Vue-Fassung über `@vue-leaflet/vue-leaflet` beachten; wandert nach hinten, falls es einen neueren `@vitejs/plugin-vue` verlangt).
+- [x] `uuid` 9 → 14 (PR #18). Gewählt wurde die neueste Version statt der niedrigsten behobenen (11.1.1): Sie verlangt TypeScript ab 5.4 (vorhanden) und einen Browser mit `crypto`, den ohnehin schon `keycloak-js` voraussetzt. Genutzt wird nur `v4()` in `register.ts`, das unverändert über die Zufallsfunktion des Browsers arbeitet.
+- [ ] Risikoarm, vor den Rauchtests (Entscheidung vom 15.10.2026): Vue 3.5 (schließt die Lücke in `@vue/server-renderer`; doppelte Vue-Fassung über `@vue-leaflet/vue-leaflet` beachten; wandert nach hinten, falls es einen neueren `@vitejs/plugin-vue` verlangt).
 - [ ] Riskant, nach den Rauchtests, einzeln je ein Pull Request mit Rauchtests und Klicktest: Vite, Pinia, vue-router, `quill` (über `@vueup/vue-quill`, ggf. Ersatz), Tailwind (zusätzlich Aussehen prüfen).
 - [ ] Rauchtests: jede Seite lädt ohne Fehler, Anmeldeablauf läuft durch. Werkzeug voraussichtlich Playwright (steuert einen echten Browser, unabhängig von der Vite-Version); als neues Paket mit Begründung.
 - [ ] Anleitung, das Tool lokal mit Beispieldaten zu starten (dieselben Beispieldaten nutzen die Rauchtests).
