@@ -268,3 +268,56 @@ class TestRechteLogik:
         assert GroupPermission.objects.filter(group=stamm, role=ADMIN, via_group=stammesfuehrung).exists()
         assert GroupPermission.objects.filter(group=stamm, role=VIEW, via_group=stamm).exists()
         assert grant_hierarchy_permissions() == 0
+
+
+# --- Eigene Gruppen über /auth/my-groups/ (Qualität II, 1b-2) ------------------
+# Die Liste der eigenen Gruppen erlaubte früher auch Ändern und Löschen, ohne die
+# Regeln oben zu prüfen. Das Frontend liest dort nur.
+
+class TestEigeneGruppenListe:
+
+    @pytest.fixture
+    def mitglied(self, teilnehmer, stamm, keycloak):
+        keycloak.make_member(teilnehmer, stamm)
+        return teilnehmer
+
+    def test_mitglied_sieht_eigene_gruppe(self, api, mitglied, stamm):
+        response = api(mitglied).get('/auth/my-groups/')
+        assert response.status_code == 200
+        assert STAMM_ID in [group['id'] for group in response.json()]
+
+    def test_mitglied_loescht_eigene_gruppe_nicht(self, api, mitglied, stamm, keycloak):
+        api(mitglied).delete(f'/auth/my-groups/{stamm.id}/')
+        assert KeycloakGroup.objects.filter(keycloak_id=STAMM_ID).exists()
+        assert keycloak.calls == []
+
+    def test_mitglied_benennt_eigene_gruppe_nicht_um(self, api, mitglied, stamm):
+        api(mitglied).patch(f'/auth/my-groups/{stamm.id}/', {'name': 'Gekapert'}, format='json')
+        stamm.refresh_from_db()
+        assert stamm.name == 'Adler'
+
+
+class TestMitgliederliste:
+    """/keycloak/group/<id>/members/ erlaubte früher Ändern und Löschen der Konten aller Mitglieder."""
+
+    @pytest.fixture
+    def mitglieder(self, teilnehmer, fremde_leitung, stamm, keycloak):
+        keycloak.make_member(teilnehmer, stamm)
+        keycloak.make_member(fremde_leitung, stamm)
+        return teilnehmer, fremde_leitung
+
+    def test_mitglied_sieht_mitglieder(self, api, mitglieder):
+        teilnehmer, _ = mitglieder
+        assert api(teilnehmer).get(url(STAMM_ID, 'members/')).status_code == 200
+
+    def test_mitglied_aendert_fremdes_konto_nicht(self, api, mitglieder):
+        teilnehmer, andere = mitglieder
+        api(teilnehmer).patch(url(STAMM_ID, f'members/{andere.id}/'), {'email': 'gekapert@example.org'}, format='json')
+        andere.refresh_from_db()
+        assert andere.email == 'falkenleitung@example.org'
+
+    def test_mitglied_loescht_fremdes_konto_nicht(self, api, mitglieder):
+        from authentication.models import CustomUser
+        teilnehmer, andere = mitglieder
+        api(teilnehmer).delete(url(STAMM_ID, f'members/{andere.id}/'))
+        assert CustomUser.objects.filter(id=andere.id).exists()

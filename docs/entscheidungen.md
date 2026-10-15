@@ -6,6 +6,44 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-15 · Abstimmung aller Funktionen und Abläufe vor Phase 4
+
+**Entscheidung:** Bevor Anforderungen und Funktionen angepasst werden, stimmen KI und Projektverantwortlicher alle Funktionen und Abläufe gemeinsam ab. Am Ende gibt es zu jedem Ablauf einen Prozessablauf, und jede Funktion ist mit ihren Anforderungen abgestimmt: was kann wer, was darf wer und wann darf was gemacht werden.
+**Begründung:** Diese Fragen stellen sich an vielen Stellen, auch bei der KI-Fehlerprüfung. Solange der Projektverantwortliche nicht nebenbei testen kann, ist ohne eine solche Grundlage kaum einzuschätzen, was wer wann darf.
+**Umsetzung:** `docs/fahrplan.md` Abschnitt „Abstimmung der Funktionen und Abläufe“, Ergebnis in `docs/ablaeufe/`. Qualität II 4a/4b folgen danach.
+
+## 2026-10-15 · Ansichtsgruppe ändert nichts
+
+**Entscheidung:** Die Ansichtsgruppe einer Veranstaltung darf nichts ändern, auch keine Bausteine oder Preisstufen.
+**Begründung:** So beschreibt es das Glossar. Der Code erlaubte ihr bisher, Bausteine und Preisstufen zu ändern und Anmeldungen zusammenzulegen.
+**Umsetzung:** `anmelde_tool/event/permissions.py` (`IsSubEventResponsiblePersonOrReadOnly`), Tests in `tests/test_zugriffsschutz.py` (PR #11)
+
+## 2026-10-15 · Veranstaltungsorte
+
+**Entscheidung:**
+- Den Ort einer bestimmten Veranstaltung passen nur das Anmeldeteam und die Veranstaltungsleitung an, beim Anlegen oder Bearbeiten der Veranstaltung.
+- Zusätzlich soll es eine zentrale Verwaltung der Orte geben (neue Funktion), in der Admins und Leitungen Orte verwalten dürfen. Welche Leitungen genau, wird in der Abstimmung der Abläufe geklärt.
+
+**Umsetzung bis zur zentralen Verwaltung:** Einen Ort ändert, wer alle Veranstaltungen an diesem Ort leitet, oder das Anmeldeteam. Unbenutzte Orte ändert nur das Anmeldeteam (PR #11).
+
+## 2026-10-15 · Essensplanung und Programmideen abschalten
+
+**Entscheidung:** Die eingefrorenen Module `food` (Essensplanung) und `inspi` (Programmideen) werden zunächst abgeschaltet. Abgesichert werden sie gegebenenfalls später, wenn ihre Anforderungen geklärt sind.
+**Begründung:** In beiden kann jede eingeloggte Person Einträge anderer ändern oder löschen. Sie abzusichern wäre aufwendig, und ihre Anforderungen sind ohnehin offen.
+**Umsetzung:** Qualität II, Schritt 1d (eigener Pull Request)
+
+## 2026-10-15 · Rechte auf schreibende Schnittstellen
+
+**Entscheidung (technisch):**
+- Wer etwas ändert, braucht das Recht auf genau dieses Objekt: die Anmeldung (anmeldende Leitung oder Veranstaltungsleitung) oder die Veranstaltung (Veranstaltungsleitung). Der Login allein genügt nie.
+- Die Zugehörigkeit eines Eintrags (zu welcher Veranstaltung, zu welcher Anmeldung) kommt aus der Adresse, nicht aus dem Inhalt der Anfrage.
+- Antworten auf Zusatzfelder unterliegen derselben Änderungsfrist wie die Anmeldung.
+- Gemeinsam genutzte Daten (Vorlagen für Zusatzfelder, Farbschemata) ändert nur das Anmeldeteam.
+- Veranstaltungsorte siehe Eintrag „Veranstaltungsorte“ (15.10.2026).
+
+**Begründung:** Qualität II fand 20 Lücken dieser Art, darunter Lesen und Ändern der Antworten aller Anmeldungen durch jede eingeloggte Person. Die Regeln folgen aus der Entscheidung „Wer sieht welche Anmeldungen“ vom 14.10.2026.
+**Umsetzung:** `tests/test_zugriffsschutz.py`, `tests/test_schreibrechte_inventar.py`, `CONTRIBUTING.md` Abschnitt 3 (PR #11)
+
 ## 2026-10-15 · Sicherheitsregeln und feste Passwörter
 
 **Entscheidung:**

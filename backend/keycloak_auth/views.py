@@ -206,7 +206,14 @@ class ShortGroupsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GroupShortSerializer
 
 
-class GroupMembersViewSet(viewsets.ModelViewSet):
+class GroupMembersViewSet(viewsets.ReadOnlyModelViewSet):
+    """Mitglieder einer Gruppe, für Mitglieder und Gruppen mit Ansichtsrecht. Nur lesen.
+
+    Früher ein ModelViewSet: Jedes Mitglied konnte die Konten aller anderen
+    Mitglieder ändern oder löschen. Aufnehmen und Entfernen läuft über
+    invite/ und kick/ mit Admin-Recht.
+    """
+
     permission_classes = [IsAuthenticated, IsGroupViewerOrMember]
     serializer_class = UserListSerializer
     pagination_class = StandardResultsSetPagination
@@ -219,12 +226,10 @@ class GroupMembersViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_serializer_class(self):
+        """Ausführliche Angaben für eine einzelne Person, kurze für die Liste."""
         serializer = {
-            # 'create': registration_serializers.RegistrationParticipantSerializer,
             'retrieve': FullUserSerializer,
             'list': UserListSerializer,
-            # 'update': registration_serializers.RegistrationParticipantSerializer,
-            # 'destroy': registration_serializers.RegistrationParticipantSerializer
         }
         return serializer.get(self.action, UserListSerializer)
 
@@ -310,7 +315,13 @@ class GroupParentViewSet(viewsets.ViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class AllMembersViewSet(viewsets.ModelViewSet):
+class AllMembersViewSet(viewsets.ReadOnlyModelViewSet):
+    """Personensuche für Gruppenleitungen (z. B. zum Einladen). Nur lesen.
+
+    Früher ein ModelViewSet: Jede Gruppenleitung hätte damit beliebige
+    Benutzerkonten ändern oder löschen können.
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = PartialUserSerializer
     pagination_class = StandardResultsSetPagination

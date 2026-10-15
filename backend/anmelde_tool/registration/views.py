@@ -8,6 +8,7 @@ from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import mixins, viewsets, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -79,12 +80,19 @@ def create_missing_eat_habits(request) -> [str]:
 
 
 def get_attribute_params(kwargs, post_serializer, request=None):
+    """Anmeldung aus der Adresse und Zusatzfeld aus der Anfrage, mit Fristprüfung.
+
+    Das Zusatzfeld muss zur Veranstaltung der Anmeldung gehören. Sonst ließen
+    sich Antworten an Fragen fremder Veranstaltungen hängen und tauchten in
+    deren Auswertung auf.
+    """
     registration_id = kwargs.get("registration_pk")
     registration = get_object_or_404(Registration, id=registration_id)
     if request is not None:
         event_permissions.require_changes_open(request, registration.event)
     attribute_module_id = post_serializer.data["attribute_module"]
-    attribute_module = get_object_or_404(AttributeModule, id=attribute_module_id)
+    attribute_module = get_object_or_404(
+        AttributeModule, id=attribute_module_id, event_module__event=registration.event)
     return attribute_module, registration
 
 
@@ -183,6 +191,7 @@ class RegistrationSingleParticipantViewSet(viewsets.ModelViewSet):
         return super().create(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs) -> Response:
+        """Ändert eine teilnehmende Person der Anmeldung aus der Adresse (Rechte und Frist geprüft)."""
         get_zipcode(request)
 
         eat_habits_formatted = create_missing_eat_habits(request)
@@ -192,8 +201,11 @@ class RegistrationSingleParticipantViewSet(viewsets.ModelViewSet):
         elif "eat_habit" in request.data:
             del request.data["eat_habit"]
 
-        self.participant_initialization(request)
+        registration = self.participant_initialization(request)
 
+        # Die Anmeldung kommt aus der URL. Sonst ließe sich die Person über das
+        # Feld "registration" in eine fremde Anmeldung verschieben.
+        request.data["registration"] = registration.id
         request.data["generated"] = False
         return super().update(request, *args, **kwargs)
 
@@ -215,6 +227,7 @@ class RegistrationSingleParticipantViewSet(viewsets.ModelViewSet):
         )
 
     def participant_initialization(self, request) -> Registration:
+        """Prüft Eingaben, Änderungsfrist und Preisstufe und gibt die Anmeldung aus der Adresse zurück."""
         input_serializer = (
             registration_serializers.RegistrationParticipantPutSerializer(
                 data=request.data
@@ -228,8 +241,21 @@ class RegistrationSingleParticipantViewSet(viewsets.ModelViewSet):
         # Früher: "if not IsEventSuperResponsiblePerson" prüfte eine Klasse
         # (immer wahr) und die Fristen griffen nie.
         event_permissions.require_changes_open(request, registration.event)
+        require_booking_option_of_event(request.data.get("booking_option"), registration.event)
 
         return registration
+
+
+def require_booking_option_of_event(booking_option_id, event) -> None:
+    """Wirft ValidationError, wenn die Preisstufe nicht zur Veranstaltung der Anmeldung gehört.
+
+    Sonst ließe sich eine günstigere Preisstufe einer anderen Veranstaltung wählen.
+    """
+    if booking_option_id is None:
+        return
+    if not event_models.BookingOption.objects.filter(id=booking_option_id, event=event).exists():
+        raise ValidationError({'booking_option': 'Diese Preisstufe gehört nicht zu dieser Veranstaltung.'})
+
 
 class CheckPersonViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [event_permissions.IsSubRegistrationResponsiblePerson]
@@ -513,9 +539,19 @@ class SendConfirmationMail(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
 
 class RegistrationRatingViewSet(viewsets.ModelViewSet):
+    """Bewertungen einer Anmeldung, für anmeldende Leitung und Veranstaltungsleitung."""
+
     # Früher ohne Rechteprüfung und für alle Anmeldungen zugleich
     permission_classes = [event_permissions.IsSubRegistrationResponsiblePerson]
     serializer_class = registration_serializers.RegistrationRatingSerializer
 
     def get_queryset(self):
         return RegistrationRating.objects.filter(registration=self.kwargs.get('registration_pk'))
+
+    def perform_create(self, serializer):
+        """Speichert die Bewertung zur Anmeldung aus der Adresse, nie aus dem Feld "registration"."""
+        serializer.save(registration=get_registration(self.kwargs.get('registration_pk')))
+
+    def perform_update(self, serializer):
+        """Speichert die Änderung, ohne die Bewertung einer anderen Anmeldung zuzuordnen."""
+        serializer.save(registration=serializer.instance.registration)

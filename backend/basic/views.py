@@ -128,9 +128,12 @@ class EatHabitViewSet(viewsets.ModelViewSet):
 
 
 class FrontendThemeViewSet(viewsets.ModelViewSet):
+    """Farbschemata für Veranstaltungen. Lesen alle Eingeloggten, ändern nur das Anmeldeteam."""
+
     queryset = basic_models.FrontendTheme.objects.all()
     serializer_class = basic_serializers.FrontendThemeSerializer
-    permission_classes = [IsAuthenticated]
+    # Ein Farbschema gilt für viele Veranstaltungen, deshalb nur Staff.
+    permission_classes = [IsAuthenticated, IsStaffOrReadOnly]
 
 
 class GenderViewSet(viewsets.ViewSet):

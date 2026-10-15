@@ -375,9 +375,18 @@ class AttributeSummarySerializer(serializers.ModelSerializer):
         event: event_models.Event,
         attributes: QuerySet[AbstractAttribute],
     ) -> QuerySet[AbstractAttribute]:
+        """Antworten, die die Person sehen darf.
+
+        Leitung und Ansichtsgruppe der Veranstaltung sehen alle, Bundes- und
+        Ringführung nur die aus ihrem Bund oder Ring, alle anderen keine. Ohne
+        die letzte Regel lieferte die Bausteinliste jeder eingeloggten Person
+        die Antworten aller Anmeldungen.
+        """
         user = request.user
         leader_ship = event_permissions.check_leader_permission(event, user)
         event_role = event_permissions.check_event_permission(event, request)
+        if event_role == event_permissions.EventRole.NONE and leader_ship == event_permissions.LeadershipRole.NONE:
+            return attributes.none()
         if (
             event_role == event_permissions.EventRole.NONE
             and leader_ship != event_permissions.LeadershipRole.NONE
@@ -462,3 +471,22 @@ class EventModuleSummarySerializer(serializers.ModelSerializer):
             queryset, many=True, context={"request": self.context["request"]}
         ).data
         return result
+
+
+class MergeRegistrationsSerializer(serializers.Serializer):
+    """Eingaben zum Zusammenlegen zweier Anmeldungen.
+
+    Zwei verschiedene Anmeldungen sind Pflicht: Mit sich selbst zusammengelegt
+    und dabei gelöscht, verschwände die Anmeldung samt Teilnehmenden.
+    """
+
+    reg_primary = serializers.UUIDField()
+    reg_secondary = serializers.UUIDField()
+    copy_responsible_persons = serializers.BooleanField(default=False)
+    delete_secondary = serializers.BooleanField(default=False)
+
+    def validate(self, attrs):
+        """Lehnt das Zusammenlegen einer Anmeldung mit sich selbst ab."""
+        if attrs['reg_primary'] == attrs['reg_secondary']:
+            raise serializers.ValidationError('Eine Anmeldung kann nicht mit sich selbst zusammengelegt werden.')
+        return attrs

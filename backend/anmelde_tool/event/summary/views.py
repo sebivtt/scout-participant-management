@@ -4,10 +4,12 @@ from django.db.models import QuerySet, Q
 from dateutil.relativedelta import relativedelta
 from django_filters import BaseInFilter, CharFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.generics import get_object_or_404
 from rest_framework import mixins, viewsets, status
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 
@@ -30,6 +32,7 @@ from anmelde_tool.event.helper import (
     filter_registrations_by_query_params,
     get_count_by_age_gender_leader,
 )
+from anmelde_tool.event.cash.models import CashIncome
 from anmelde_tool.event.models import EventModule
 from anmelde_tool.event.summary import serializers as summary_serializers
 from anmelde_tool.event.summary.serializers import EventModuleSummarySerializer
@@ -804,18 +807,28 @@ class RegistrationParentViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 class MergeRegistrationsViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    permission_classes = [
-        event_permissions.IsSubEventResponsiblePerson | event_permissions.IsLeaderPerson
-    ]
+    """Legt zwei Anmeldungen einer Veranstaltung zusammen (nur Veranstaltungsleitung).
+
+    Früher durften auch Ansichtsgruppe sowie Bundes- und Ringführung
+    zusammenlegen und löschen, und die Anmeldungen durften aus beliebigen
+    Veranstaltungen stammen.
+    """
+
+    permission_classes = [event_permissions.IsSubEventSuperResponsiblePerson]
 
     def create(self, request, *args, **kwargs):
-        data = request.data
+        """Verschiebt Teilnehmende, Antworten und Zahlungen der zweiten Anmeldung in die erste und löscht sie auf Wunsch."""
+        serializer = summary_serializers.MergeRegistrationsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        event_id = self.kwargs.get("event_pk", None)
 
-        reg_id_primary = data["reg_primary"]
-        reg_id_secondary = data["reg_secondary"]
-        reg_primary = Registration.objects.get(id=reg_id_primary)
-        reg_secondary = Registration.objects.get(id=reg_id_secondary)
+        # Beide Anmeldungen müssen zur Veranstaltung aus der Adresse gehören.
+        reg_primary = get_object_or_404(Registration, id=data["reg_primary"], event=event_id)
+        reg_secondary = get_object_or_404(Registration, id=data["reg_secondary"], event=event_id)
 
+        # Zahlungen gehören dazu: Beim Löschen der zweiten Anmeldung verlören sie
+        # sonst ihre Anmeldung und verschwänden aus der Kasse.
         model_list = [
             RegistrationParticipant,
             BooleanAttribute,
@@ -824,21 +837,18 @@ class MergeRegistrationsViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet
             StringAttribute,
             DateTimeAttribute,
             TravelAttribute,
+            CashIncome,
         ]
 
-        for model in model_list:
-            # move all items from secondary to primary
-            secondary_list = model.objects.filter(registration=reg_id_secondary)
-            secondary_list.update(registration=reg_id_primary)
+        # Ganz oder gar nicht: Bricht ein Schritt ab, bleibt alles wie vorher.
+        with transaction.atomic():
+            for model in model_list:
+                model.objects.filter(registration=reg_secondary).update(registration=reg_primary)
 
-        # copy responsible persons from secondary to primary
-        if data["copy_responsible_persons"]:
-            reg_primary.responsible_persons.add(
-                *reg_secondary.responsible_persons.all()
-            )
+            if data["copy_responsible_persons"]:
+                reg_primary.responsible_persons.add(*reg_secondary.responsible_persons.all())
 
-        # delete secondary registration
-        if data["delete_secondary"]:
-            reg_secondary.delete()
+            if data["delete_secondary"]:
+                reg_secondary.delete()
 
         return Response({"id": reg_primary.event.id}, status=status.HTTP_200_OK)

@@ -28,7 +28,6 @@ from anmelde_tool.registration.models import Registration
 from keycloak_auth.access import member_group_ids
 
 CREATE_METHOD = 'POST'
-UPDATE_METHODS = ('UPDATE', 'PATCH')
 
 User = get_user_model()
 
@@ -139,33 +138,21 @@ class IsEventSuperResponsiblePerson(permissions.BasePermission):
 
 
 class IsSubEventSuperResponsiblePerson(permissions.BasePermission):
-    """Wie IsEventSuperResponsiblePerson, für Unterseiten einer Veranstaltung (event_pk)."""
+    """Veranstaltungsleitung für Unterseiten einer Veranstaltung (event_pk), auch beim Anlegen.
+
+    Anders als bei IsEventSuperResponsiblePerson gibt es keine Ausnahme für
+    POST: Wer etwas in einer bestehenden Veranstaltung anlegt, braucht das
+    Recht auf diese Veranstaltung.
+    """
     message = 'Du darfst dieses Event nicht bearbeiten'
 
     def has_permission(self, request: Request, view) -> bool:
         if not request.user or not request.user.is_authenticated:
             return False
         if request.user.is_superuser:
-            return True
-        if request.method == CREATE_METHOD:
             return True
         event_id: str = view.kwargs.get('event_pk', None)
         return check_event_permission(event_id, request, admin_only=True) == EventRole.ADMIN_ROLE
-
-
-class IsEventResponsiblePersonOrReadOnly(permissions.BasePermission):
-    """Lesen für Eingeloggte, Ändern für Leitung oder Ansichtsgruppe."""
-    message = 'Du darfst dieses Event nicht bearbeiten'
-
-    def has_permission(self, request: Request, view) -> bool:
-        if not request.user or not request.user.is_authenticated:
-            return False
-        if request.user.is_superuser:
-            return True
-        if request.method in SAFE_METHODS:
-            return True
-        event_id: str = view.kwargs.get("pk", None)
-        return check_event_permission(event_id, request) != EventRole.NONE
 
 
 class IsSubEventResponsiblePerson(permissions.BasePermission):
@@ -193,7 +180,11 @@ class IsLeaderPerson(permissions.BasePermission):
 
 
 class IsSubEventResponsiblePersonOrReadOnly(permissions.BasePermission):
-    """Lesen für Eingeloggte, Ändern für Leitung oder Ansichtsgruppe (event_pk)."""
+    """Lesen für Eingeloggte, Ändern nur für die Veranstaltungsleitung (event_pk).
+
+    Die Ansichtsgruppe darf nichts ändern (Entscheidung vom 15.10.2026).
+    Früher durfte sie hier Bausteine und Preisstufen bearbeiten.
+    """
     message = 'Du darfst dieses Event nicht bearbeiten'
 
     def has_permission(self, request: Request, view) -> bool:
@@ -204,7 +195,7 @@ class IsSubEventResponsiblePersonOrReadOnly(permissions.BasePermission):
         if request.method in SAFE_METHODS:
             return True
         event_id: str = view.kwargs.get('event_pk', None)
-        return check_event_permission(event_id, request) != EventRole.NONE
+        return check_event_permission(event_id, request, admin_only=True) == EventRole.ADMIN_ROLE
 
 
 class IsRegistrationResponsiblePerson(permissions.BasePermission):

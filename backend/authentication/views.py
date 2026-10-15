@@ -435,7 +435,13 @@ class MyDecidableRequestGroupAccessViewSet(
             )
 
 
-class UserGroupViewSet(viewsets.ModelViewSet):
+class UserGroupViewSet(viewsets.ReadOnlyModelViewSet):
+    """Gruppen, in denen die Person Mitglied ist. Nur lesen.
+
+    Ändern und Löschen von Gruppen läuft über /keycloak/group/, wo die
+    Gruppenrechte geprüft werden. Hier war beides früher ohne Prüfung möglich.
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = FullGroupSerializer
     pagination_class = BigResultsSetPagination
@@ -794,7 +800,15 @@ class MyTribeVerifiedViewSet(viewsets.ViewSet):
         )
 
 
-class AddablePersons(viewsets.ModelViewSet):
+class AddablePersons(viewsets.ReadOnlyModelViewSet):
+    """Personen, die die Person einer Anmeldung hinzufügen kann. Nur lesen.
+
+    Das Frontend liest darüber beim Hinzufügen von Stammesmitgliedern zu einer
+    Anmeldung (services/person.ts setzt die Adresse aus "my-members" und
+    "-addable" zusammen). Ändern und Löschen eigener Personen läuft über
+    /auth/my-members/.
+    """
+
     serializer_class = auth_serializer.MemberSerializer
     pagination_class = BigResultsSetPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]

@@ -14,12 +14,12 @@ Der Code funktioniert und ist seit Phase 1 bis 3 gegen Sicherheitslücken und di
 
 | Messung | Wert | Ziel | Werkzeug |
 | --- | --- | --- | --- |
-| Umfang | 17.866 Zeilen in 232 Dateien (ohne Migrationen und Tests) | – | – |
-| Tests | 144 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
+| Umfang | 18.069 Zeilen in 232 Dateien (ohne Migrationen und Tests) | – | – |
+| Tests | 205 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
 | Bekannte Sicherheitslücken in Paketen | 0 | 0 | pip-audit |
 | Verstöße gegen Code-Regeln, neu | 0 | 0 (wird bei jeder Änderung geprüft) | ruff |
 | Verstöße gegen Code-Regeln, Altlasten (`# noqa`) | 67 (dazu 6 gewollte Markierungen, siehe unten) | sinkt durch die Pfadfinderregel | ruff |
-| Funktionen und Klassen mit Beschreibung | 130 von 1.533 (8 %) | Kernbereiche 100 %, sonst wachsend | `tools/qualitaet_messen.py` |
+| Funktionen und Klassen mit Beschreibung | 167 von 1.545 (11 %) | Kernbereiche 100 %, sonst wachsend | `tools/qualitaet_messen.py` |
 
 ### Altlasten nach Art
 
@@ -82,7 +82,70 @@ Keycloak wird in den aktiven Modulen jetzt höchstens einmal pro Seitenaufruf ge
 | Wer Veranstaltungsleitung ist und zugleich in der Ansichtsgruppe, wurde bei den Buchungsoptionen nur als Betrachter erkannt. | Leitung sah nicht alle Buchungsoptionen | Behoben, Test in `tests/test_rechte.py` |
 | Das alte Startskript für den Server (`backend/start.sh`, genutzt von `backend/docker-compose.yml`) legte bei jedem Start ein Administratorkonto mit festem, öffentlich bekanntem Passwort an. Über die Verwaltung unter `/admin/` hätte sich damit jeder als Administrator anmelden können. | Vollzugriff für Fremde, falls jemand mit dem alten Startskript betreibt | Behoben (Qualität II, 1b-1): Startskript legt kein Konto mehr an, `add_users` läuft nur lokal. **Auf einer bestehenden Installation, die mit dem alten Startskript lief, existiert das Konto weiter: dort das Konto `admin` löschen oder sein Passwort ändern.** Tests in `tests/test_verwaltungsbefehle.py` |
 | Der Abruf der Bundesländer zu Postleitzahlen (`add_state`) schaltete die Zertifikatsprüfung ab. | Gefälschte Antworten hätten falsche Bundesländer in die Datenbank geschrieben | Behoben (Qualität II, 1b-1), Test in `tests/test_verwaltungsbefehle.py` |
+| Anmeldungen zusammenlegen: Mit sich selbst zusammengelegt wurde die Anmeldung samt Teilnehmenden gelöscht. Zahlungseingänge zogen nicht mit um und verschwanden beim Löschen aus der Kasse. Fehlende Angaben führten zu einem Serverfehler. | Datenverlust, Zahlungen nicht mehr auffindbar | Behoben (Qualität II, 1b-2): Eingabeprüfung, Zahlungen ziehen mit um, alles in einem Schritt (ganz oder gar nicht). Tests in `tests/test_zugriffsschutz.py` |
 | Die Reihenfolge der Daten (Ende nach Beginn, Anmeldeschluss nach Anmeldestart, letzte Änderung vor Beginn) wurde beim Bearbeiten nur an einer von zwei Stellen geprüft. | Widersprüchliche Fristen möglich | Behoben, Tests in `tests/test_fristen.py` |
+
+## Zugriffsschutz und Datenfreigabe (Qualität II, Schritt 1b-2)
+
+Geprüft am 15.10.2026: alle 70 Serializer mit `fields = '__all__'` (sie geben alle Felder einer Tabelle zum Lesen und Schreiben frei), alle schreibenden Schnittstellen und alle öffentlichen Adressen. Ergebnis: Viele Schnittstellen erlaubten Ändern oder Löschen, prüften aber nur, ob jemand eingeloggt ist.
+
+### Behobene Lücken
+
+Alle mit Tests in `tests/test_zugriffsschutz.py` bzw. `tests/test_gruppenrechte.py`, die vor der Behebung fehlschlugen. Dazu kommen Gegenproben, dass erlaubte Zugriffe weiter funktionieren, auch für eine Veranstaltungsleitung, die nur über die Leitungsgruppe Leitung ist.
+
+| Was war möglich | Wer | Behebung |
+| --- | --- | --- |
+| Antworten aller Anmeldungen (z. B. Allergien, Freitext) lesen, ändern, löschen (`/event/<typ>-attribute/`) | jede eingeloggte Person | Nur noch Ändern, nur mit Recht auf die Anmeldung und bis zur Änderungsfrist |
+| Fragen (Zusatzfelder) jeder Veranstaltung ändern und löschen (`/event/attribute-module/`) | jede eingeloggte Person | Nur Veranstaltungsleitung, Vorlagen nur Anmeldeteam |
+| Jede Veranstaltung ändern oder löschen (`/event/event-read/`) | jede eingeloggte Person | Nur noch lesen (das Frontend lädt darüber Veranstaltungen) |
+| Bausteine jeder Veranstaltung ändern und löschen (`/event/event/<id>/event-module/`) | jede eingeloggte Person | Nur Veranstaltungsleitung, Veranstaltung immer aus der Adresse |
+| Bausteine in eine fremde Veranstaltung verschieben (`assigned-event-modules`) | Veranstaltungsleitung | Veranstaltung immer aus der Adresse |
+| Zahlungserinnerungen an alle Anmeldungen jeder Veranstaltung auslösen | jede eingeloggte Person | Nur Veranstaltungsleitung |
+| Zahlungseingang einer fremden Veranstaltung in die eigene umbuchen | Veranstaltungsleitung | Recht auf alte und neue Anmeldung |
+| Teilnehmende in eine fremde Anmeldung verschieben | anmeldende Leitung | Anmeldung immer aus der Adresse |
+| Preisstufe einer anderen Veranstaltung wählen (z. B. eine günstigere) | anmeldende Leitung | Preisstufe muss zur Veranstaltung gehören |
+| Bewertung an eine fremde Anmeldung hängen | anmeldende Leitung | Anmeldung immer aus der Adresse |
+| Veranstaltungsorte ändern und löschen | jede eingeloggte Person | Nur wer alle Veranstaltungen am Ort leitet, unbenutzte Orte nur Anmeldeteam |
+| Eigene Gruppe umbenennen oder löschen (`/auth/my-groups/`) | jedes Gruppenmitglied | Nur lesen |
+| Beliebige Benutzerkonten ändern oder löschen (`/keycloak/members/`) | jede Gruppenleitung | Nur lesen |
+| Farbschemata ändern und löschen (`/basic/theme/`) | jede eingeloggte Person | Nur Anmeldeteam |
+| Antworten aller Anmeldungen lesen, mitgeliefert in der Bausteinliste (`assigned-event-modules`) | jede eingeloggte Person | Antworten nur für Leitung, Ansichtsgruppe sowie Bundes- und Ringführung (eigener Bund/Ring) |
+| Konten aller Gruppenmitglieder ändern oder löschen (`/keycloak/group/<id>/members/`) | jedes Gruppenmitglied | Nur lesen |
+| Anmeldungen zusammenlegen, auch mit Anmeldungen fremder Veranstaltungen, dabei die zweite löschen | Ansichtsgruppe, Bundes- und Ringführung, Veranstaltungsleitung | Nur Veranstaltungsleitung, beide Anmeldungen müssen zur Veranstaltung gehören |
+| Antworten an Zusatzfelder fremder Veranstaltungen hängen (tauchen dort in der Auswertung auf) | anmeldende Leitung | Zusatzfeld muss zur Veranstaltung der Anmeldung gehören |
+| Zahlungseingang von seiner Anmeldung lösen (verschwindet aus der Kasse) | Veranstaltungsleitung | Anmeldung darf nicht geleert werden |
+| Bausteine und Preisstufen ändern | Ansichtsgruppe | Nur Veranstaltungsleitung (Entscheidung vom 15.10.2026) |
+
+Neu ist eine automatische Prüfung (`tests/test_schreibrechte_inventar.py`). Sie meldet jede schreibende Schnittstelle der aktiven Module, die nur den Login prüft, solange nicht begründet ist, wo das Recht stattdessen geprüft wird. Gegen den alten Stand hätte sie fünf der Lücken oben gefunden. Ihre Grenze: Schnittstellen mit einer schwachen, aber anderen Rechteprüfung (z. B. „Mitglied der Gruppe“) erkennt sie nicht. Dafür bleibt die Prüfung von Hand nötig.
+
+### Bewertung der `fields = '__all__'`-Stellen
+
+| Gruppe | Anzahl | Bewertung |
+| --- | --- | --- |
+| Aktive Module, nicht über eine Adresse erreichbar | 2 | unkritisch: `CashSummarySerializer` (ungenutzt), `WorkshopSerializer` (Modul nicht eingebunden) |
+| Aktive Module, in diesem Schritt behoben | 14 | Zusatzfelder, Zahlungseingang, Veranstaltungsort, Baustein, Veranstaltung (`event-read`), Teilnehmende, Bewertung, Farbschema, Antworten in der Auswertung (6); siehe Tabelle oben |
+| Aktive Module, Schreiben geschützt | 10 | Veranstaltung anlegen und ändern, Preisstufen, Dateierzeugung, Beitrittsanfragen (2), Mailvorlagen, Stammdaten (Essgewohnheiten, Pfadfinderstruktur, Ebenen) nur Anmeldeteam |
+| Aktive Module, nur lesend erreichbar | 13 | Antworten in Anmeldungen (5), Auswertungen (2), Veranstaltung in der Essensplanung, Übersicht, Kassenansicht, Gruppen, Postleitzahlen, eigene Anmeldung zu einer Veranstaltung |
+| Eingefrorene Module (`food` 21, `inspi` 4, `messaging` 6) | 31 | nicht einzeln bewertet, siehe unten |
+
+Hinweis: In der Kasse lässt sich beim Ändern eines Zahlungseingangs die Person „überwiesen von“ frei setzen. Das betrifft nur die eigene Veranstaltung und ist kein Rechteproblem.
+
+### Offen: eingefrorene Module
+
+In `food` (Essensplanung) und `inspi` (Programmideen) gibt es rund 40 Schnittstellen, über die jede eingeloggte Person Einträge anderer ändern oder löschen kann. Personenbezogene Daten sind dort kaum betroffen, aber alle Inhalte könnten von jeder eingeloggten Person verändert werden. Eine Behebung wäre aufwendig. Entscheidung vom 15.10.2026: Beide Module werden zunächst abgeschaltet (nächster Schritt im Fahrplan), abgesichert erst nach der Abstimmung der Anforderungen.
+
+### Öffentliche Adressen
+
+Zehn Adressen sind ohne Login erreichbar, alle bewusst: Registrierung, Prüfungen von Benutzername, E-Mail, Passwort und Postleitzahl während der Registrierung, Auswahllisten und das Kontaktformular. Dazu kommen zwei lesend öffentliche Listen in `inspi`. Zwei Schwächen:
+- „Benutzername frei?“ und „E-Mail frei?“ verraten Fremden, ob eine E-Mail-Adresse im Tool registriert ist.
+- Registrierung und Kontaktformular haben keine Begrenzung der Anfragen pro Minute. Damit wären massenhaft Konten oder Nachrichten möglich.
+
+Beides gehört zum offenen Punkt „Begrenzung der Anfragen“ im Fahrplan.
+
+Weitere Beobachtungen ohne Rechteproblem, für die Abstimmung der Abläufe notiert:
+- Wer welche Veranstaltung über `/event/event-read/` lesen darf, ist nicht abgestimmt: heute jede eingeloggte Person jede Veranstaltung.
+- Ein neu angelegter Ort ist bis zur Zuordnung zu einer Veranstaltung nur für das Anmeldeteam änderbar. Scheitert die Zuordnung, bleibt er ohne Veranstaltung zurück.
+- Ändern eines Zahlungseingangs ohne Betrag bricht mit einem Serverfehler ab (fehlendes Feld `amount`).
 
 ## Frontend
 
