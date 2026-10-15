@@ -33,6 +33,18 @@ Lies und befolge `CONTRIBUTING.md`. Kurzfassung:
 - Pull-Request-Beschreibung nach `CONTRIBUTING.md` Abschnitt 6, für Nicht-Programmierer verständlich.
 - Neue Entscheidungen des Projektverantwortlichen in `docs/entscheidungen.md` eintragen, mit Datum.
 
+## Erfahrungen aus früheren Sitzungen
+
+Diese Fehler sind tatsächlich passiert. Sie wiederholen sich leicht.
+
+- **Nutzt das Frontend eine Adresse?** Nicht per Textsuche nach dem vollständigen Pfad entscheiden. Das Frontend setzt Pfade aus Bausteinen zusammen (`${SERVICE}-read`). Stattdessen `backend/tools/frontend_aufrufe.py` bzw. `docs/schnittstellen.md` nutzen und Store-Aktionen und Importe bis zur aufrufenden Seite verfolgen. Fast wäre so eine Adresse entfernt worden, über die fast alle Veranstaltungsseiten laden.
+- **Rechte enger ziehen** heißt immer auch Gegenproben: Darf die Veranstaltungsleitung weiterhin alles, auch wenn sie nur über die Leitungsgruppe (`admin_group`) Leitung ist? Darf die anmeldende Leitung vor der Frist ändern?
+- **Zugehörigkeit aus der Adresse:** Felder wie `event` oder `registration` im Inhalt einer Anfrage nie übernehmen. Viele Serializer geben mit `fields = '__all__'` alle Felder frei.
+- **Tests gegen den alten Stand prüfen:** Ein Test zu einem behobenen Fehler muss ohne die Behebung fehlschlagen. Das ist mit `git worktree add <pfad> HEAD~1` schnell nachgeprüft. Einmal bestand ein Test auch ohne Behebung, weil er die falsche Adresse aufrief.
+- **Die unabhängige Prüfung findet fast immer etwas.** Ihren Auftrag eng fassen (nur den Diff, konkrete Prüfpunkte), Befunde selbst nachprüfen, dann beheben. Bricht sie ab (z. B. Nutzungslimit), sie fortsetzen statt neu zu starten.
+- **Zahlen in der Doku nachrechnen,** bevor sie im Pull Request stehen: `backend/tools/qualitaet_messen.py` und eigene Zählungen. Falsche Zahlen fielen mehrfach erst in der Prüfung auf.
+- **Pull Requests nicht aufeinander aufbauen.** Ein auf einen anderen PR aufgebauter PR landete nach der Übernahme im falschen Branch.
+
 ## Was du nicht tun sollst
 
 - Keine Änderungen am gemeinsamen Verbands-Keycloak voraussetzen (z. B. veraltete Feature-Flags). Das Tool muss mit der Standard-Konfiguration von Keycloak laufen.
