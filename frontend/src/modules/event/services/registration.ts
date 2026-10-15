@@ -3,11 +3,6 @@ const BASE_URL = import.meta.env.VITE_APP_API;
 const SERVICE = "event/registration";
 
 export default {
-  fetchAll(params: any) {
-    return axios.get(`${BASE_URL}/${SERVICE}-read/`, {
-      params: params,
-    });
-  },
   fetchMyRegistrations(params: any) {
     return axios.get(`${BASE_URL}/event/my-registrations/`, {
       params: params,
@@ -32,7 +27,7 @@ export default {
     return axios.put(`${BASE_URL}/${SERVICE}/${regId}/single-participant/${personId}/`, data);
   },
   deleteParticipant(regId: any, id: any) {
-    return axios.delete(`${BASE_URL}/${SERVICE}/${regId}/single-participant/${id}`);
+    return axios.delete(`${BASE_URL}/${SERVICE}/${regId}/single-participant/${id}/`);
   },
   createBooleanAttribute(id: any, data: any) {
     return axios.post(`${BASE_URL}/${SERVICE}/${id}/boolean-attribute/`, data);
@@ -75,10 +70,5 @@ export default {
   },
   createRating(id: any, data: any) {
     return axios.post(`${BASE_URL}/${SERVICE}/${id}/registration-rating/`, data);
-  },
-  addablePersons(regId: any, params: any) {
-    return axios.get(`${BASE_URL}/${SERVICE}/${regId}/addable-persons/`, {
-      params: params,
-    });
   },
 };

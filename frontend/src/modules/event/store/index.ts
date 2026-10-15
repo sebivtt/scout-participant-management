@@ -370,16 +370,6 @@ export const useEventStore = defineStore("event", {
       };
       return EventApi.create(eventCreate);
     },
-    async fetchRegistrations(params = {}) {
-      try {
-        const response = await RegistrationApi.fetchAll(params);
-        this._registrations = response.data;
-        return response;
-      } catch (error) {
-        // alert(error);
-        console.log(error);
-      }
-    },
     async fetchBookingOptionsById(id: Number) {
       try {
         const response = await EventApi.fetchBookingOptionsById(id);
