@@ -230,16 +230,28 @@ const zipCheck = async (value) => {
   return !(await registerStore.zipCheck(value));
 };
 
-const checkPersonRemote = async (regId, person) => {
+// Die Kennung in der Adresse der Seite ist bei einer neuen Anmeldung die der
+// Veranstaltung (die Anmeldung gibt es noch nicht), beim Bearbeiten einer
+// bestehenden Anmeldung die der Anmeldung. Die Seite sagt über `checkScope`,
+// welcher Fall vorliegt (Issue #19).
+const checkPersonRemote = async (routeId, person) => {
   if (!person || !person.firstName || !person.lastName || !person.birthday) {
     return 'Pflichtfleder fehlen';
   }
-  return await registerStore.checkPerson(regId, person);
+  if (props.checkScope === "event") {
+    return await registerStore.checkPersonForEvent(routeId, person);
+  }
+  return await registerStore.checkPerson(routeId, person);
 };
 
 const checkPersonLocal = (person) => {
   let returnVal = false;
   eventRegisterStore.registerPerson.forEach((element) => {
+    // Beim Bearbeiten steht die Person selbst schon in der Liste und ist
+    // keine Dublette ihrer selbst.
+    if (person.id && element.storeId === person.id) {
+      return;
+    }
     if (
       element.firstName == person.firstName &&
       element.lastName == person.lastName &&
@@ -365,12 +377,15 @@ const props = defineProps({
   callbackOnConfirm: { type: Function, required: true },
   callbackOnCancel: { type: Function, required: true },
   blockBookingOption: { type: Boolean, required: false, default: false },
+  // "event": neue Anmeldung, die Adresse enthält die Veranstaltung.
+  // "registration": bestehende Anmeldung, die Adresse enthält die Anmeldung.
+  checkScope: { type: String, required: false, default: "registration" },
 });
 function close() {
   props.callbackOnCancel();
 }
 function onButtonSaveClicked() {
-  const regId = route.params.id;
+  const routeId = route.params.id;
   errors.value.$validate();
   if (errors.value.$error) {
     errors.value.$errors.forEach(error => {
@@ -386,7 +401,7 @@ function onButtonSaveClicked() {
     return;
   }
 
-  checkPersonRemote(regId, state).then((response) => {
+  checkPersonRemote(routeId, state).then((response) => {
     if (response) {
       commonStore.showError(response);
       return;

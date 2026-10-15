@@ -3,6 +3,7 @@ from rest_framework_nested import routers
 
 from anmelde_tool.email_services import views as email_services_views
 from anmelde_tool.attributes import views as attributes_views
+from anmelde_tool.registration import views as registration_views
 from . import views
 
 router = routers.SimpleRouter()
@@ -20,6 +21,9 @@ event_router.register(r'booking-options', views.BookingOptionViewSet, basename='
 event_router.register(r'assigned-event-modules', views.AssignedEventModulesViewSet, basename='assigned-event-modules')
 event_router.register(r'available-modules', views.AvailableEventModulesViewSet, basename='available-modules')
 event_router.register(r'event-module', views.EventModuleViewSet, basename='event-module')
+# Dublettenprüfung für neue Anmeldungen: Die Anmeldung gibt es noch nicht,
+# deshalb hängt die Prüfung an der Veranstaltung (Issue #19).
+event_router.register(r'check-person', registration_views.EventCheckPersonViewSet, basename='event-check-person')
 
 # event_module_router.register(r'attribute-mapper', views.EventModuleAttributeMapperViewSet,basename='attribute-mapper')
 
