@@ -249,7 +249,7 @@ const checkPersonLocal = (person) => {
   eventRegisterStore.registerPerson.forEach((element) => {
     // Beim Bearbeiten steht die Person selbst schon in der Liste und ist
     // keine Dublette ihrer selbst.
-    if (person.id && element.storeId === person.id) {
+    if (person.storeId && element.storeId === person.storeId) {
       return;
     }
     if (
@@ -326,6 +326,10 @@ const rules = {
 
 const state = reactive({
   id: null,
+  // Kennung in der Liste einer neuen, noch nicht abgeschickten Anmeldung.
+  // Die Seite ersetzt die Person nur, wenn sie diese Kennung zurückbekommt;
+  // sonst legt sie eine zweite an.
+  storeId: null,
   allowPermanently: true,
   firstName: null,
   lastName: null,
@@ -480,6 +484,10 @@ watch(
 );
 
 function resetData() {
+  // Sonst bliebe nach einem Bearbeiten die alte Kennung stehen, und eine neue
+  // Person würde als die zuvor bearbeitete behandelt.
+  state.id = null;
+  state.storeId = null;
   state.allowPermanently = true;
   state.firstName = null;
   state.lastName = null;
@@ -502,6 +510,7 @@ function initData(eatHabits) {
     props.person !== {} &&
     (props.person.storeId ||props.person.id)) {
     state.id = props.person.storeId || props.person.id;
+    state.storeId = props.person.storeId || null;
     state.firstName = props.person.firstName;
     state.lastName = props.person.lastName;
     state.scoutName = props.person.scoutName;

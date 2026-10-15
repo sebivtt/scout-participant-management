@@ -37,12 +37,12 @@ Phase 3d:
 - **PR #16:** Sicherheitsupdates im Frontend innerhalb der Hauptversionen. Bekannte Lücken in den Programmpaketen von 63 auf 4, übrig sind nur die bewusst offenen (`uuid`, `quill`, `@vue/server-renderer`).
 - **PR #17:** TypeScript 4.6 → 6.0 und eslint 8 → 10, neue eslint-Einstellung `frontend/eslint.config.mjs`, Aufruf `yarn lint`. Dabei zwei echte Fehler und eine tote Datei im Frontend gefunden (Fahrplan, Phase 4).
 - **PR #18:** `uuid` 9 → 14. Schließt eine Lücke, uuid bringt jetzt eigene Typbeschreibungen mit.
-
-Fehlerbehebungen:
-- **PR #21 (Issue #19):** Neue Anmeldungen mit Personen waren seit PR #3 unmöglich. Die Dublettenprüfung hat jetzt eine eigene Adresse für neue Anmeldungen, meldet Dubletten sofort, auch bei Stammesmitgliedern, und hält bearbeitete Personen nicht mehr für ihre eigene Dublette (Entscheidung vom 15.10.2026).
 - Reihenfolge geändert (Entscheidung vom 15.10.2026, Weg C): erst die risikoarmen Sprünge, dann Rauchtests, dann die riskanten.
 
-Tests: 228 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). Ergebnisse in `docs/qualitaet.md`, Entscheidungen in `docs/entscheidungen.md`.
+Fehlerbehebungen:
+- **PR #21 (Issue #19):** Neue Anmeldungen mit Personen waren seit PR #3 unmöglich. Die Dublettenprüfung hat jetzt eine eigene Adresse für neue Anmeldungen, meldet Dubletten sofort, auch bei Stammesmitgliedern, und hält bearbeitete Personen nicht mehr für ihre eigene Dublette (Entscheidung vom 15.10.2026). Dabei behoben: Wer in einer neuen Anmeldung eine Person bearbeitete, hatte sie danach doppelt in der Liste (Altcode).
+
+Tests: 253 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). Ergebnisse in `docs/qualitaet.md`, Entscheidungen in `docs/entscheidungen.md`.
 
 ### Nächster Schritt: Issue #20, Weiterleitung nach dem Speichern
 

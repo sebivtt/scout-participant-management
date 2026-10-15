@@ -96,6 +96,20 @@ def get_attribute_params(kwargs, post_serializer, request=None):
     return attribute_module, registration
 
 
+def _participant_id_or_none(value) -> int | None:
+    """Kennung einer Person aus dem Inhalt einer Anfrage, oder None bei allem anderen.
+
+    Der Inhalt kommt aus dem Browser und kann alles enthalten. Ein Serverfehler
+    wäre die falsche Antwort, die Person zählt dann einfach als nicht bearbeitet.
+    """
+    if isinstance(value, bool):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def check_for_double_participants(request, event_id, own_registration: Registration | None = None):
     """Wirft ParticipantAlreadyExists, wenn die Person schon für die Veranstaltung angemeldet ist.
 
@@ -111,9 +125,9 @@ def check_for_double_participants(request, event_id, own_registration: Registrat
         birthday=request.data.get("birthday"),
         registration__event=event_id,
     )
-    edited_id = request.data.get("id")
-    if own_registration is not None and str(edited_id).isdigit():
-        participants = participants.exclude(id=int(edited_id), registration=own_registration)
+    edited_id = _participant_id_or_none(request.data.get("id"))
+    if own_registration is not None and edited_id is not None:
+        participants = participants.exclude(id=edited_id, registration=own_registration)
     if participants.exists():
         raise ParticipantAlreadyExists()
     return False

@@ -16,7 +16,10 @@ Issue #19: Seit PR #3 erwartete die einzige Prüfadresse eine Anmeldung. Bei
 einer neuen Anmeldung schickt das Frontend aber die Veranstaltung. Jede neue
 Anmeldung mit Personen scheiterte deshalb mit „Registrierung nicht gefunden“.
 """
+from datetime import timedelta
+
 import pytest
+from django.utils import timezone
 
 from anmelde_tool.registration.models import RegistrationParticipant
 
@@ -83,6 +86,36 @@ class TestNeueAnmeldung:
         response = api(veranstaltungsleitung).post(self.url(lager), person(), format='json')
         assert response.status_code == 200
 
+    def test_vor_anmeldestart_gesperrt(self, api, teilnehmer, lager):
+        # TooEarly antwortet seit jeher mit 405, nicht 403. So festgehalten.
+        lager.registration_start = timezone.now() + timedelta(days=1)
+        lager.save()
+        response = api(teilnehmer).post(self.url(lager), person(), format='json')
+        assert response.status_code == 405
+
+    def test_nach_technischer_sperre_gesperrt(self, api, teilnehmer, lager):
+        lager.registration_closes_at = timezone.now() - timedelta(hours=1)
+        lager.save()
+        response = api(teilnehmer).post(self.url(lager), person(), format='json')
+        assert response.status_code == 403
+
+    def test_veranstaltungsleitung_ueber_leitungsgruppe_trotz_sperre(
+            self, api, teilnehmer, lager, leitungsgruppe, fake_keycloak):
+        lager.admin_group = leitungsgruppe
+        lager.registration_closed = True
+        lager.save()
+        fake_keycloak.user_groups[teilnehmer.keycloak_id] = [leitungsgruppe.keycloak_id]
+        response = api(teilnehmer).post(self.url(lager), person(), format='json')
+        assert response.status_code == 200
+
+    def test_superuser_trotz_sperre(self, api, teilnehmer, lager):
+        teilnehmer.is_superuser = True
+        teilnehmer.save()
+        lager.registration_closed = True
+        lager.save()
+        response = api(teilnehmer).post(self.url(lager), person(), format='json')
+        assert response.status_code == 200
+
     def test_unbekannte_veranstaltung(self, api, teilnehmer, lager):
         url = '/event/event/00000000-0000-0000-0000-000000000000/check-person/'
         assert api(teilnehmer).post(url, person(), format='json').status_code == 404
@@ -125,9 +158,11 @@ class TestBestehendeAnmeldung:
         response = api(anmeldende_leitung).post(self.url(anmeldung_adler), data, format='json')
         assert response.status_code == 400
 
+    @pytest.mark.parametrize('kennung', ['keine-zahl', '²', '-1', None, [1]])
     def test_unsinnige_kennung_ist_kein_serverfehler(
-            self, api, anmeldende_leitung, anmeldung_adler, kim_bei_den_falken):
-        data = person('Kim', 'Falke', id='keine-zahl')
+            self, api, anmeldende_leitung, anmeldung_adler, kim_bei_den_falken, kennung):
+        # '²' gilt für Python als Ziffer, lässt sich aber nicht in eine Zahl umwandeln.
+        data = person('Kim', 'Falke', id=kennung)
         response = api(anmeldende_leitung).post(self.url(anmeldung_adler), data, format='json')
         assert response.status_code == 400
 

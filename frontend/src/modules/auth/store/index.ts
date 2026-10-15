@@ -265,7 +265,8 @@ export const useRegisterStore = defineStore("registerStore", {
         await checkingServices.personCheck(regId, person)
         return false;
       } catch (e) {
-        return e.response?.data?.detail
+        const error = e as { response?: { data?: { detail?: string } } };
+        return error.response?.data?.detail || "Die Prüfung auf doppelte Anmeldung ist fehlgeschlagen.";
       }
     },
     /** Dublettenprüfung für eine neue Anmeldung, über die Veranstaltung. Liefert false oder die Meldung des Backends. */
