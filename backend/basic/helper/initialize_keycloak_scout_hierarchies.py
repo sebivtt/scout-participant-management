@@ -1,3 +1,5 @@
+import logging
+
 from keycloak import KeycloakGetError
 
 from backend.settings import keycloak_admin
@@ -6,6 +8,8 @@ from basic.models import ScoutHierarchy
 from keycloak_auth.helper import get_or_create_keycloak_model
 from keycloak_auth.access import grant
 from keycloak_auth.models import GroupPermission, KeycloakGroup
+
+logger = logging.getLogger(__name__)
 
 additional_level_groups = {
     str(ScoutOrganisationLevelChoices.BUND): ['Bundesführung', 'Stellv. Bundesführung', 'Schatzamt'],
@@ -21,27 +25,27 @@ class InitKeycloakScoutHierarchies:
         self.groups_added = []
 
     def run(self):
-        print('checking existing keycloak groups')
+        print('checking existing keycloak groups')  # noqa: T201
         all_groups = keycloak_admin.get_groups()
         for group in all_groups:
             self.get_subgroup(group)
 
-        print('creating missing scout hierarchies in keycloak')
+        print('creating missing scout hierarchies in keycloak')  # noqa: T201
         heads = ScoutHierarchy.objects.all()
         for head in heads:
             self.recursive_group_initialisation(head)
 
         if self.groups_added:
-            print('')
-            print('added groups:')
+            print('')  # noqa: T201
+            print('added groups:')  # noqa: T201
             for group in self.groups_added:
-                print(group)
+                print(group)  # noqa: T201
 
         granted = grant_hierarchy_permissions()
-        print(f'Gruppenrechte geprüft, {granted} neu vergeben')
-        print('Checks completed')
+        logger.info('Gruppenrechte geprüft, %s neu vergeben', granted)
+        print('Checks completed')  # noqa: T201
 
-    def recursive_group_initialisation(self, head: ScoutHierarchy, add_children: bool = True) -> None:
+    def recursive_group_initialisation(self, head: ScoutHierarchy, add_children: bool = True) -> None:  # noqa: C901
         initialized = False
         group = None
 

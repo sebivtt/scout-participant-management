@@ -22,7 +22,7 @@ def payment_reminder_mail(evend_id: str, email_type: EmailType):
     event: event_models.Event = get_object_or_404(event_models.Event, id=evend_id)
 
     technical_name = event.technical_name or 'info'
-    sender = f'{event.name} <{technical_name}@{getattr(settings, "EMAIL_HOST_USER")}>'
+    sender = f'{event.name} <{technical_name}@{settings.EMAIL_HOST_USER}>'
     subject = f'Zahlungserinnerung für: {event.name}'
 
     template_html, template_plain = get_email(email_type, event)
@@ -80,7 +80,7 @@ def single_payment_reminder_mail(registration_id: str, email_type: EmailType):
     event: event_models.Event = get_object_or_404(event_models.Event, id=registration.event.id)
 
     technical_name = event.technical_name or 'info'
-    sender = f'{event.name} <{technical_name}@{getattr(settings, "EMAIL_HOST_USER")}>'
+    sender = f'{event.name} <{technical_name}@{settings.EMAIL_HOST_USER}>'
     subject = f'Zahlungserinnerung für: {event.name}'
 
     template_html, template_plain = get_email(email_type, event)

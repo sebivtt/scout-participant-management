@@ -1,0 +1,29 @@
+# Automatische Code-Prüfung, siehe CONTRIBUTING.md
+# Lokal: ruff check .
+
+target-version = "py311"
+line-length = 120
+extend-exclude = ["*/migrations/*", ".venv"]
+
+[lint]
+select = [
+    "F",     # Fehler: ungenutzte Importe/Variablen, undefinierte Namen
+    "E9",    # Syntaxfehler
+    "E722",  # pauschales "except:"
+    "B",     # häufige Fehlerquellen (z. B. veränderliche Standardwerte)
+    "C90",   # Komplexität
+    "T20",   # print() im Anwendungscode
+]
+ignore = [
+    "B904",  # "raise ... from": in Views nicht hilfreich, Fehlermeldung bleibt gleich
+]
+
+[lint.mccabe]
+max-complexity = 12
+
+[lint.per-file-ignores]
+# Management-Befehle und Werkzeuge in tools/ geben ihre Ergebnisse bewusst mit print() aus
+"*/management/commands/*" = ["T20"]
+"tools/*" = ["T20"]
+"tests/*" = ["T20"]
+"backend/settings*.py" = ["F403", "F405"]

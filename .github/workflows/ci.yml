@@ -30,6 +30,8 @@ jobs:
           cache-dependency-path: backend/requirements*.txt
       - name: Abhängigkeiten installieren
         run: pip install -r requirements-dev.txt
+      - name: Code-Regeln (ruff, siehe CONTRIBUTING.md)
+        run: ruff check .
       - name: Django-Systemprüfung
         run: python manage.py check
       - name: Fehlen Migrationen?

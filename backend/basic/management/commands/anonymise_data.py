@@ -57,7 +57,7 @@ class Command(BaseCommand):
             workshop.supervisor = User.objects.get(id=1)
             workshop.save()
 
-        for i, event in enumerate(Event.objects.all()):
+        for i, event in enumerate(Event.objects.all()):  # noqa: B007
             event.invitation_code_single = 'AAAA'
             event.invitation_code_group = 'AAAA'
             event.invitation_code = 'AAAA'

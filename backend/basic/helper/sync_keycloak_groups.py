@@ -13,36 +13,36 @@ class SyncKeycloakGroups:
         self.groups_added = []
         self.groups_deleted = []
 
-    def run(self):
-        print('checking django groups')
+    def run(self):  # noqa: C901
+        print('checking django groups')  # noqa: T201
         all_django_groups = KeycloakGroup.objects.all()
         for group in all_django_groups:
             name = self.generate_name(group)
             self.groups[name] = False
 
-        print('checking keycloak groups')
+        print('checking keycloak groups')  # noqa: T201
         all_groups = keycloak_admin.get_groups()
         for group in all_groups:
             self.get_subgroup(group)
 
-        print('Checking diff')
+        print('Checking diff')  # noqa: T201
         for group in self.groups:
             if not self.groups[group]:
                 self.groups_deleted.append(group)
 
         if self.groups_added:
-            print('')
-            print('added groups:')
+            print('')  # noqa: T201
+            print('added groups:')  # noqa: T201
             for group in self.groups_added:
-                print(group)
+                print(group)  # noqa: T201
 
         if self.groups_deleted:
-            print('')
-            print('groups to be deleted:')
+            print('')  # noqa: T201
+            print('groups to be deleted:')  # noqa: T201
             for group in self.groups_deleted:
-                print(group)
+                print(group)  # noqa: T201
 
-        print('Assign KeycloakGroup to ScoutHierarchies')
+        print('Assign KeycloakGroup to ScoutHierarchies')  # noqa: T201
         for scout_hierarchy in ScoutHierarchy.objects.all():
             if not scout_hierarchy.keycloak:
                 keycloak_group = None
@@ -61,10 +61,10 @@ class SyncKeycloakGroups:
                 scout_hierarchy.keycloak.membership_allowed = True
                 scout_hierarchy.keycloak.save()
 
-        print('')
-        print('Checks finished')
+        print('')  # noqa: T201
+        print('Checks finished')  # noqa: T201
         if not self.groups_added and not self.groups_deleted:
-            print('All fine')
+            print('All fine')  # noqa: T201
 
     def get_subgroup(self, group, parent: KeycloakGroup = None):
         keycloak_group, created = get_or_create_keycloak_model(group, parent)

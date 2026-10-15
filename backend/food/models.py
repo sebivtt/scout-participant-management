@@ -1,7 +1,6 @@
 import datetime
 
 from django.db import models
-from django.db.models import Sum
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
@@ -9,7 +8,6 @@ from django.contrib.auth import get_user_model
 from food.service.nutri_lib import Nutri
 from food.service.recipe_logic import RecipeModule
 from food.service.hint import HintModule
-from food.service.price_logic import PriceModule
 from anmelde_tool.event import models as event_models
 
 User = get_user_model()
@@ -523,8 +521,7 @@ class PollItem(TimeStampMixin):
 # pylint: disable=unused-argument
 @receiver(pre_save, sender=Ingredient)
 def save_recipe(sender, instance: Ingredient, **kwargs):
-    import requests
-    import json
+    pass
 
     # if instance.fdc_id and not instance.energy_kj:
     #     API_URL = "https://api.nal.usda.gov/fdc/v1/food"

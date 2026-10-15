@@ -6,4 +6,4 @@ class WorkshopConfig(AppConfig):
     name = 'anmelde_tool.registration'
 
     def ready(self):
-        import anmelde_tool.registration.signals
+        import anmelde_tool.registration.signals  # noqa: F401 -- registriert die Signal-Empfänger

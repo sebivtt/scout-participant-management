@@ -2,19 +2,15 @@ from django.db.models import Q, QuerySet
 from django_filters import CharFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 from rest_framework import viewsets, status
-from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from food.choices import Gender
 from basic.helper.choice_to_json import choice_to_json
-from rest_framework.views import APIView
-from rest_framework.mixins import RetrieveModelMixin
 
 from copy import deepcopy
 from itertools import groupby
-from datetime import date, timedelta
+from datetime import timedelta
 import datetime
 
 from food import models as food_models
@@ -378,7 +374,7 @@ class MealEventViewSet(viewsets.ModelViewSet):
             ) / 3600
             hours_until = (end_date.timestamp() - today_with_time.timestamp()) / 3600
 
-            print(hours_until)
+            print(hours_until)  # noqa: T201
 
             if hours_left < 24:
                 max_day_part_factor = hours_left / 24
@@ -470,7 +466,7 @@ class MealEventViewSet(viewsets.ModelViewSet):
         )
 
     def update(self, request, *args, **kwargs) -> Response:
-        current_meal_event = food_models.MealEvent.objects.filter(
+        current_meal_event = food_models.MealEvent.objects.filter(  # noqa: F841
             id=request.data.get("id")
         ).first()
         return super().update(request, *args, **kwargs)

@@ -26,7 +26,7 @@ def registration_confirmed_mail(registration_id: str, email_type: EmailType):
     event: event_models.Event = registration.event
 
     technical_name = event.technical_name or 'info'
-    sender = f'{event.name} <{technical_name}@{getattr(settings, "EMAIL_HOST_USER")}>'
+    sender = f'{event.name} <{technical_name}@{settings.EMAIL_HOST_USER}>'
     subject = f'Registrierungsbestätigung für: {event.name}'
 
     template_html, template_plain = get_email(email_type, event)

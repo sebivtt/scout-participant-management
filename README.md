@@ -12,6 +12,16 @@ Das Projekt baut auf dem archivierten DPV-Tool auf ([scout-tool-backend](https:/
 
 Neben dem Anmeldetool enthält das Backend weitere Module (Essensplanung, Inspi, Nachrichten, Gruppenverwaltung). Sie bleiben lauffähig, werden aber vorerst nicht weiterentwickelt.
 
+## Dokumentation
+
+| Datei | Inhalt |
+| --- | --- |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Regeln für die Entwicklung |
+| [`docs/architektur.md`](docs/architektur.md) | Aufbau des Systems, Ablauf einer Anmeldung, wo was liegt |
+| [`docs/entscheidungen.md`](docs/entscheidungen.md) | Fachliche und technische Entscheidungen mit Begründung |
+| [`docs/glossar.md`](docs/glossar.md) | Deutsche Fachbegriffe und ihre Namen im Code |
+| [`docs/qualitaet.md`](docs/qualitaet.md) | Messwerte, bekannte Schwächen, Prioritäten |
+
 ## Lokal starten
 
 Voraussetzungen: Docker, Python 3.11 bis 3.13, Node.js 20 oder neuer, Yarn.
@@ -119,7 +129,8 @@ Die Backend-Tests brauchen weder Datenbankserver noch Keycloak:
 ```bash
 cd backend
 pip install -r requirements-dev.txt
-pytest
+ruff check .   # Code-Regeln
+pytest         # Tests
 ```
 
 `tests/test_rechte.py` prüft die Rechteregeln (wer sieht und bearbeitet welche Anmeldung). Tests mit der Markierung `xfail` beschreiben bekannte Fehler, die noch offen sind. Bei jeder Änderung auf GitHub laufen die Backend-Tests und der Frontend-Build automatisch (`.github/workflows/ci.yml`).

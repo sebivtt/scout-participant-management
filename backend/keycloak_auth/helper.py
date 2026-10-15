@@ -33,7 +33,7 @@ def get_or_create_keycloak_model(group: dict, parent_obj: str | KeycloakGroup) -
         return keycloak_group, True
     else:
         if keycloak_groups.count() > 1:
-            print('ERROR')
+            print('ERROR')  # noqa: T201
             raise Exception('Multiple keycloak groups found, error in data, please fix manually')
         else:
             return keycloak_groups.first(), False
@@ -52,7 +52,11 @@ def check_group_admin_permission(group_id: str) -> bool:
 
 
 def get_groups_of_user(token, keycloak_id):
-    # TODO: Replace back to keycloak_user
+    """Veraltet: nur noch im eingefrorenen Modul food genutzt.
+
+    Neuer Code nutzt keycloak_auth.access.member_group_ids(request). Das fragt
+    Keycloak höchstens einmal pro Anfrage, statt bei jedem Aufruf.
+    """
     try:
         keycloak_groups = keycloak_admin.get_user_groups(
             keycloak_id,

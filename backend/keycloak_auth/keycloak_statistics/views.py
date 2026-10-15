@@ -1,4 +1,3 @@
-from django.db.models import QuerySet, Count
 
 from rest_framework import mixins, viewsets, status
 from rest_framework.permissions import IsAuthenticated

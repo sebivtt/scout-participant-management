@@ -189,3 +189,54 @@ class TestDatumspruefung:
         assert response.status_code == 200
         lager.refresh_from_db()
         assert lager.registration_closed and lager.changes_closed and lager.registration_closes_at
+
+
+class TestDatumsreihenfolge:
+    """Alle Regeln aus EventDateValidationMixin.DATE_ORDER_RULES, beim Ändern und beim Anlegen."""
+
+    def url(self, lager):
+        return f'/event/event-update-partial/{lager.id}/'
+
+    @pytest.mark.parametrize('feld,bezug,versatz', [
+        ('endDate', 'start_date', -1),                          # Ende vor Beginn
+        ('registrationDeadline', 'registration_start', -1),     # Anmeldeschluss vor Anmeldestart
+        ('registrationClosesAt', 'registration_start', -1),     # Sperre vor Anmeldestart
+    ])
+    def test_falsche_reihenfolge_abgelehnt(self, api, veranstaltungsleitung, lager, feld, bezug, versatz):
+        datum = getattr(lager, bezug) + versatz * TAG
+        response = api(veranstaltungsleitung).patch(self.url(lager), {feld: datum.isoformat()}, format='json')
+        assert response.status_code == 400
+
+    def neue_veranstaltung(self, lager, **aenderungen):
+        daten = {
+            'name': 'Neues Lager', 'price': 20, 'responsiblePersons': [],
+            'startDate': lager.start_date.isoformat(), 'endDate': lager.end_date.isoformat(),
+            'registrationStart': lager.registration_start.isoformat(),
+            'registrationDeadline': lager.registration_deadline.isoformat(),
+        }
+        daten.update(aenderungen)
+        return daten
+
+    @pytest.fixture
+    def standardvorlage(self, db, tmp_path):
+        # Anlegen einer Veranstaltung braucht die Standardvorlage und ihre Bausteine
+        # aus den Stammdaten. Die Orte darin verweisen auf Postleitzahlen und
+        # werden für den Test weggelassen.
+        import json
+        from pathlib import Path
+        from django.core.management import call_command
+        stammdaten = json.loads(Path('data/main/3_event.json').read_text())
+        ohne_orte = tmp_path / 'vorlage.json'
+        ohne_orte.write_text(json.dumps([o for o in stammdaten if o['model'] != 'event.eventlocation']))
+        call_command('loaddata', str(ohne_orte), 'data/main/4_attributes.json', verbosity=0)
+
+    def test_anlegen_mit_ende_vor_beginn_abgelehnt(self, api, veranstaltungsleitung, lager, standardvorlage):
+        daten = self.neue_veranstaltung(lager, endDate=(lager.start_date - TAG).isoformat())
+        assert api(veranstaltungsleitung).post('/event/event/', daten, format='json').status_code == 400
+
+    def test_anlegende_person_ist_immer_leitung(self, api, veranstaltungsleitung, lager, standardvorlage):
+        # Auch ohne angegebene Verantwortliche wird die anlegende Person Leitung,
+        # sonst könnte niemand die neue Veranstaltung bearbeiten.
+        response = api(veranstaltungsleitung).post('/event/event/', self.neue_veranstaltung(lager), format='json')
+        assert response.status_code == 201, response.content
+        assert response.json()['responsiblePersons'] == [veranstaltungsleitung.email]

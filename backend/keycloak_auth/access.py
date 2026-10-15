@@ -32,6 +32,7 @@ _MAX_DEPTH = 20
 def _user_of(request_or_user):
     # Eine Anfrage erkennt man an META. Nicht nur an "user": Benutzerobjekte
     # haben selbst ein Feld "user" (Rückbezug von RequestGroupAccess).
+    """Benutzer aus einer Anfrage oder den Benutzer selbst."""
     if hasattr(request_or_user, 'META'):
         return getattr(request_or_user, 'user', None)
     return request_or_user
@@ -64,12 +65,14 @@ def member_group_ids(request_or_user) -> set[str]:
 
 
 def resolve_group(group: KeycloakGroup | str | None) -> KeycloakGroup | None:
+    """Gruppe aus Objekt oder Keycloak-ID; None, wenn es sie nicht gibt."""
     if group is None or isinstance(group, KeycloakGroup):
         return group
     return KeycloakGroup.objects.filter(keycloak_id=group).first()
 
 
 def group_with_ancestors(group: KeycloakGroup) -> list[KeycloakGroup]:
+    """Die Gruppe und alle Obergruppen, von unten nach oben (Schutz gegen Zyklen: höchstens 20 Ebenen)."""
     chain, current = [], group
     while current is not None and len(chain) < _MAX_DEPTH:
         chain.append(current)
@@ -84,11 +87,18 @@ def group_role(request_or_user, group: KeycloakGroup | str | None) -> str | None
         return None
     if user.is_staff or user.is_superuser:
         return Role.ADMIN
-
     group = resolve_group(group)
     if group is None:
         return None
+    return _highest_role(_held_roles(request_or_user, user, group))
 
+
+def _held_roles(request_or_user, user, group: KeycloakGroup) -> set[str]:
+    """Rollen auf die Gruppe oder eine Obergruppe, direkt oder über Mitgliedschaft.
+
+    Keycloak wird nur gefragt, wenn ein Recht an einer Mitgliedschaft hängt
+    und die Person es nicht ohnehin direkt hat.
+    """
     permissions = list(
         GroupPermission.objects
         .filter(group__in=group_with_ancestors(group))
@@ -100,15 +110,19 @@ def group_role(request_or_user, group: KeycloakGroup | str | None) -> str | None
     if via:
         member_ids = member_group_ids(request_or_user)
         roles |= {p.role for p in via if p.via_group.keycloak_id in member_ids}
+    return roles
 
-    if Role.ADMIN in roles:
-        return Role.ADMIN
-    if Role.VIEW in roles:
-        return Role.VIEW
+
+def _highest_role(roles: set[str]) -> str | None:
+    """Admin vor Ansicht; None, wenn keine Rolle vorliegt."""
+    for role in (Role.ADMIN, Role.VIEW):
+        if role in roles:
+            return role
     return None
 
 
 def has_group_permission(request_or_user, group, permission_type: PermissionType | str) -> bool:
+    """Hat die Person mindestens das gewünschte Recht (admin oder view) auf die Gruppe?"""
     wanted = PermissionType(permission_type)
     role = group_role(request_or_user, group)
     if wanted == PermissionType.ADMIN:
@@ -119,11 +133,13 @@ def has_group_permission(request_or_user, group, permission_type: PermissionType
 
 
 def is_group_member(request_or_user, group) -> bool:
+    """Ist die Person direkt Mitglied der Gruppe (laut Keycloak)?"""
     group = resolve_group(group)
     return group is not None and group.keycloak_id in member_group_ids(request_or_user)
 
 
 def grant(group: KeycloakGroup, role: str, *, user=None, via_group: KeycloakGroup | None = None) -> GroupPermission:
+    """Vergibt ein Recht, falls es noch nicht besteht. Genau eins von user oder via_group angeben."""
     permission, _ = GroupPermission.objects.get_or_create(group=group, role=role, user=user, via_group=via_group)
     return permission
 
@@ -165,6 +181,7 @@ def users_with_admin(group: KeycloakGroup | str) -> list:
 
 
 def _member_keycloak_ids(group: KeycloakGroup) -> Iterable[str]:
+    """Keycloak-IDs der aktiven Mitglieder einer Gruppe; leer, wenn Keycloak nicht erreichbar ist."""
     try:
         members = keycloak_admin.get_group_members(group.keycloak_id)
     except KeycloakError as exc:

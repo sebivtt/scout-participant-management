@@ -225,7 +225,7 @@ class NormPerson:
                     + weightData["F"][str(ageInYear)]
                 ) / 2
             return weightInKg
-        except:
+        except:  # noqa: E722
             return 73.0
 
     def getHeigthByAgeAndGender(self, ageInYear: int, gender: str) -> int:
@@ -454,7 +454,7 @@ class NormPerson:
                     + heightData["M"][str(ageInYear)]
                 ) / 2
             return heigthInCm
-        except:
+        except:  # noqa: E722
             return 178.0
 
     def energyByStJeorEquation(
@@ -516,8 +516,8 @@ class NormPerson:
     def get_norm_person(
         self, gender: str = "divers", ageInYear: int = 15, activityFactor: int = 1.5
     ) -> float:
-        print(gender, ageInYear, activityFactor)
-        print(gender, ageInYear, activityFactor)
+        print(gender, ageInYear, activityFactor)  # noqa: T201
+        print(gender, ageInYear, activityFactor)  # noqa: T201
         # norm_person
         gender_ref = "M"
         ageInYear_ref = 15

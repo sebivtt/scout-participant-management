@@ -160,3 +160,51 @@ def test_eigene_anmeldung_teilweise_aendern(api, anmeldende_leitung, fremde_leit
         {'responsiblePersons': [anmeldende_leitung.id, fremde_leitung.id]}, format='json')
     assert response.status_code == 200
     assert set(anmeldung_adler.responsible_persons.all()) == {anmeldende_leitung, fremde_leitung}
+
+
+
+def test_leitung_in_ansichtsgruppe_sieht_alle_buchungsoptionen(api, fake_keycloak, veranstaltungsleitung, lager,
+                                                              leitungsgruppe):
+    # Die Ansichtsgruppe wurde früher vor der Leitung geprüft: Eine Leitung, die
+    # auch in der Ansichtsgruppe war, galt nur als "Ansicht" und sah noch nicht
+    # buchbare Optionen nicht. Gefunden im unabhängigen Review am 15.10.2026.
+    from datetime import timedelta
+    from django.utils import timezone
+    from anmelde_tool.event.models import BookingOption
+    BookingOption.objects.create(event=lager, name='Frühbucher ab nächster Woche',
+                                 bookable_from=timezone.now() + timedelta(days=7))
+    lager.view_group = leitungsgruppe
+    lager.save()
+    fake_keycloak.user_groups[veranstaltungsleitung.keycloak_id] = [leitungsgruppe.keycloak_id]
+    response = api(veranstaltungsleitung).get(f'/event/event/{lager.id}/booking-options/')
+    assert response.status_code == 200
+    assert 'Frühbucher ab nächster Woche' in [option['name'] for option in response.json()]
+
+
+class TestKeycloakAusfall:
+    """Ist Keycloak nicht erreichbar, gibt es weniger Rechte, nie mehr.
+
+    Seit 15.10.2026: Statt Fehler 403/500 für alle gelten nur noch Rechte, die
+    nicht an einer Keycloak-Gruppe hängen (z. B. als Verantwortliche eingetragen).
+    """
+
+    @pytest.fixture
+    def keycloak_aus(self, fake_keycloak):
+        from keycloak.exceptions import KeycloakConnectionError
+
+        def nicht_erreichbar(*args, **kwargs):
+            raise KeycloakConnectionError('Keycloak nicht erreichbar')
+        fake_keycloak.get_user_groups = nicht_erreichbar
+
+    def test_eingetragene_leitung_arbeitet_weiter(self, api, keycloak_aus, veranstaltungsleitung, lager, anmeldung_adler):
+        assert api(veranstaltungsleitung).get(summary_url(lager)).status_code == 200
+
+    def test_leitung_nur_ueber_gruppe_hat_kein_recht(self, api, keycloak_aus, teilnehmer, lager, leitungsgruppe):
+        lager.admin_group = leitungsgruppe
+        lager.save()
+        assert api(teilnehmer).get(summary_url(lager)).status_code == 403
+
+    def test_einladungen_ohne_gruppenbezug_bleiben_sichtbar(self, api, keycloak_aus, teilnehmer, lager):
+        response = api(teilnehmer).get('/event/my-invitations/')
+        assert response.status_code == 200
+        assert str(lager.id) in [e['id'] for e in response.json()]

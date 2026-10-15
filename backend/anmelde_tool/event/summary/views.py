@@ -8,9 +8,8 @@ from rest_framework import mixins, viewsets, status
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from django.db.models import Prefetch, Sum
+from django.db.models import Sum
 from django.utils import timezone
-import decimal
 
 from anmelde_tool.attributes.models import (
     BooleanAttribute,

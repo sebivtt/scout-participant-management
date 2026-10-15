@@ -23,7 +23,7 @@ logger = get_task_logger(__name__)
 
 
 @shared_task()
-def generate_file(instance_id):
+def generate_file(instance_id):  # noqa: C901
     file_wrapper = GeneratedFiles.objects.get(pk=instance_id)
     file_wrapper.status = FileGenerationStatus.Processing
     file_wrapper.save()

@@ -1,4 +1,3 @@
-from food import models as food_models
 
 
 class AddTagModule:

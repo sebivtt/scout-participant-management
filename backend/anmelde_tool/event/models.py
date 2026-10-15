@@ -1,7 +1,6 @@
 import uuid
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from django.db import models
 
 from anmelde_tool.email_services import models as email_services_model

@@ -11,6 +11,6 @@ class GeneratedFilesAdmin(admin.ModelAdmin):
 
 
 @admin.register(FileTemplate)
-class GeneratedFilesAdmin(admin.ModelAdmin):
+class FileTemplateAdmin(admin.ModelAdmin):
     list_display = ('type', 'version', 'extension')
     ordering = ('type', 'version')

@@ -1,3 +1,18 @@
+"""Rechte auf Veranstaltungen und Anmeldungen.
+
+Wer darf was (Entscheidung vom 14.10.2026, siehe docs/entscheidungen.md):
+- Veranstaltungsleitung: in responsible_persons oder Mitglied der admin_group.
+  Darf alles an der Veranstaltung und an allen ihren Anmeldungen.
+- Ansicht: Mitglied der view_group. Darf Auswertungen sehen.
+- Bundes-/Ringleitung: sieht Auswertungen für den eigenen Bund/Ring, wenn die
+  Veranstaltung das erlaubt (view_allow_subgroup).
+- Anmeldende Leitung: in Registration.responsible_persons. Darf die eigene
+  Anmeldung sehen und ändern.
+
+Fristen prüfen require_registration_open und require_changes_open, die Regeln
+selbst stehen in anmelde_tool/event/deadlines.py.
+"""
+
 from enum import Enum
 
 from django.contrib.auth import get_user_model
@@ -10,7 +25,7 @@ from anmelde_tool.event.api_exceptions import RequiredGroupNotFound
 from anmelde_tool.event.helper import get_event, get_registration, custom_get_or_404
 from anmelde_tool.event.models import Event
 from anmelde_tool.registration.models import Registration
-from keycloak_auth.helper import get_groups_of_user
+from keycloak_auth.access import member_group_ids
 
 CREATE_METHOD = 'POST'
 UPDATE_METHODS = ('UPDATE', 'PATCH')
@@ -18,27 +33,37 @@ UPDATE_METHODS = ('UPDATE', 'PATCH')
 User = get_user_model()
 
 
+
+
 class LeadershipRole(str, Enum):
+    """Einblick als Bundes- oder Ringführung in Auswertungen (Text wird so ans Frontend geliefert)."""
     NONE = "None",
     RING_LEADER = "Ringführung",
     BUND_LEADER = "Bundesführung",
 
 
 class EventRole(str, Enum):
+    """Recht auf eine Veranstaltung (Text wird als canEdit/canView ans Frontend geliefert)."""
     NONE = None,
     VIEW_ROLE = "View",
     ADMIN_ROLE = "Admin",
 
 
 def get_keycloak_permission(user: User, keycloak_role: Group) -> bool:
+    """Hat die Person die Rolle aus dem Login-Token (Django-Gruppe gleichen Namens)?"""
     return user.groups.filter(name=keycloak_role).exists()
 
 
 def get_responsible_person_permission(user: User, event: Event) -> bool:
+    """Ist die Person als Verantwortliche der Veranstaltung eingetragen?"""
     return event.responsible_persons.filter(id=user.id).exists() if event.responsible_persons else False
 
 
 def check_event_permission(event_id: [str, Event], request, admin_only=False) -> EventRole:
+    """Recht der Person auf die Veranstaltung: ADMIN_ROLE, VIEW_ROLE oder NONE.
+
+    admin_only=True prüft nur die Leitung und ignoriert die Ansichtsgruppe.
+    """
     user = request.user
     if user.is_superuser:
         return EventRole.ADMIN_ROLE
@@ -46,18 +71,21 @@ def check_event_permission(event_id: [str, Event], request, admin_only=False) ->
     if event is None:
         # z. B. Listenaufruf ohne ID: früher Fehler 500, jetzt "kein Recht"
         return EventRole.NONE
-    token = request.META.get('HTTP_AUTHORIZATION')
-    child_ids = get_groups_of_user(token, user.keycloak_id)
-    if not admin_only and event.view_group and any(event.view_group.keycloak_id == child_id for child_id in child_ids):
-        return EventRole.VIEW_ROLE
-    if event.admin_group and any(event.admin_group.keycloak_id == child_id for child_id in child_ids):
+    # Gruppen der Person: höchstens eine Keycloak-Abfrage pro Anfrage (zwischengespeichert)
+    child_ids = member_group_ids(request)
+    # Leitung zuerst: Wer Leitung ist, bleibt Leitung, auch wenn die Person
+    # zusätzlich in der Ansichtsgruppe ist.
+    if event.admin_group and event.admin_group.keycloak_id in child_ids:
         return EventRole.ADMIN_ROLE
     if get_responsible_person_permission(user, event):
         return EventRole.ADMIN_ROLE
+    if not admin_only and event.view_group and event.view_group.keycloak_id in child_ids:
+        return EventRole.VIEW_ROLE
     return EventRole.NONE
 
 
 def check_leader_permission(event_id: [str, Event], user: User) -> LeadershipRole:
+    """Ist die Person Bundesführung (DPV) bzw. Ringführung (DPBM) mit Einblick in die Auswertung?"""
     event: Event = get_event(event_id)
     if event is None:
         return LeadershipRole.NONE
@@ -76,6 +104,7 @@ def check_leader_permission(event_id: [str, Event], user: User) -> LeadershipRol
 
 
 def check_registration_permission(registration_id: str, request) -> bool:
+    """Darf die Person die Anmeldung sehen und ändern? (anmeldende Leitung oder Veranstaltungsleitung)"""
     registration: Registration = get_registration(registration_id)
     if registration is None:
         return False
@@ -84,6 +113,7 @@ def check_registration_permission(registration_id: str, request) -> bool:
 
 
 class IsStaffOrReadOnly(permissions.BasePermission):
+    """Lesen für alle, Ändern nur für das Anmeldeteam (Staff)."""
     message = 'Kann nur von den Admins bearbeitet werden'
 
     def has_permission(self, request: Request, view) -> bool:
@@ -94,6 +124,7 @@ class IsStaffOrReadOnly(permissions.BasePermission):
 
 
 class IsEventSuperResponsiblePerson(permissions.BasePermission):
+    """Veranstaltungsleitung für die Veranstaltung aus der URL (pk). Anlegen darf jede eingeloggte Person."""
     message = 'Du darfst dieses Event nicht bearbeiten'
 
     def has_permission(self, request: Request, view) -> bool:
@@ -108,6 +139,7 @@ class IsEventSuperResponsiblePerson(permissions.BasePermission):
 
 
 class IsSubEventSuperResponsiblePerson(permissions.BasePermission):
+    """Wie IsEventSuperResponsiblePerson, für Unterseiten einer Veranstaltung (event_pk)."""
     message = 'Du darfst dieses Event nicht bearbeiten'
 
     def has_permission(self, request: Request, view) -> bool:
@@ -122,6 +154,7 @@ class IsSubEventSuperResponsiblePerson(permissions.BasePermission):
 
 
 class IsEventResponsiblePersonOrReadOnly(permissions.BasePermission):
+    """Lesen für Eingeloggte, Ändern für Leitung oder Ansichtsgruppe."""
     message = 'Du darfst dieses Event nicht bearbeiten'
 
     def has_permission(self, request: Request, view) -> bool:
@@ -136,6 +169,7 @@ class IsEventResponsiblePersonOrReadOnly(permissions.BasePermission):
 
 
 class IsSubEventResponsiblePerson(permissions.BasePermission):
+    """Leitung oder Ansichtsgruppe der Veranstaltung (event_pk), z. B. für Auswertungen."""
     message = 'Du darfst dieses Event nicht bearbeiten'
 
     def has_permission(self, request: Request, view) -> bool:
@@ -148,6 +182,7 @@ class IsSubEventResponsiblePerson(permissions.BasePermission):
 
 
 class IsLeaderPerson(permissions.BasePermission):
+    """Bundes- oder Ringführung mit Einblick in die Auswertung (event_pk)."""
     message = 'Du darfst die Statistik dieses Events nicht ansehen'
 
     def has_permission(self, request: Request, view) -> bool:
@@ -158,6 +193,7 @@ class IsLeaderPerson(permissions.BasePermission):
 
 
 class IsSubEventResponsiblePersonOrReadOnly(permissions.BasePermission):
+    """Lesen für Eingeloggte, Ändern für Leitung oder Ansichtsgruppe (event_pk)."""
     message = 'Du darfst dieses Event nicht bearbeiten'
 
     def has_permission(self, request: Request, view) -> bool:
@@ -172,6 +208,7 @@ class IsSubEventResponsiblePersonOrReadOnly(permissions.BasePermission):
 
 
 class IsRegistrationResponsiblePerson(permissions.BasePermission):
+    """Anmeldende Leitung oder Veranstaltungsleitung für die Anmeldung aus der URL (pk)."""
     message = 'Du darfst diese Registrierung nicht bearbeiten'
 
     def has_permission(self, request: Request, view) -> bool:
@@ -186,6 +223,7 @@ class IsRegistrationResponsiblePerson(permissions.BasePermission):
 
 
 class IsSubRegistrationResponsiblePerson(permissions.BasePermission):
+    """Wie IsRegistrationResponsiblePerson, für Unterseiten einer Anmeldung (registration_pk)."""
     message = 'Du darfst diese Registrierung nicht bearbeiten'
 
     def has_permission(self, request: Request, view) -> bool:
@@ -207,6 +245,7 @@ def is_event_manager(request, event) -> bool:
 
 
 def require_registration_open(request, event) -> None:
+    """Wirft TooEarly oder RegistrationClosed, wenn keine neue Anmeldung möglich ist. Leitung ausgenommen."""
     from anmelde_tool.event import deadlines
     from anmelde_tool.event.api_exceptions import RegistrationClosed, TooEarly
     if is_event_manager(request, event):
@@ -218,6 +257,7 @@ def require_registration_open(request, event) -> None:
 
 
 def require_changes_open(request, event) -> None:
+    """Wirft TooEarly oder ChangesClosed, wenn keine Änderung möglich ist. Leitung ausgenommen."""
     from anmelde_tool.event import deadlines
     from anmelde_tool.event.api_exceptions import ChangesClosed, TooEarly
     if is_event_manager(request, event):

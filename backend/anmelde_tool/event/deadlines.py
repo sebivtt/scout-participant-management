@@ -24,18 +24,22 @@ from anmelde_tool.event.models import Event
 
 
 def _now(now: datetime | None) -> datetime:
+    """Zeitpunkt der Prüfung; in Tests übergebbar."""
     return now or timezone.now()
 
 
 def registration_started(event: Event, now: datetime | None = None) -> bool:
+    """Hat die Anmeldephase begonnen? Ohne Anmeldestart gilt: ja."""
     return event.registration_start is None or _now(now) >= event.registration_start
 
 
 def changes_until(event: Event) -> datetime | None:
+    """Bis wann Anmeldungen geändert werden können: letzte Änderung, sonst Veranstaltungsbeginn."""
     return event.last_possible_update or event.start_date
 
 
 def can_change(event: Event, now: datetime | None = None) -> bool:
+    """Dürfen anmeldende Leitungen bestehende Anmeldungen noch ändern (auch Personen hinzufügen)?"""
     if event.changes_closed:
         return False
     until = changes_until(event)
@@ -43,6 +47,7 @@ def can_change(event: Event, now: datetime | None = None) -> bool:
 
 
 def can_register(event: Event, now: datetime | None = None) -> bool:
+    """Sind neue Anmeldungen möglich? Endet spätestens, wenn keine Änderungen mehr möglich sind."""
     now = _now(now)
     if not registration_started(event, now) or event.registration_closed:
         return False

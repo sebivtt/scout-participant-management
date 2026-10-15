@@ -7,7 +7,7 @@ from rest_framework import serializers
 
 from anmelde_tool.event import models as event_models
 from anmelde_tool.event import serializers as event_serializers
-from anmelde_tool.attributes.models import BooleanAttribute, StringAttribute, DateTimeAttribute, IntegerAttribute, \
+from anmelde_tool.attributes.models import BooleanAttribute, DateTimeAttribute, IntegerAttribute, \
     FloatAttribute, StringAttribute, TravelAttribute
 from anmelde_tool.attributes.serializers import BooleanAttributeSerializer, StringAttributeSerializer, \
     DateTimeAttributeSerializer, IntegerAttributeSerializer, FloatAttributeSerializer, TravelAttributeSerializer

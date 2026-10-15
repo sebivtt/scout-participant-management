@@ -18,7 +18,7 @@ logger = get_task_logger(__name__)
 def post_save_issue(sender, instance: Issue, **kwargs):
     try:
         create_notification_issue.delay(instance.id)
-    except:
+    except:  # noqa: E722
         pass
 
 
@@ -50,6 +50,6 @@ def create_notification_issue(issue_id):
     notify.send(
         sender=sender,
         recipient=recipients,
-        verb=f'Dir wurde ein neue Anfrage zugewiesen.',
+        verb='Dir wurde ein neue Anfrage zugewiesen.',
         target=issue,
     )
