@@ -6,6 +6,16 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-15 · Sicherheitsregeln und feste Passwörter
+
+**Entscheidung:**
+- Die automatische Prüfung meldet bekannte unsichere Muster: abgeschaltete Zertifikatsprüfung, Passwörter im Code, verschluckte Fehler, unsichere Aufrufe (ruff, Regelgruppe S).
+- Ein festes Passwort ist nur in Code erlaubt, der im Echtbetrieb verweigert wird (Prüfung auf `DEBUG=True`), mit Test. Administratoren im Echtbetrieb werden mit `python manage.py createsuperuser` angelegt.
+- Tests dürfen `assert` und erfundene Passwörter verwenden.
+
+**Begründung:** Das alte Startskript legte bei jedem Serverstart ein Administratorkonto mit öffentlich bekanntem Passwort an. Solche Fehler soll die Prüfung künftig von selbst finden.
+**Umsetzung:** `CONTRIBUTING.md` Abschnitt 3, `backend/ruff.toml`, `tests/test_verwaltungsbefehle.py` (PR #10)
+
 ## 2026-10-15 · Regeln für Ausnahmen und bekannte Fehler
 
 **Entscheidung:**

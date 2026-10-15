@@ -68,6 +68,7 @@ def test_bundeslaender_abruf_prueft_zertifikat(monkeypatch):
     call_command('add_state', stdout=io.StringIO())
 
     assert ZipCode.objects.get(zip_code='99999').state == StateChoices.BE
+    assert seen_contexts, "Der Befehl hat keine Anfrage gestellt"
     # Ohne eigenen Kontext nutzt Python die sichere Standardeinstellung.
     for context in seen_contexts:
         assert context is None or (context.verify_mode == ssl.CERT_REQUIRED and context.check_hostname)

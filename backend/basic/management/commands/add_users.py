@@ -17,6 +17,7 @@ class Command(BaseCommand):
     help = 'Legt lokal das Konto admin an (nur mit DEBUG=True)'
 
     def handle(self, *args, **options):
+        """Bricht ohne DEBUG=True ab, sonst legt es das Konto an, falls es noch fehlt."""
         if not settings.DEBUG:
             raise CommandError(
                 'add_users ist nur für die lokale Entwicklung (DEBUG=True). '

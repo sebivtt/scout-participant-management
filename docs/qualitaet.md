@@ -19,7 +19,7 @@ Der Code funktioniert und ist seit Phase 1 bis 3 gegen Sicherheitslücken und di
 | Bekannte Sicherheitslücken in Paketen | 0 | 0 | pip-audit |
 | Verstöße gegen Code-Regeln, neu | 0 | 0 (wird bei jeder Änderung geprüft) | ruff |
 | Verstöße gegen Code-Regeln, Altlasten (`# noqa`) | 67 (dazu 6 gewollte Markierungen, siehe unten) | sinkt durch die Pfadfinderregel | ruff |
-| Funktionen und Klassen mit Beschreibung | 128 von 1.533 (8 %) | Kernbereiche 100 %, sonst wachsend | `tools/qualitaet_messen.py` |
+| Funktionen und Klassen mit Beschreibung | 130 von 1.533 (8 %) | Kernbereiche 100 %, sonst wachsend | `tools/qualitaet_messen.py` |
 
 ### Altlasten nach Art
 
@@ -80,7 +80,7 @@ Keycloak wird in den aktiven Modulen jetzt höchstens einmal pro Seitenaufruf ge
 | Der API-Logger speichert jede Anfrage samt Inhalt dauerhaft in der Datenbank. | Datenschutz, wachsende Datenbank | Phase 5 |
 | Signal-Empfänger werden nur über unbenutzte Importe registriert. Ein Aufräumwerkzeug hatte sie beim Einführen der Regeln entfernt. | Keycloak-Abgleich und Benachrichtigungen wären still weggefallen | Behoben, Test `tests/test_signale.py` |
 | Wer Veranstaltungsleitung ist und zugleich in der Ansichtsgruppe, wurde bei den Buchungsoptionen nur als Betrachter erkannt. | Leitung sah nicht alle Buchungsoptionen | Behoben, Test in `tests/test_rechte.py` |
-| Das alte Startskript für den Server (`backend/start.sh`, genutzt von `backend/docker-compose.yml`) legte bei jedem Start ein Administratorkonto mit festem, öffentlich bekanntem Passwort an. Über die Verwaltung unter `/admin/` hätte sich damit jeder als Administrator anmelden können. | Vollzugriff für Fremde, falls jemand mit dem alten Startskript betreibt | Behoben (Qualität II, 1b-1): Startskript legt kein Konto mehr an, `add_users` läuft nur lokal. Tests in `tests/test_verwaltungsbefehle.py` |
+| Das alte Startskript für den Server (`backend/start.sh`, genutzt von `backend/docker-compose.yml`) legte bei jedem Start ein Administratorkonto mit festem, öffentlich bekanntem Passwort an. Über die Verwaltung unter `/admin/` hätte sich damit jeder als Administrator anmelden können. | Vollzugriff für Fremde, falls jemand mit dem alten Startskript betreibt | Behoben (Qualität II, 1b-1): Startskript legt kein Konto mehr an, `add_users` läuft nur lokal. **Auf einer bestehenden Installation, die mit dem alten Startskript lief, existiert das Konto weiter: dort das Konto `admin` löschen oder sein Passwort ändern.** Tests in `tests/test_verwaltungsbefehle.py` |
 | Der Abruf der Bundesländer zu Postleitzahlen (`add_state`) schaltete die Zertifikatsprüfung ab. | Gefälschte Antworten hätten falsche Bundesländer in die Datenbank geschrieben | Behoben (Qualität II, 1b-1), Test in `tests/test_verwaltungsbefehle.py` |
 | Die Reihenfolge der Daten (Ende nach Beginn, Anmeldeschluss nach Anmeldestart, letzte Änderung vor Beginn) wurde beim Bearbeiten nur an einer von zwei Stellen geprüft. | Widersprüchliche Fristen möglich | Behoben, Tests in `tests/test_fristen.py` |
 

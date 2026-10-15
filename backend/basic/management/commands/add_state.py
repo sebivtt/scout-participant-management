@@ -7,7 +7,7 @@ from basic.choices import StateChoices
 from basic.models import ZipCode
 
 choices = dict(StateChoices.choices)
-get_abbr = lambda state: [abbrevation for abbrevation, name in choices.items() if name == state]
+get_abbr = lambda state: [abbreviation for abbreviation, name in choices.items() if name == state]
 
 
 class Command(BaseCommand):
@@ -20,7 +20,8 @@ class Command(BaseCommand):
     help = 'Ergänzt das Bundesland bei allen Postleitzahlen (Internetzugang nötig)'
 
     def handle(self, *args, **options):
-        zip_codes: ZipCode = ZipCode.objects.all()
+        """Fragt für jede Postleitzahl das Bundesland ab und speichert es."""
+        zip_codes = ZipCode.objects.all()
         for zip_code in zip_codes:
             api_url = f'https://public.opendatasoft.com/api/records/1.0/search/?dataset=georef-germany-postleitzahl&q={zip_code.zip_code}&facet=lan_name'
             # Ohne eigenen Kontext prüft Python das Zertifikat. Die frühere Abschaltung
