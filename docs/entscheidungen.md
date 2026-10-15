@@ -30,7 +30,7 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 **Entscheidung:** Die eingefrorenen Module `food` (Essensplanung) und `inspi` (Programmideen) werden zunächst abgeschaltet. Abgesichert werden sie gegebenenfalls später, wenn ihre Anforderungen geklärt sind.
 **Begründung:** In beiden kann jede eingeloggte Person Einträge anderer ändern oder löschen. Sie abzusichern wäre aufwendig, und ihre Anforderungen sind ohnehin offen.
-**Umsetzung:** Qualität II, Schritt 1d (eigener Pull Request)
+**Umsetzung:** `backend/backend/urls.py`, Menüs im Frontend, Test `tests/test_abgeschaltete_module.py` (PR #12)
 
 ## 2026-10-15 · Rechte auf schreibende Schnittstellen
 

@@ -13,8 +13,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.settings import api_settings
 
 # Eingefrorene Module werden nicht weiterentwickelt (docs/entscheidungen.md).
-# Ihre offenen Schnittstellen stehen in docs/qualitaet.md.
-FROZEN_APPS = ('food.', 'inspi.', 'messaging.', 'notifications.')
+# food und inspi stehen bewusst nicht hier: Sie sind abgeschaltet. Schaltet sie
+# jemand wieder ein, meldet dieser Test ihre offenen Schnittstellen sofort.
+FROZEN_APPS = ('messaging.', 'notifications.')
 
 WRITE_ACTIONS = {'create', 'update', 'partial_update', 'destroy'}
 
