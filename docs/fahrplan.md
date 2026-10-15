@@ -6,8 +6,11 @@ Stand 15.10.2026. Dieses Dokument ist der Einstieg für jede neue Arbeitssitzung
 
 1. `CLAUDE.md` und `CONTRIBUTING.md` lesen. Sie sind verbindlich.
 2. `docs/entscheidungen.md` lesen. Was dort steht, ist entschieden und wird nicht still geändert.
-3. `docs/architektur.md`, `docs/glossar.md` und `docs/qualitaet.md` überfliegen.
-4. Mit dem nächsten offenen Punkt unten weitermachen. Als Erstes steht die KI-Fehlerprüfung an.
+3. `docs/architektur.md`, `docs/glossar.md` (Fachbegriffe) und `docs/qualitaet.md` überfliegen.
+4. `README.md` für die lokale Installation. Entwicklungswerkzeuge mit `pip install -r backend/requirements-dev.txt`, Prüfung vor jedem Commit im Ordner `backend/` mit `ruff check . && pytest`. Ein echtes Keycloak 26.7 für Livetests startet über `dev/`.
+5. Mit dem nächsten offenen Punkt unten weitermachen. Als Erstes steht die KI-Fehlerprüfung an.
+
+Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z. B. `tests/test_abfragen.py` = `backend/tests/test_abfragen.py`. Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `main` von `sebivtt/scout-participant-management`.
 
 ### Zusammenarbeit mit dem Projektverantwortlichen
 
@@ -21,7 +24,7 @@ Stand 15.10.2026. Dieses Dokument ist der Einstieg für jede neue Arbeitssitzung
 
 | Phase | Inhalt | Stand |
 | --- | --- | --- |
-| 1 Fundament | Gemeinsames Repository, lokale Installation, Tests, CI | ✅ PR #1 |
+| 1 Fundament | Gemeinsames Repository und lokale Installation (direkte Commits), Backend ohne Keycloak startfähig, Testgerüst | ✅ Vorarbeit + PR #1 |
 | 2 Rechte | Gruppenrechte im Tool statt in Keycloak, Sicherheitslücken geschlossen | ✅ PR #2 |
 | 3a Sicherheit und Fehler | Login-Pflicht als Standard, Fehler bei frischer Installation | ✅ PR #3 |
 | Fehlerbehebung | Speichern persönlicher Daten löschte E-Mail und Namen in Keycloak | ✅ PR #4 |
@@ -37,21 +40,29 @@ Stand 15.10.2026. Dieses Dokument ist der Einstieg für jede neue Arbeitssitzung
 
 ## Qualität II: Prüfung auf typische KI-Fehler
 
-**Auftrag:** Den gesamten Code, den übernommenen und den von KI geänderten, auf typische Fehler von KI-generiertem Code prüfen. Grundlage ist der Artikel <https://scand.de/unternehmen/blog/why-ai-generated-code-doesnt-work-and-how-to-fix-it/>. Gefundene Probleme werden als Tests (bei offenen Fehlern `xfail(strict=True)`) oder als automatische Prüfung festgehalten. Was sich nicht automatisch prüfen lässt, kommt als Regel in `CONTRIBUTING.md`. Ein Ergebnisabschnitt kommt in `docs/qualitaet.md`.
+**Auftrag:** Den gesamten Code, den übernommenen und den von KI geänderten, auf typische Fehler von KI-generiertem Code prüfen. Grundlage ist der Artikel <https://scand.de/unternehmen/blog/why-ai-generated-code-doesnt-work-and-how-to-fix-it/>. Gefundene Probleme werden als Tests oder als automatische Prüfung festgehalten. Noch offene Fehler werden als `xfail(strict=True, raises=…)` mit genau der erwarteten Fehlerart markiert, damit nicht jeder beliebige Fehler als „bekannt“ durchgeht (Vorbild: `tests/test_abfragen.py`). Was sich nicht automatisch prüfen lässt, kommt als Regel in `CONTRIBUTING.md`. Ein Ergebnisabschnitt kommt in `docs/qualitaet.md`.
 
-Die Fehlerarten aus dem Artikel, übersetzt auf dieses Projekt, als Startpunkt:
+Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und übersetzt sie auf dieses Projekt. Der Artikel muss nicht erneut gelesen werden.
 
 | Fehlerart laut Artikel | Was hier konkret zu prüfen ist | Heute schon abgedeckt? |
 | --- | --- | --- |
 | Nur der Normalfall ist bedacht | Leere Listen, fehlende Felder, doppelte Anfragen, gleichzeitige Änderungen, Keycloak oder Mail nicht erreichbar, Fristen genau auf der Grenze | teilweise (Fristen-Grenzen, Keycloak-Ausfall bei Rechten) |
-| Fehlende Fehlerbehandlung, stille Fehler | `except: pass`, verschluckte Fehler, Rückgabe `None` statt Fehlermeldung, Frontend-Meldungen, die den echten Fehler verdecken | teilweise (ruff E722, Altlasten markiert) |
+| Fehlende Fehlerbehandlung, stille Fehler | `except: pass`, verschluckte Fehler, Rückgabe `None` statt Fehlermeldung, Frontend-Meldungen, die den echten Fehler verdecken | teilweise (ruff E722; 7 Altlasten mit `# noqa: E722` sind ein konkreter Startpunkt) |
 | Fehlende Eingabeprüfung | Serializer ohne Prüfung, Datei-Uploads (Excel-Import), Längen und Formate, Rechte nur im Frontend | teilweise (Datumsreihenfolge, Rechte-Tests) |
-| Sicherheitslücken | SQL über `raw()` oder `extra()`, Zugangsdaten im Code oder in `.env.example`, offene Endpunkte (`AllowAny`), Massenzuweisung über `fields = '__all__'`, fehlende Begrenzung öffentlicher Endpunkte | teilweise (pip-audit, Login-Pflicht als Standard) |
+| Sicherheitslücken | SQL über `raw()` oder `extra()`, Zugangsdaten im Code oder in `.env.example`, offene Endpunkte (`AllowAny`), Massenzuweisung über `fields = '__all__'`, fehlende Begrenzung öffentlicher Endpunkte | teilweise (pip-audit, Login-Pflicht als Standard). `fields = '__all__'` kommt oft vor, z. B. in `anmelde_tool/event/serializers.py`: jede Fundstelle einzeln bewerten |
 | Erfundene Funktionen oder falsche Versionen | Aufrufe von Bibliotheksfunktionen, die es in der installierten Version nicht gibt (v. a. python-keycloak, DRF), Frontend-Pakete | nein (nur indirekt über Tests) |
 | Falsche Annahmen über Datenstrukturen | Antworten von Keycloak (Felder optional?), Frontend erwartet andere Feldnamen als das Backend liefert, `None` vs. leere Liste | nein |
 | Lokal richtig, passt nicht ins Ganze | Doppelte Logik an mehreren Stellen (z. B. Rechteprüfung, Datumsprüfung), Regeln aus `docs/entscheidungen.md` nicht überall umgesetzt | teilweise (zwei Fälle in PR #7 gefunden) |
-| Zu einfach oder zu kompliziert | Übersprungene Details, unnötige Abstraktionen, tote oder doppelte Funktionen | teilweise (ruff C901, vulture einmalig) |
+| Zu einfach oder zu kompliziert | Übersprungene Details, unnötige Abstraktionen, tote oder doppelte Funktionen | teilweise (ruff C901) |
 | Schwer nachvollziehbar | Annahmen nicht dokumentiert, keine Docstrings | teilweise (Docstring-Quote 8 %) |
+
+**Vorgehen in dieser Reihenfolge**, jeweils ein eigener Pull Request:
+1. Weitere ruff-Regelgruppen probeweise einschalten (siehe Werkzeuge unten), Treffer zählen und bewerten. Echte Fehler mit Test beheben, Altlasten markieren, Fehlalarme begründet abschalten.
+2. Frontend-Aufrufe mit den Backend-Endpunkten und ihren Feldnamen abgleichen.
+3. Genutzte python-keycloak-Methoden mit der installierten Version abgleichen.
+4. Randfälle und Fehlerbehandlung der Kernabläufe (Anmelden, Ändern, Rechte, Gruppen) mit Tests absichern.
+
+**Fertig ist die Phase**, wenn jede Zeile der Tabelle mit „abgedeckt“ oder „bewusst nicht, weil …“ beantwortet ist und `docs/qualitaet.md` einen Ergebnisabschnitt hat.
 
 **Hinweise:**
 - Vorgehen wie im Artikel empfohlen: erst reproduzieren, dann isolieren und Annahmen prüfen, erst danach ändern.
@@ -66,8 +77,8 @@ Die Fehlerarten aus dem Artikel, übersetzt auf dieses Projekt, als Startpunkt:
 
 ### Backend, aus der Qualitätsmessung (`docs/qualitaet.md`)
 
-- [ ] **N+1-Abfragen** auf sechs Seiten beheben: Auswertung, Meine Anmeldungen, Kassenliste, Gruppenliste, Veranstaltungsübersicht, Meine Einladungen. Ist eine Seite behoben, meldet `tests/test_abfragen.py` das, und die `xfail`-Markierung wird entfernt.
-- [ ] **Absenden als „ganz oder gar nicht“:** Das Frontend schickt heute viele Einzelanfragen. Scheitert eine, bleibt eine halbe Anmeldung übrig. Ziel: ein Endpunkt, der alles in einer Datenbank-Transaktion anlegt.
+- [ ] **N+1-Abfragen** (die Seite fragt die Datenbank für jeden Listeneintrag einzeln ab) auf sechs Seiten beheben: Auswertung, Meine Anmeldungen, Kassenliste, Gruppenliste, Veranstaltungsübersicht, Meine Einladungen. Ist eine Seite behoben, meldet `tests/test_abfragen.py` das, und die `xfail`-Markierung wird entfernt.
+- [ ] **Absenden als „ganz oder gar nicht“:** Das Frontend schickt heute viele Einzelanfragen. Scheitert eine, bleibt eine halbe Anmeldung übrig. Ziel: ein Endpunkt, der alles in einem Schritt anlegt, der entweder vollständig gelingt oder gar nichts verändert (Datenbank-Transaktion).
 - [ ] **Fehlermeldungen:** Die festen Texte („Ein Pflichtfeld fehlt“, „Stamm nicht gefunden“) durch die echte Meldung des Backends ersetzen, verständlich formuliert.
 - [ ] **`is_confirmed` setzen:** Das Feld wird nie gesetzt, deshalb erreichen Rundmails an „bestätigte Anmeldungen“ niemanden. Test dazu.
 - [ ] Zu komplexe Funktionen aufteilen, wenn sie ohnehin angefasst werden (Liste in `docs/qualitaet.md`).
@@ -83,13 +94,13 @@ Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit i
 - [ ] Die **Stammauswahl** ist eine lange flache Liste, die sich schlecht scrollen lässt. Gewünscht ist eine hierarchische Auswahl (Bund → Ring/Gau → Stamm).
 - [ ] Das **E-Mail-Feld** in den persönlichen Daten ist gesperrt, ohne Erklärung. Es kommt aus Keycloak. Ein erklärender Hinweis fehlt.
 - [ ] **Adressfelder** sollen aufgeteilt werden (Straße, PLZ, Ort) und um ein **Bundesland** ergänzt werden.
-- [ ] Nach dem **Speichern** führt die Weiterleitung (`router.push`) ins Leere oder scheitert. Reproduzieren und beheben.
+- [ ] Nach dem **Speichern** führt die Weiterleitung auf die nächste Seite (`router.push`) ins Leere oder scheitert. Welche Seite betroffen war, ist nicht mehr bekannt: nachfragen, reproduzieren, beheben.
 - [ ] Ein **abgelaufener Login** führt zu stillen 401-Fehlern. Stattdessen soll man eine klare Meldung sehen oder neu angemeldet werden.
 - [ ] Die **Schalter für Fristen und Sperren** aus Phase 3b sind im Backend fertig, haben aber keine Bedienelemente im Frontend.
 
 ### Technische Grundlage Frontend
 
-- [ ] eslint in die CI aufnehmen. Heute gibt es 198 Fehler und ca. 2.800 Warnungen. Zuerst die Fehler beheben, die Warnungen schrittweise.
+- [ ] eslint (automatische Code-Prüfung für das Frontend) in die automatischen Prüfungen auf GitHub (CI) aufnehmen. Heute gibt es 198 Fehler und ca. 2.800 Warnungen. Zuerst die Fehler beheben, die Warnungen schrittweise.
 - [ ] Erste Tests für das Frontend, mindestens für den Anmeldeablauf.
 - [ ] Die Hauptdatei (1,2 MB) aufteilen, sodass Seiten erst bei Bedarf geladen werden.
 
@@ -97,7 +108,7 @@ Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit i
 
 - [ ] **Namensansicht für Teilnehmende:** Sie sehen von ihrer Gruppenanmeldung nur die Namen (siehe `docs/entscheidungen.md`).
 - [ ] **Zusatzfelder pro Veranstaltung**, z. B. die Ausweisnummer, statt fester Felder.
-- [ ] **Browserspeicher:** Die Eingaben der Anmeldung, auch Daten von Kindern, liegen bis zum Absenden dauerhaft im Browser (Pinia-Store `register.ts` mit `persist: true`). Nach dem Absenden oder Abmelden löschen oder gar nicht dauerhaft speichern.
+- [ ] **Browserspeicher:** Die Eingaben der Anmeldung, auch Daten von Kindern, liegen bis zum Absenden dauerhaft im Browser (Zwischenspeicher `frontend/src/modules/event/store/register.ts` mit `persist: true`). Nach dem Absenden oder Abmelden löschen oder gar nicht dauerhaft speichern.
 - [ ] **API-Logger:** Er speichert jede Anfrage samt Inhalt dauerhaft in der Datenbank. Inhalte nicht speichern oder nach kurzer Frist löschen.
 - [ ] Löschfristen für Anmeldungen nach Veranstaltungsende festlegen (fachliche Entscheidung nötig).
 
@@ -117,10 +128,4 @@ Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit i
 
 ## Ideen (Phase 6)
 
-Ideen des Projektverantwortlichen, noch nicht ausgearbeitet:
-
-- Hierarchische Stammauswahl (siehe Phase 4, kann vorgezogen werden)
-- Adressfelder mit Bundesland (siehe Phase 4)
-- Module einer Veranstaltung neu gestalten (siehe Phase 4)
-
-Weitere Ideen sammelt er, bevor die Anforderungsanalyse im Verband beginnt (Phase 7).
+Noch keine eigenen Ideen festgehalten. Hierarchische Stammauswahl, Adressfelder mit Bundesland und die Neugestaltung der Module sind in Phase 4 vorgezogen. Weitere Ideen sammelt der Projektverantwortliche, bevor die Anforderungsanalyse im Verband beginnt (Phase 7).
