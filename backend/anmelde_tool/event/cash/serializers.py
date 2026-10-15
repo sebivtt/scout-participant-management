@@ -18,9 +18,9 @@ class CashIncomeReadSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class MailReminderSerializer(serializers.Serializer):  # noqa
+class MailReminderSerializer(serializers.Serializer):
     event_id = serializers.UUIDField()
 
 
-class MailSingleReminderSerializer(serializers.Serializer):  # noqa
+class MailSingleReminderSerializer(serializers.Serializer):
     registration_id = serializers.UUIDField()

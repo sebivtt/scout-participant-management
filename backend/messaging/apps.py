@@ -6,4 +6,4 @@ class MessagingConfig(AppConfig):
     name = 'messaging'
 
     def ready(self):
-        import messaging.signals  # noqa
+        import messaging.signals  # noqa: F401 -- registriert die Signal-Empfänger

@@ -26,7 +26,8 @@ _TEST_ENV = {
 for _key, _value in _TEST_ENV.items():
     os.environ[_key] = _value
 
-from .settings import *  # noqa: E402,F401,F403
+# Erst jetzt importieren: settings.py liest die Umgebungsvariablen beim Import.
+from .settings import *
 
 DATABASES = {
     'default': {

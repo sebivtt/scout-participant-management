@@ -2,10 +2,6 @@ from rest_framework import serializers
 
 from anmelde_tool.attributes import models as attribute_models
 
-"""
-# noqa turn off pycharm warnings about missing abstract methods, which is a bug of pycharm
-"""
-
 
 class AttributeModuleSerializer(serializers.ModelSerializer):
     class Meta:

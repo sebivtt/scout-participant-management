@@ -463,13 +463,13 @@ class StatusRequestGroupGetAccessSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class CheckUsernameSerializer(serializers.Serializer):  # noqa
+class CheckUsernameSerializer(serializers.Serializer):
     username = serializers.CharField(required=True, trim_whitespace=False)
 
 
-class CheckEmailSerializer(serializers.Serializer):  # noqa
+class CheckEmailSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
 
 
-class CheckPasswordSerializer(serializers.Serializer):  # noqa
+class CheckPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(required=True, trim_whitespace=False)

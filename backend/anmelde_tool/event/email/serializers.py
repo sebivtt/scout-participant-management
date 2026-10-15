@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-class CustomMailSerializer(serializers.Serializer): # noqa
+class CustomMailSerializer(serializers.Serializer):
     subject = serializers.CharField()
     header = serializers.CharField()
     body = serializers.CharField()

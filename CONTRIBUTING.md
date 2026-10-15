@@ -23,7 +23,7 @@ Was ein Programm prüfen kann, prüft GitHub bei jeder Änderung automatisch (`.
 
 - **Jede fachliche Regel hat einen Test**, der sie in Alltagssprache benennt, z. B. `test_nach_offiziellem_anmeldeschluss_weiter_moeglich`. (Review)
 - **Jeder behobene Fehler bekommt einen Test**, der ohne den Fix fehlschlägt. (Review)
-- Bekannte, noch offene Fehler werden als `@pytest.mark.xfail(strict=True, reason=...)` festgehalten. Wird einer behoben, meldet der Testlauf das, und die Markierung muss weg. (automatisch)
+- Bekannte, noch offene Fehler werden als `@pytest.mark.xfail(strict=True, raises=..., reason=...)` festgehalten. `raises` nennt genau die erwartete Fehlerart, damit nicht jeder beliebige andere Fehler als „bekannt“ durchgeht (Vorbild: `tests/test_abfragen.py`). Wird einer behoben, meldet der Testlauf das, und die Markierung muss weg. (automatisch, außer `raises`: Review)
 - Rechte werden im Backend geprüft, nie nur in der Oberfläche. Neue Endpunkte verlangen standardmäßig einen Login, öffentliche Endpunkte setzen `AllowAny` ausdrücklich und begründen das im Kommentar. (automatisch über die Standardeinstellung, sonst Review)
 - Keine ungenutzten Importe oder Variablen. (automatisch, `ruff` F)
 
@@ -59,3 +59,6 @@ Wer eine bestehende Funktion ändert, ergänzt dabei ihren Docstring, entfernt t
 ## Altlasten
 
 Der übernommene Code erfüllt diese Regeln noch nicht überall. Bestehende Verstöße sind mit `# noqa: <Regel>` markiert, damit die automatische Prüfung nur neue Verstöße meldet. Jede Markierung ist eine Einladung zur Pfadfinderregel. Stand und Zahlen stehen in `docs/qualitaet.md`.
+
+- **`# noqa` immer mit Regelnummer.** Eine Markierung ohne Nummer schaltet auf dieser Zeile alle Regeln ab, auch solche, die erst später eingeschaltet werden. Überflüssige Markierungen meldet ruff ebenfalls. (automatisch, `ruff` PGH004 und RUF100)
+- **Gewollte Markierungen** sind keine Altlast, sondern nötig, und tragen hinter der Regelnummer nach `--` eine Begründung, z. B. Importe in `apps.py`, die Signal-Empfänger oder Hintergrundaufgaben anmelden. Jede braucht einen Test, der anschlägt, wenn die Zeile fehlt (`tests/test_signale.py`). Neuer Code bekommt sonst keine Markierungen. (Review)

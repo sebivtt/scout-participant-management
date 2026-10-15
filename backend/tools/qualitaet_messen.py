@@ -23,6 +23,23 @@ def app_files():
         yield path
 
 
+def count_noqa(files):
+    """Zählt die noqa-Markierungen je Regel, getrennt nach Altlast und gewollt.
+
+    Gewollt ist eine Markierung, hinter deren Regelnummer nach "--" eine
+    Begründung steht (Beispiele in den apps.py-Dateien). Alle anderen sind
+    Altlasten. Markierungen ohne Regelnummer verbietet ruff (PGH004), sie
+    kommen hier deshalb nicht vor.
+    """
+    legacy, intended = collections.Counter(), collections.Counter()
+    for path in files:
+        for match in re.finditer(r'#\s*noqa:\s*([A-Z]+[0-9]+(?:\s*,\s*[A-Z]+[0-9]+)*)(\s*--)?', path.read_text()):
+            target = intended if match.group(2) else legacy
+            for code in match.group(1).replace(' ', '').split(','):
+                target[code] += 1
+    return legacy, intended
+
+
 def main():
     files = list(app_files())
     lines = sum(len(p.read_text().splitlines()) for p in files)
@@ -32,14 +49,11 @@ def main():
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and not node.name.startswith('__'):
                 total += 1
                 documented += bool(ast.get_docstring(node))
-    noqa = collections.Counter()
-    for path in files:
-        for match in re.finditer(r'# noqa: ([A-Z0-9, ]+)', path.read_text()):
-            for code in match.group(1).replace(' ', '').split(','):
-                noqa[code] += 1
+    legacy, intended = count_noqa(files)
     print(f'Anwendungscode: {len(files)} Dateien, {lines} Zeilen')
     print(f'Beschrieben: {documented} von {total} ({100 * documented / total:.1f} %)')
-    print(f'noqa-Markierungen: {sum(noqa.values())} {dict(sorted(noqa.items()))}')
+    print(f'noqa-Altlasten: {sum(legacy.values())} {dict(sorted(legacy.items()))}')
+    print(f'noqa gewollt (mit Begründung): {sum(intended.values())} {dict(sorted(intended.items()))}')
     tests = subprocess.run(['.venv/bin/pytest', '-q', '-p', 'no:warnings'], cwd=ROOT, capture_output=True, text=True)
     print('Tests:', tests.stdout.strip().splitlines()[-1])
 

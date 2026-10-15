@@ -14,12 +14,12 @@ Der Code funktioniert und ist seit Phase 1 bis 3 gegen Sicherheitslücken und di
 
 | Messung | Wert | Ziel | Werkzeug |
 | --- | --- | --- | --- |
-| Umfang | 17.843 Zeilen in 232 Dateien (ohne Migrationen und Tests) | – | – |
-| Tests | 135 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
+| Umfang | 17.850 Zeilen in 232 Dateien (ohne Migrationen und Tests) | – | – |
+| Tests | 140 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
 | Bekannte Sicherheitslücken in Paketen | 0 | 0 | pip-audit |
 | Verstöße gegen Code-Regeln, neu | 0 | 0 (wird bei jeder Änderung geprüft) | ruff |
-| Verstöße gegen Code-Regeln, Altlasten (`# noqa`) | 66 (dazu 3 gewollte Markierungen, siehe unten) | sinkt durch die Pfadfinderregel | ruff |
-| Funktionen und Klassen mit Beschreibung | 125 von 1.532 (8 %) | Kernbereiche 100 %, sonst wachsend | `tools/qualitaet_messen.py` |
+| Verstöße gegen Code-Regeln, Altlasten (`# noqa`) | 65 (dazu 5 gewollte Markierungen, siehe unten) | sinkt durch die Pfadfinderregel | ruff |
+| Funktionen und Klassen mit Beschreibung | 126 von 1.533 (8 %) | Kernbereiche 100 %, sonst wachsend | `tools/qualitaet_messen.py` |
 
 ### Altlasten nach Art
 
@@ -29,9 +29,17 @@ Der Code funktioniert und ist seit Phase 1 bis 3 gegen Sicherheitslücken und di
 | F841 | 9 | Variable wird gesetzt, aber nie benutzt |
 | E722 | 7 | Pauschales `except:` verschluckt jeden Fehler, auch echte Programmfehler |
 | C901 | 5 | Funktion zu verschachtelt (siehe unten) |
-| sonstige | 6 | einzelne Importe und Kleinigkeiten (B007, E402, F401, F403, F811, F842) |
+| sonstige | 5 | einzelne Importe und Kleinigkeiten (B007, 2× F401, F811, F842) |
 
-Gewollt und kein Altlast: drei `# noqa: F401` in den `apps.py`-Dateien. Diese Importe registrieren die Signal-Empfänger und dürfen nicht entfernt werden (Test: `tests/test_signale.py`).
+Gewollt und keine Altlast: fünf `# noqa: F401` in den `apps.py`-Dateien, erkennbar an der Begründung nach `--`. Vier Importe registrieren Signal-Empfänger, einer meldet den Keycloak-Abgleich bei Celery an. Sie dürfen nicht entfernt werden (Test: `tests/test_signale.py`).
+
+Korrektur am 15.10.2026 (Qualität II, Schritt 1): Die erste Messung übersah 15 Markierungen ohne Regelnummer (`# noqa`). Sie schalteten auf ihrer Zeile jede Prüfung ab, auch künftig eingeschaltete. Zehn waren wirkungslos und sind entfernt. Fünf sind jetzt gezielt: vier gewollte mit Begründung und eine Altlast (`notifications/models.py`). Außerdem:
+- Die Markierung in `anmelde_tool/registration/apps.py` galt bisher als gewollt, der Import meldet aber nichts an: `anmelde_tool/registration/signals.py` enthält nur auskommentierten Code. Sie zählt jetzt als Altlast.
+- Eine Markierung in `notifications/apps.py` war überflüssig und ist entfernt.
+- Die Markierung in den Testeinstellungen war keine Altlast und ist jetzt in `ruff.toml` geregelt.
+- Zwei wirkungslose Textblöcke mit `# noqa` (Hinweise für den Editor PyCharm) sind entfernt.
+
+ruff lässt Markierungen ohne Nummer nicht mehr zu.
 
 ### Zu komplexe Funktionen
 
