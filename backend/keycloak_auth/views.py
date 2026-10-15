@@ -10,11 +10,10 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import filters
 from rest_framework.pagination import PageNumberPagination
-from basic.api_exceptions import TooManySearchResults, NoSearchResults
+from basic.api_exceptions import TooManySearchResults
 from notifications.signals import notify
 from basic.helper.choice_to_json import choice_to_json
 
-from anmelde_tool.event import permissions as event_permissions
 from authentication.choices import RequestGroupAccessChoices
 from authentication.models import CustomUser, RequestGroupAccess
 from authentication.serializers import FullUserSerializer, RequestGroupAccessSerializer, \
@@ -347,7 +346,7 @@ class InviteMemberViewSet(mixins.CreateModelMixin, GenericViewSet):
         notify.send(
             sender=request.user,
             recipient=user,
-            verb=f'Du wurdest einer Gruppe hinzugefügt.',
+            verb='Du wurdest einer Gruppe hinzugefügt.',
             target=group,
         )
 
@@ -382,7 +381,7 @@ class KickMemberViewSet(mixins.CreateModelMixin, GenericViewSet):
         notify.send(
             sender=request.user,
             recipient=user,
-            verb=f'Du wurdest aus einer Gruppe enfernt.',
+            verb='Du wurdest aus einer Gruppe enfernt.',
             target=group,
         )
         return Response('ok', status=status.HTTP_200_OK)

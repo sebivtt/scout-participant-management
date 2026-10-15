@@ -3,7 +3,6 @@ from django.db import models
 import anmelde_tool.event.models
 from anmelde_tool.attributes.choices import TravelType, AttributeType
 from anmelde_tool.registration.models import Registration
-from basic.models import TagType
 
 
 class AttributeModule(models.Model):

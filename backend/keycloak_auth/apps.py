@@ -6,4 +6,4 @@ class KeycloakAuthConfig(AppConfig):
     name = 'keycloak_auth'
 
     def ready(self):
-        import keycloak_auth.signals
+        import keycloak_auth.signals  # noqa: F401 -- registriert die Signal-Empfänger

@@ -29,9 +29,8 @@ from basic.permissions import IsStaffOrReadOnly
 from keycloak_auth.helper import (
     REGEX_GROUP,
     check_group_admin_permission,
-    get_groups_of_user,
 )
-from keycloak_auth.access import direct_group_roles, has_group_permission
+from keycloak_auth.access import direct_group_roles, has_group_permission, member_group_ids
 from keycloak_auth.enums import PermissionType
 from keycloak_auth.models import KeycloakGroup
 from keycloak_auth.serializers import FullGroupSerializer
@@ -308,19 +307,19 @@ class RegisterViewSet(viewsets.ViewSet):
                 exist_ok=False,
             )
         except KeycloakGetError as e:
-            print(f"Error within registration:\n{e}")
+            print(f"Error within registration:\n{e}")  # noqa: T201
             return Response(
                 {"status": "failed", "error": repr(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except KeycloakAuthenticationError as kae:
-            print(f"Error within registration:\n{kae}")
+            print(f"Error within registration:\n{kae}")  # noqa: T201
             return Response(
                 {"status": "failed", "error": repr(kae)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         except Exception as e:
-            print(f"Error within registration:\n{e}")
+            print(f"Error within registration:\n{e}")  # noqa: T201
             return Response(
                 {"status": "failed", "error": repr(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -338,8 +337,8 @@ class RegisterViewSet(viewsets.ViewSet):
                 keycloak_id=new_keycloak_user_id,
             )
         except Exception as exception:
-            print("failed initialising django user, removing keycloak user")
-            print(f"{exception=}")
+            print("failed initialising django user, removing keycloak user")  # noqa: T201
+            print(f"{exception=}")  # noqa: T201
             keycloak_admin.delete_user(new_keycloak_user_id)
             return Response(
                 {"status": "failed", "error": repr(exception)},
@@ -373,10 +372,10 @@ class RegisterViewSet(viewsets.ViewSet):
                     scout_level=serializers.data.get("scout_level", ""),
                 )
             except Exception as exception:
-                print(
+                print(  # noqa: T201
                     "failed initialising django person model, removing keycloak and django user"
                 )
-                print(f"{exception=}")
+                print(f"{exception=}")  # noqa: T201
                 # when django user is deleted, keycloak user is deleted as well
                 new_django_user.delete()
                 return Response(
@@ -384,7 +383,7 @@ class RegisterViewSet(viewsets.ViewSet):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
-        verify_mail = keycloak_admin.send_verify_email(
+        verify_mail = keycloak_admin.send_verify_email(  # noqa: F841
             user_id=new_keycloak_user_id,
             client_id=env("KEYCLOAK_ADMIN_USER"),
             redirect_uri=env("FRONT_URL"),
@@ -392,13 +391,13 @@ class RegisterViewSet(viewsets.ViewSet):
 
         if scout_organisation and scout_organisation.keycloak:
             try:
-                request_group_access = RequestGroupAccess.objects.create(
+                request_group_access = RequestGroupAccess.objects.create(  # noqa: F841
                     user=new_django_user,
                     group=scout_organisation.keycloak,
                 )
             except Exception as exception:
-                print("failed requesting group access")
-                print(f"{exception=}")
+                print("failed requesting group access")  # noqa: T201
+                print(f"{exception=}")  # noqa: T201
 
         return Response("ok", status=status.HTTP_200_OK)
 
@@ -443,8 +442,7 @@ class UserGroupViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
 
     def get_queryset(self):
-        token = self.request.META.get("HTTP_AUTHORIZATION")
-        ids = get_groups_of_user(token, self.request.user.keycloak_id)
+        ids = list(member_group_ids(self.request))
         return KeycloakGroup.objects.filter(keycloak_id__in=ids)
 
     def list(self, request, *args, **kwargs) -> Response:
@@ -614,8 +612,8 @@ class MyMembersUploadViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = MemberSerializer
 
-    def create(self, request, *args, **kwargs) -> Response:
-        token = self.request.META.get("HTTP_AUTHORIZATION")
+    def create(self, request, *args, **kwargs) -> Response:  # noqa: C901
+        token = self.request.META.get("HTTP_AUTHORIZATION")  # noqa: F841
         scout_group = request.user.person.scout_group
 
         if not scout_group or not scout_group.keycloak:
@@ -665,7 +663,7 @@ class MyMembersUploadViewSet(viewsets.ViewSet):
                 try:
                     int(row[5].value)
                 except Exception as exc:
-                    print(exc)
+                    print(exc)  # noqa: T201
                     error = True
                     report.append(
                         f"Reihe {row[1].row}: {row[5].value} ist keine gültige Postleitzahl"
@@ -742,7 +740,7 @@ class MyMembersUploadViewSet(viewsets.ViewSet):
                         eat_habit = get_object_or_404(EatHabit, name__iexact=eat_habit)
                         person_obj.eat_habits.add(eat_habit)
                         person_obj.save()
-                    except:
+                    except:  # noqa: E722
                         pass
 
             dict_model = model_to_dict(
@@ -819,7 +817,7 @@ class AddablePersons(viewsets.ModelViewSet):
                 created_by=self.request.user
             ).select_related("user", "scout_group", "zip_code")
 
-        registration_id = self.request.query_params.get("registration_id", None)
+        registration_id = self.request.query_params.get("registration_id", None)  # noqa: F841
 
         # todo: filter for already registered persons
         # registered_person = RegistrationParticipant.objects.all().values_list(

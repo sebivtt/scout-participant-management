@@ -72,7 +72,7 @@ def import_keycloak_members():
             'family_name': keycloak_user.get('lastName', ''),
             'email': keycloak_user.get('email', ''),
         }
-        django_user = oicd.create_user(claim)
+        django_user = oicd.create_user(claim)  # noqa: F841
         count += 1
 
     logger.info(f'{count} Users have been added')

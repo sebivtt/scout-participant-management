@@ -151,10 +151,6 @@ class EventCompleteSerializer(DeadlineFieldsMixin, serializers.ModelSerializer):
         fields = '__all__'
 
     def get_status(self, obj: event_models.Event) -> str:
-        registration = Registration.objects \
-            .filter(event=obj.id, responsible_persons=self.context['request'].user) \
-            .exists()
-
         # "pending" schaltet in der Oberfläche das Bearbeiten frei. Seit den
         # Fristregeln vom 14.10.2026 entscheidet die Änderungsfrist, nicht der
         # offizielle Anmeldeschluss.

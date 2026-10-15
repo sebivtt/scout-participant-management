@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
 
 from django.contrib.auth.models import Group
 from django.db import transaction, IntegrityError
@@ -64,7 +63,7 @@ class MyOIDCAB(OIDCAuthenticationBackend):
                 group, _ = Group.objects.get_or_create(name=role)
                 group.user_set.add(user)
 
-    def set_user_info(self, user: CustomUser, claims: dict):
+    def set_user_info(self, user: CustomUser, claims: dict):  # noqa: C901
         edited = False
 
         if not user.keycloak_id and user.keycloak_id != claims['sub']:

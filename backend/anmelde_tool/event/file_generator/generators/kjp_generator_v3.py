@@ -28,7 +28,7 @@ class KjpGeneratorV3(AbstractGenerator):
         sheets_count = 0
         participants_count = 0
 
-        registration: Registration
+        registration: Registration  # noqa: F842
 
         bund_name = helper.get_bund_name(self.generated_file)
 

@@ -5,11 +5,10 @@ from queue import Queue
 from django.db.models import Q, QuerySet
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, status, mixins
+from rest_framework import viewsets, status
 from rest_framework.exceptions import NotFound, MethodNotAllowed
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.filters import SearchFilter
 
 from anmelde_tool.attributes.models import AttributeModule
 from anmelde_tool.event import api_exceptions as event_api_exceptions
@@ -20,7 +19,7 @@ from anmelde_tool.event import serializers as event_serializers
 from anmelde_tool.event.models import StandardEventTemplate, Event, EventModule, EventLocation
 from anmelde_tool.event.permissions import EventRole, check_event_permission
 from basic.helper.get_property_ids import get_zipcode
-from keycloak_auth.helper import get_groups_of_user
+from keycloak_auth.access import member_group_ids
 from keycloak_auth.models import KeycloakGroup
 
 
@@ -83,8 +82,7 @@ class MyInvitationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = event_serializers.MyInvitationsSerializer
 
     def get_queryset(self):
-        token = self.request.META.get('HTTP_AUTHORIZATION')
-        child_ids = get_groups_of_user(token, self.request.user.keycloak_id)
+        child_ids = list(member_group_ids(self.request))
         if self.request.user.person.scout_group and self.request.user.person.scout_group.keycloak:
             child_ids += [self.request.user.person.scout_group.keycloak.keycloak_id]
         child_groups = KeycloakGroup.objects.filter(keycloak_id__in=child_ids).prefetch_related('parent')
@@ -105,49 +103,56 @@ class MyInvitationsViewSet(viewsets.ReadOnlyModelViewSet):
             .distinct()
 
 
-class EventViewSet(viewsets.ModelViewSet):
+class EventDateValidationMixin:
+    """Gemeinsame Datumsprüfung für Anlegen und Ändern von Veranstaltungen."""
+
+    # Reihenfolge-Regeln für die Daten einer Veranstaltung (Fristregeln vom 14.10.2026):
+    # (früheres Datum, späteres Datum, Fehler, falls das spätere vor dem früheren liegt)
+    DATE_ORDER_RULES = (
+        ('start_date', 'end_date', event_api_exceptions.EndBeforeStart),
+        ('registration_start', 'registration_deadline',
+         event_api_exceptions.RegistrationDeadlineBeforeRegistrationStart),
+        ('registration_start', 'registration_closes_at',
+         event_api_exceptions.RegistrationDeadlineBeforeRegistrationStart),
+        # Änderungen enden spätestens mit Veranstaltungsbeginn
+        ('last_possible_update', 'start_date', event_api_exceptions.StartBeforeLastChange),
+    )
+
+    def check_event_dates(self, request, event) -> bool:
+        """Prüft, ob die Daten zueinander passen. Wirft den passenden Fehler, sonst True.
+
+        event ist eine gespeicherte Veranstaltung oder ein dict mit validierten
+        Daten (beim Anlegen). Geprüft wird nur, wenn die Anfrage ein Datum ändert.
+        """
+        fields = {field for rule in self.DATE_ORDER_RULES for field in rule[:2]}
+        if all(request.data.get(field) is None for field in fields):
+            return True
+
+        def value(field):
+            raw = request.data.get(field)
+            if raw is None:
+                raw = event.get(field) if isinstance(event, dict) else getattr(event, field, None)
+            return parse_datetime(raw) if isinstance(raw, str) else raw
+
+        for earlier, later, error in self.DATE_ORDER_RULES:
+            earlier_value, later_value = value(earlier), value(later)
+            if earlier_value and later_value and later_value < earlier_value:
+                raise error
+        return True
+
+
+class EventViewSet(EventDateValidationMixin, viewsets.ModelViewSet):
     permission_classes = [event_permissions.IsEventSuperResponsiblePerson]
     queryset = Event.objects.all()
     serializer_class = event_serializers.EventCompleteSerializer
 
-    def check_event_dates(self, request, event) -> bool:
-        """Prüft, ob die Daten zueinander passen (Fristregeln vom 14.10.2026).
-
-        event ist eine Veranstaltung oder ein dict mit validierten Daten.
-        """
-        def current(field):
-            value = request.data.get(field)
-            if value is None:
-                value = event.get(field) if isinstance(event, dict) else getattr(event, field, None)
-            if isinstance(value, str):
-                value = parse_datetime(value)
-            return value
-
-        fields = ('start_date', 'end_date', 'registration_start', 'registration_deadline',
-                  'last_possible_update', 'registration_closes_at')
-        if not any(request.data.get(field) is not None for field in fields):
-            return True
-        start_date, end_date, registration_start, registration_deadline, last_possible_update, closes_at = (
-            current(field) for field in fields
-        )
-
-        if start_date and end_date and end_date < start_date:
-            raise event_api_exceptions.EndBeforeStart
-        if registration_start and registration_deadline and registration_deadline < registration_start:
-            raise event_api_exceptions.RegistrationDeadlineBeforeRegistrationStart
-        # Änderungen enden spätestens mit Veranstaltungsbeginn
-        if start_date and last_possible_update and last_possible_update > start_date:
-            raise event_api_exceptions.StartBeforeLastChange
-        if registration_start and closes_at and closes_at < registration_start:
-            raise event_api_exceptions.RegistrationDeadlineBeforeRegistrationStart
-        return True
 
     def create(self, request, *args, **kwargs) -> Response:
 
         price = request.data.get('price', str(15.00))
         del request.data['price']
 
-        if (request.data.get('responsible_persons') is None) | (request.data.get('responsible_persons', []) is []):
+        if (request.data.get('responsible_persons') is None) | (request.data.get('responsible_persons', []) == []):
             request.data['responsible_persons'] = [request.user.email, ]
 
         serializer: event_serializers.EventPostSerializer = event_serializers.EventPostSerializer(data=request.data)
@@ -189,7 +194,7 @@ class EventViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
 
-class EventPartialUpdateViewSet(viewsets.ModelViewSet):
+class EventPartialUpdateViewSet(EventDateValidationMixin, viewsets.ModelViewSet):
     '''
     You just need to provide the field which is to be modified.
     '''
@@ -198,7 +203,6 @@ class EventPartialUpdateViewSet(viewsets.ModelViewSet):
     permission_classes = [event_permissions.IsEventSuperResponsiblePerson]
     queryset = Event.objects.all()
     serializer_class = event_serializers.EventCompleteSerializer
-    check_event_dates = EventViewSet.check_event_dates
 
     def update(self, request, *args, **kwargs):
         # PUT und PATCH ändern hier immer nur die mitgeschickten Felder
@@ -271,7 +275,7 @@ class BookingOptionViewSet(viewsets.ModelViewSet):
         else:
             raise MethodNotAllowed(
                 method='delete',
-                detail=f'delete not allowed, because there must be at least one booking option'
+                detail='delete not allowed, because there must be at least one booking option'
             )
 
 
@@ -299,8 +303,7 @@ class EventOverviewViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = event_serializers.EventOverviewSerializer
 
     def get_queryset(self) -> QuerySet:
-        token = self.request.META.get('HTTP_AUTHORIZATION')
-        child_ids = get_groups_of_user(token, self.request.user.keycloak_id)
+        child_ids = list(member_group_ids(self.request))
 
         queryset = Event.objects.filter(
             Q(admin_group__keycloak_id__in=child_ids)

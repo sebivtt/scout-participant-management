@@ -1,17 +1,14 @@
 from django.db.models import QuerySet, Count
 from rest_framework import mixins, viewsets, status
 from rest_framework.response import Response
-from django.http import JsonResponse
 
-from anmelde_tool.event import api_exceptions
 from anmelde_tool.event import permissions as event_permissions
 from anmelde_tool.event.helper import filter_registration_by_leadership
 from anmelde_tool.event.summary.kpi import serializers as kpi_serializers
 from anmelde_tool.registration.models import Registration, RegistrationParticipant
-from anmelde_tool.registration import serializers as registration_serializers
 from anmelde_tool.registration import models as registration_models
 from anmelde_tool.event import models as event_models
-from django.db.models import Func, Sum, F, Window
+from django.db.models import F, Window
 
 
 class TotalParticipantsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

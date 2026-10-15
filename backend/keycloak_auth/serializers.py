@@ -1,12 +1,9 @@
 from django.contrib.auth import get_user_model
-from keycloak import KeycloakGetError
 from rest_framework import serializers
 
 from authentication.models import CustomUser, Person
 from authentication.serializers import UserScoutHierarchySerializer
-from backend.settings import keycloak_admin
 from basic.serializers import ScoutHierarchySerializer
-from keycloak_auth.api_exceptions import NotAuthorized
 from keycloak_auth.choices import CreateGroupChoices
 from keycloak_auth.enums import PermissionType
 from keycloak_auth.models import KeycloakGroup, ExternalLinks

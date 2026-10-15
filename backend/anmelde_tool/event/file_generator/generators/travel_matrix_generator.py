@@ -24,7 +24,7 @@ class TravelMatrixGenerator(AbstractGenerator):
         original['E1'] = helper.get_event_date(event)
         original['G1'] = participant_count
 
-        travel_type_mapping = {
+        travel_type_mapping = {  # noqa: F841
             'T': 3,
             'B': 4,
             'C': 5,
@@ -32,7 +32,7 @@ class TravelMatrixGenerator(AbstractGenerator):
             'sum': 7
         }
 
-        travel_time_mapping = {
+        travel_time_mapping = {  # noqa: F841
             'B': 'B',
             'E': 'C',
             'N': 'D',
@@ -42,7 +42,7 @@ class TravelMatrixGenerator(AbstractGenerator):
             'sum': 'H'
         }
 
-        time_sum = {
+        time_sum = {  # noqa: F841
             'B': 0,
             'E': 0,
             'N': 0,

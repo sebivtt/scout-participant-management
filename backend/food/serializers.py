@@ -4,7 +4,7 @@ from food.service.nutri_lib import Nutri
 from food.service.agg_lib import AggLib
 from keycloak_auth.helper import get_groups_of_user
 from keycloak_auth.models import KeycloakGroup
-from django.db.models import Sum, Count
+from django.db.models import Sum
 
 from food import serializers as food_serializers
 from anmelde_tool.event import serializers as event_serializers
@@ -248,7 +248,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 .exists()
             )
             return status_user or status_group
-        except:
+        except:  # noqa: E722
             return False
 
     def to_representation(self, instance):
@@ -359,7 +359,7 @@ class PollItemSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class PackageReadPollSerializer(serializers.ModelSerializer):
+class PackageReadPollSerializer(serializers.ModelSerializer):  # noqa: F811
     class Meta:
         model = food_models.Package
         fields = (
@@ -552,7 +552,7 @@ class MealDayReadSerializer(serializers.ModelSerializer):
                 .exists()
             )
             return status_user or status_group
-        except:
+        except:  # noqa: E722
             return False
 
     def get_meals(self, obj):
@@ -667,7 +667,7 @@ class MealEventReadSerializer(serializers.ModelSerializer):
                 .exists()
             )
             return status_user or status_group
-        except:
+        except:  # noqa: E722
             return False
 
     def to_representation(self, instance):

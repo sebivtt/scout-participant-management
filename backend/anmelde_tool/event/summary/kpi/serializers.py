@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from anmelde_tool.registration.models import Registration, RegistrationParticipant
 from basic import serializers as basic_serializers
-from basic import models as basic_models
 from anmelde_tool.event import models as event_models
 
 class RegistrationEventKPISerializer(serializers.ModelSerializer):
