@@ -8,7 +8,8 @@ Stand 15.10.2026. Dieses Dokument ist der Einstieg für jede neue Arbeitssitzung
 2. `docs/entscheidungen.md` lesen. Was dort steht, ist entschieden und wird nicht still geändert.
 3. `docs/architektur.md`, `docs/glossar.md` (Fachbegriffe) und `docs/qualitaet.md` überfliegen.
 4. `README.md` für die lokale Installation. Entwicklungswerkzeuge mit `pip install -r backend/requirements-dev.txt`, Prüfung vor jedem Commit im Ordner `backend/` mit `ruff check . && pytest`. Ein echtes Keycloak 26.7 für Livetests startet über `dev/`.
-5. Mit dem nächsten offenen Punkt unten weitermachen. Derzeit läuft die KI-Fehlerprüfung (Qualität II), der nächste offene Schritt steht in ihrer Checkliste.
+5. Den Abschnitt „Übergabe“ unten lesen: Er beschreibt den nächsten Schritt konkret und die Eigenheiten der Arbeitsumgebung.
+6. Mit dem Schritt weitermachen, der in der „Reihenfolge der nächsten Schritte“ mit „← als Nächstes“ markiert ist. Nach jedem erledigten Schritt die Markierung weitersetzen.
 
 Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z. B. `tests/test_abfragen.py` = `backend/tests/test_abfragen.py`. Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `main` von `sebivtt/scout-participant-management`.
 
@@ -21,6 +22,71 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 - Fachliche Fragen (wer darf was, welche Fristen gelten) entscheidet er. Technische Fragen entscheidet die KI und begründet sie.
 - Pull Requests werden nicht aufeinander aufgebaut. Der nächste beginnt erst, wenn der vorige in `main` ist. (PR #12 landete sonst im falschen Branch und musste mit PR #13 nachgeholt werden.)
 
+## Übergabe (Stand 15.10.2026, nach PR #14)
+
+### Was erledigt ist
+
+Qualität II, KI-Fehlerprüfung, bisher:
+- **PR #9:** pauschale Ausnahmen aufgeräumt
+- **PR #10:** Sicherheitsregeln an, Admin-Konto mit festem Passwort entfernt
+- **PR #11:** 20 Lücken im Zugriffsschutz geschlossen
+- **PR #12/#13:** Essensplanung und Programmideen abgeschaltet
+- **PR #14:** automatischer Abgleich zwischen Frontend und Backend, dazu die Karte `docs/schnittstellen.md`
+
+Tests: 228 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). Ergebnisse in `docs/qualitaet.md`, Entscheidungen in `docs/entscheidungen.md`.
+
+### Nächster Schritt: Sicherheitsupdates im Frontend innerhalb der Hauptversionen
+
+Ziel ist, bekannte Sicherheitslücken in Code zu schließen, der im Browser läuft, ohne große Versionssprünge.
+
+- **Bestandsaufnahme:** `yarn audit --groups dependencies` im Ordner `frontend/`. Am 15.10. waren es 63 Lücken (1 kritisch, 31 hoch, 30 mittel, 1 niedrig). Betroffen sind u. a.:
+  - `axios`: in `package.json` fest auf `1.7.4`, darüber auch `form-data` (kritisch) und `follow-redirects`
+  - `nanoid`, `postcss`, `source-map-js`: mitgeliefert über andere Pakete
+  - `moment`
+  - `uuid`, `quill` und `@vue/server-renderer`: siehe „bleiben offen“ unten
+- **Grundregel: Kein Paket verlässt seine Hauptversion.** Aus `1.7.4` darf `1.20.0` werden, aus `9.0.0` aber nicht `11.x`. Das gilt für jedes Paket, nicht nur für die großen Bausteine (Vite, vue-router, Pinia, Tailwind, TypeScript, eslint).
+- **Bleiben in diesem Schritt bewusst offen** (Phase 3d):
+  - **`uuid`:** erst ab 11.1.1 behoben, also zwei Hauptversionen weiter.
+  - **`quill`:** 1.3.7 über `@vueup/vue-quill` 1.x, eine behobene Version gibt es nicht.
+  - **`@vue/server-renderer`:** erst ab Vue 3.5.42 behoben. Vue 3.5 gehört zur Modernisierung, zusammen mit Vite, weil `@vitejs/plugin-vue ~2` und Vite 2.9 dazu passen müssen. Diese Lücke betrifft nur das Rendern auf dem Server, das dieses Tool nicht nutzt. Hinweis: `yarn.lock` enthält zwei Vue-Fassungen, 3.3.4 direkt und 3.4.15 über `@vue-leaflet/vue-leaflet`.
+- **`keycloak-js` nicht anfassen:** Jede Änderung an der Keycloak-Anbindung verlangt einen Livetest (`CLAUDE.md`). Sie gehört zu Qualität II, Schritt 3.
+- **Wie aktualisieren:**
+  - Gezielt einzeln, z. B. `yarn upgrade axios@1.<neueste 1.x>`. Danach `package.json` prüfen: axios ist fest eingetragen und soll fest bleiben.
+  - Mitgelieferte Pakete (`form-data`, `follow-redirects`, `nanoid`, `postcss`, `source-map-js`) über das Feld `resolutions` in `package.json`, jeweils auf die niedrigste behobene Version innerhalb der Hauptversion, die das übergeordnete Paket erwartet.
+  - **Verboten:** pauschales `yarn upgrade` ohne Paketnamen, `npm audit fix --force`, Wechsel auf npm.
+  - `yarn.lock` wird mit aktualisiert. Jede Paketänderung bekommt eine Begründung im Pull Request (`CONTRIBUTING.md` Abschnitt 5).
+- **Prüfen, ob noch alles geht:**
+  - `yarn build` mit den Umgebungsvariablen, ohne Fehler
+  - im Ordner `backend/`: `.venv/bin/ruff check . && .venv/bin/pytest`, darin auch `tests/test_frontend_abgleich.py`
+  - eslint in den geänderten Dateien vorher und nachher vergleichen: `npx eslint <dateien>` im Ordner `frontend/`, keine neuen Fehler
+  - `yarn audit --groups dependencies --summary` vorher und nachher. Übrig bleiben dürfen nur die Lücken aus „bleiben offen“.
+  - Klickliste für Sebastian im Pull Request: Login, Veranstaltung ansehen und bearbeiten, Anmeldung anlegen und ändern, Person löschen, Kasse, Gruppen
+- **Danach** laut Reihenfolge oben: Rauchtests mit Anleitung zum lokalen Start, dann die großen Versionssprünge (Phase 3d).
+
+### Offene Fragen an Sebastian
+
+- **Klicktest zu PR #11:** Die Rechte wurden spürbar enger. Klickliste siehe PR #11, Abschnitt 3. Ist er erfolgt, und ist etwas fälschlich gesperrt?
+- **Weiterleitung nach dem Speichern** (Phase 4, Rückmeldungen): War das Speichern eines Veranstaltungsorts gemeint? `EventEdit/location/Form.vue` springt nach dem Ändern mit der Kennung des Orts statt der Veranstaltung zur Detailseite.
+- **Person aus einer Anmeldung löschen** schlug lokal wegen eines fehlenden Schrägstrichs fehl (behoben in PR #14). Ist das beim Testen aufgefallen?
+
+### Eigenheiten der Arbeitsumgebung (Cloud-Sitzung)
+
+- **Backend einrichten:**
+  ```
+  cd backend
+  python3 -m venv .venv
+  .venv/bin/pip install -r requirements-dev.txt
+  ```
+  Tests laufen mit `DJANGO_SETTINGS_MODULE=backend.settings_test`. Das steht auch in `pytest.ini`. Immer die Werkzeuge aus `.venv` aufrufen (`.venv/bin/ruff`, `.venv/bin/pytest`). In der Cloud liegen sonst andere Versionen bereit.
+- **Frontend:**
+  - Installieren mit `CYPRESS_INSTALL_BINARY=0 yarn install --frozen-lockfile`.
+  - `yarn build` braucht die Umgebungsvariablen `VITE_APP_API`, `VITE_APP_URL`, `VITE_APP_KEYCLOAK_URL`, `VITE_APP_KEYCLOAK_REALM` und `VITE_APP_KEYCLOAK_CLIENT_ID` (Werte wie in `.github/workflows/ci.yml`).
+  - Der Build ändert `frontend/components.d.ts` (eine Zeile `StepperNav`). Diese Änderung ist älter und gehört nicht in fremde Pull Requests: mit `git checkout frontend/components.d.ts` zurücksetzen.
+- **Livetest gegen Keycloak ist in der Cloud nicht möglich.** Docker lässt sich mit `dockerd &` starten, aber das Abbild `quay.io/keycloak/keycloak` ist gesperrt. Livetests macht deshalb Sebastian auf seinem Mac, mit einer Schritt-für-Schritt-Anleitung (ein Befehl pro Schritt).
+- **GitHub:** `gh pr …` geht nicht (GraphQL gesperrt). Stattdessen die REST-Schnittstelle, z. B. `gh api repos/sebivtt/scout-participant-management/pulls -f title=… -f head=… -f base=main -F body=@datei.md`. Den Stand der automatischen Prüfungen zeigt `gh api repos/…/commits/<sha>/check-runs`.
+- **Branches:** Die Kopie des Repositorys ist flach und kennt nur `main`. Neue Branches mit `git push -u origin <branch>` hochladen. Meldet ein Hinweis „unpushed commits“, obwohl gepusht wurde, mit `git ls-remote origin <branch>` prüfen.
+- **Nach dem Ändern von Adressen oder Rechten** die Karte neu erzeugen: `.venv/bin/python tools/schnittstellen_karte.py` im Ordner `backend/`. Sonst schlägt ein Test an.
+
 ## Phasen
 
 | Phase | Inhalt | Stand |
@@ -32,7 +98,7 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 | 3b Fristen | Anmelde- und Änderungsfristen, manuelle Sperren | ✅ PR #5 |
 | 3c Modernisierung Backend | Django 5.2, aktuelle Pakete, pip-audit | ✅ PR #6 |
 | Qualität | Regeln, ruff, Dokumentation, Messung | ✅ PR #7 |
-| **Qualität II: KI-Fehlerprüfung** | siehe unten | **in Arbeit** (PR #9 bis #14) |
+| **Qualität II: KI-Fehlerprüfung** | siehe unten | **in Arbeit** (PR #9 bis #14), Rest siehe Reihenfolge |
 | 3d Modernisierung Frontend | siehe unten | offen |
 | **Abstimmung der Funktionen und Abläufe** | siehe unten | offen, kann parallel zu 3d beginnen |
 | 4 Frontend und Anmeldeablauf | siehe unten | offen |
@@ -43,9 +109,10 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 
 ### Reihenfolge der nächsten Schritte (Bestandsaufnahme vom 15.10.2026)
 
-1. **Qualität II, Schritt 2: Frontend und Backend abgleichen**, mit automatischer Prüfung. Adressen und Anfragearten erledigt (2a, PR #14), Feldnamen offen (2b). Das ist das erste Sicherheitsnetz für alle weiteren Änderungen und liefert die Karte „welche Seite ruft welche Schnittstelle auf“, die die Abstimmung der Abläufe braucht.
-2. **Sicherheitsupdates im Frontend innerhalb der Hauptversionen**, z. B. axios. Wenig riskant und dringend: 63 bekannte Sicherheitslücken betreffen Code, der im Browser läuft.
+1. ✅ **Qualität II, Schritt 2a: Frontend und Backend abgleichen**, mit automatischer Prüfung (PR #14). Das erste Sicherheitsnetz für alle weiteren Änderungen, dazu die Karte `docs/schnittstellen.md`. Der Feldnamen-Abgleich (2b) ist nach hinten verschoben, siehe Punkt 3a.
+2. **← als Nächstes: Sicherheitsupdates im Frontend innerhalb der Hauptversionen**, Details im Abschnitt „Übergabe“. Wenig riskant und dringend: 63 bekannte Sicherheitslücken betreffen Code, der im Browser läuft.
 3. **Rauchtests für das Frontend**: jede Seite einmal öffnen, dazu ein Durchlauf des Anmeldeablaufs. Ohne sie lässt sich nach den großen Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test.
+3a. **Qualität II, Schritt 2b: Feldnamen abgleichen.** Nach den Rauchtests, weil diese viele Feldfehler direkt zeigen (eine Seite bleibt leer oder meldet Fehler).
 4. **Phase 3d, Modernisierung Frontend**: die großen Versionssprünge einzeln, je mit Rauchtests und Klicktest. Vor Phase 4, damit der neue Anmeldeablauf nicht auf dem alten Fundament entsteht.
 5. **Qualität II, Schritt 3: Keycloak-Abgleich**, zusammen mit dem Keycloak-Baustein im Frontend.
 6. **Qualität II, Schritt 1c**: die restlichen Prüfregeln, klein und unabhängig, auch zwischendurch möglich.
@@ -98,7 +165,8 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 
 Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 4.6 (7), eslint 8 (10). Bekannte Sicherheitslücken: 329, davon 63 in Code, der im Browser läuft (u. a. axios, form-data).
 
-- [ ] Sicherheitsupdates innerhalb der Hauptversionen (Reihenfolge oben, Schritt 2).
+- [ ] Sicherheitsupdates innerhalb der Hauptversionen (Reihenfolge oben, Schritt 2; Anleitung im Abschnitt „Übergabe“).
+- [ ] Bei den großen Sprüngen mit erledigen: `uuid` (9 → 11), `quill` (über `@vueup/vue-quill`, ggf. Ersatz), Vue 3.5 (schließt die Lücke in `@vue/server-renderer`; doppelte Vue-Fassung über `@vue-leaflet/vue-leaflet` beachten).
 - [ ] Rauchtests: jede Seite lädt ohne Fehler, Anmeldeablauf läuft durch. Werkzeug voraussichtlich Playwright (steuert einen echten Browser, unabhängig von der Vite-Version); als neues Paket mit Begründung.
 - [ ] Anleitung, das Tool lokal mit Beispieldaten zu starten (dieselben Beispieldaten nutzen die Rauchtests).
 - [ ] eslint in die automatischen Prüfungen auf GitHub. Heute 198 Fehler und ca. 2.800 Warnungen: zuerst die Fehler, Warnungen schrittweise.
