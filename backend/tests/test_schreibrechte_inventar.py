@@ -38,13 +38,13 @@ CHECKED_ELSEWHERE = {
     'MyMembersViewSet': 'nur selbst angelegte Personen, Stamm nur mit Admin-Recht (get_queryset)',
     'RequestGroupAccessViewSet': 'get_permissions: IsGroupAdmin außer beim Anfragen',
     'LeaveGroupViewSet': 'nur selbst austreten',
-    'AddablePersons': 'wie MyMembersViewSet (get_queryset)',
     'MyMembersUploadViewSet': 'legt nur Personen an, die der Person selbst zugeordnet sind (created_by)',
     'AllGroupsViewSet': 'create: Admin-Recht auf die Obergruppe; Ändern und Löschen: tests/test_gruppenrechte.py',
 }
 
 
 def iter_views(patterns, prefix=''):
+    """Alle Adressen mit ihrer View, auch aus eingebundenen URL-Listen."""
     for pattern in patterns:
         if isinstance(pattern, URLResolver):
             yield from iter_views(pattern.url_patterns, prefix + str(pattern.pattern))

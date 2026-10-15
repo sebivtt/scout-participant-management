@@ -4,6 +4,7 @@ from django.db.models import QuerySet, Q
 from dateutil.relativedelta import relativedelta
 from django_filters import BaseInFilter, CharFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.generics import get_object_or_404
 from rest_framework import mixins, viewsets, status
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
@@ -804,17 +805,25 @@ class RegistrationParentViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 class MergeRegistrationsViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    permission_classes = [
-        event_permissions.IsSubEventResponsiblePerson | event_permissions.IsLeaderPerson
-    ]
+    """Legt zwei Anmeldungen einer Veranstaltung zusammen (nur Veranstaltungsleitung).
+
+    Früher durften auch Ansichtsgruppe sowie Bundes- und Ringführung
+    zusammenlegen und löschen, und die Anmeldungen durften aus beliebigen
+    Veranstaltungen stammen.
+    """
+
+    permission_classes = [event_permissions.IsSubEventSuperResponsiblePerson]
 
     def create(self, request, *args, **kwargs):
+        """Verschiebt Teilnehmende und Antworten der zweiten Anmeldung in die erste und löscht sie auf Wunsch."""
         data = request.data
+        event_id = self.kwargs.get("event_pk", None)
 
-        reg_id_primary = data["reg_primary"]
-        reg_id_secondary = data["reg_secondary"]
-        reg_primary = Registration.objects.get(id=reg_id_primary)
-        reg_secondary = Registration.objects.get(id=reg_id_secondary)
+        # Beide Anmeldungen müssen zur Veranstaltung aus der Adresse gehören.
+        reg_primary = get_object_or_404(Registration, id=data["reg_primary"], event=event_id)
+        reg_secondary = get_object_or_404(Registration, id=data["reg_secondary"], event=event_id)
+        reg_id_primary = reg_primary.id
+        reg_id_secondary = reg_secondary.id
 
         model_list = [
             RegistrationParticipant,

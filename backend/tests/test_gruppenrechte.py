@@ -295,3 +295,29 @@ class TestEigeneGruppenListe:
         api(mitglied).patch(f'/auth/my-groups/{stamm.id}/', {'name': 'Gekapert'}, format='json')
         stamm.refresh_from_db()
         assert stamm.name == 'Adler'
+
+
+class TestMitgliederliste:
+    """/keycloak/group/<id>/members/ erlaubte früher Ändern und Löschen der Konten aller Mitglieder."""
+
+    @pytest.fixture
+    def mitglieder(self, teilnehmer, fremde_leitung, stamm, keycloak):
+        keycloak.make_member(teilnehmer, stamm)
+        keycloak.make_member(fremde_leitung, stamm)
+        return teilnehmer, fremde_leitung
+
+    def test_mitglied_sieht_mitglieder(self, api, mitglieder):
+        teilnehmer, _ = mitglieder
+        assert api(teilnehmer).get(url(STAMM_ID, 'members/')).status_code == 200
+
+    def test_mitglied_aendert_fremdes_konto_nicht(self, api, mitglieder):
+        teilnehmer, andere = mitglieder
+        api(teilnehmer).patch(url(STAMM_ID, f'members/{andere.id}/'), {'email': 'gekapert@example.org'}, format='json')
+        andere.refresh_from_db()
+        assert andere.email == 'falkenleitung@example.org'
+
+    def test_mitglied_loescht_fremdes_konto_nicht(self, api, mitglieder):
+        from authentication.models import CustomUser
+        teilnehmer, andere = mitglieder
+        api(teilnehmer).delete(url(STAMM_ID, f'members/{andere.id}/'))
+        assert CustomUser.objects.filter(id=andere.id).exists()

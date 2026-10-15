@@ -156,7 +156,8 @@ class TestBausteine:
         return f'/event/event/{lager.id}/assigned-event-modules/' + (f'{baustein.id}/' if baustein else '')
 
     def test_teilnehmer_legt_keinen_baustein_an(self, api, teilnehmer, lager):
-        response = api(teilnehmer).post(self.url(lager), {'name': 'Fremd', 'event': str(lager.id)}, format='json')
+        # /event-module/ ließ früher jedes POST zu (Ausnahme in IsSubEventSuperResponsiblePerson).
+        response = api(teilnehmer).post(f'/event/event/{lager.id}/event-module/', {'name': 'Fremd'}, format='json')
         assert response.status_code == 403
         assert not EventModule.objects.filter(name='Fremd').exists()
 
@@ -173,8 +174,14 @@ class TestBausteine:
 
 
 # --- Veranstaltung über /event/event-read/ ------------------------------------
-# Das Frontend nutzt diese Adresse nicht. Sie erlaubte jeder eingeloggten
-# Person, jede Veranstaltung zu ändern oder zu löschen.
+# Das Frontend liest darüber Veranstaltungen (services/event.ts setzt die
+# Adresse aus "event/event" und "-read" zusammen). Sie erlaubte jeder
+# eingeloggten Person, jede Veranstaltung zu ändern oder zu löschen.
+
+def test_eingeloggte_person_liest_veranstaltung_ueber_event_read(api, teilnehmer, lager):
+    assert api(teilnehmer).get(f'/event/event-read/{lager.id}/').status_code == 200
+    assert api(teilnehmer).get('/event/event-read/').status_code == 200
+
 
 def test_teilnehmer_aendert_veranstaltung_nicht_ueber_event_read(api, teilnehmer, lager):
     api(teilnehmer).patch(f'/event/event-read/{lager.id}/', {'name': 'Gekapert'}, format='json')
@@ -310,3 +317,185 @@ def test_teilnehmer_aendert_farbschema_nicht(api, teilnehmer):
 
 def test_teilnehmer_liest_farbschemata(api, teilnehmer):
     assert api(teilnehmer).get('/basic/theme/').status_code == 200
+
+
+# --- Antworten in der Bausteinliste (/event/event/<id>/assigned-event-modules/) -
+# Die Liste liefert zu jedem Zusatzfeld die Antworten aller Anmeldungen mit,
+# gedacht für die Auswertung. Ohne Rolle in der Veranstaltung gibt es keine.
+
+def test_teilnehmer_sieht_keine_antworten_in_bausteinliste(api, teilnehmer, lager, antwort_adler):
+    response = api(teilnehmer).get(f'/event/event/{lager.id}/assigned-event-modules/')
+    assert response.status_code == 200
+    assert 'Nüsse' not in response.content.decode()
+
+
+def test_veranstaltungsleitung_sieht_antworten_in_bausteinliste(api, veranstaltungsleitung, lager, antwort_adler):
+    response = api(veranstaltungsleitung).get(f'/event/event/{lager.id}/assigned-event-modules/')
+    assert 'Nüsse' in response.content.decode()
+
+
+# --- Anmeldungen zusammenlegen (/event/event/<id>/summary/merge-registrations/) -
+
+@pytest.fixture
+def ansichtsgruppe(lager, leitungsgruppe, teilnehmer, fake_keycloak):
+    """Der Teilnehmer ist Mitglied der Ansichtsgruppe des Lagers."""
+    lager.view_group = leitungsgruppe
+    lager.save()
+    fake_keycloak.user_groups[teilnehmer.keycloak_id] = [leitungsgruppe.keycloak_id]
+    return teilnehmer
+
+
+def merge(client, event, primary, secondary):
+    return client.post(f'/event/event/{event.id}/summary/merge-registrations/', {
+        'reg_primary': str(primary.id), 'reg_secondary': str(secondary.id),
+        'copy_responsible_persons': False, 'delete_secondary': True}, format='json')
+
+
+def test_leitung_holt_keine_fremde_anmeldung_in_eigene_veranstaltung(
+        api, veranstaltungsleitung, lager, anmeldung_adler, fremdes_lager, stamm_falken, fremde_leitung):
+    from anmelde_tool.registration.models import Registration
+    from tests.conftest import make_registration
+    fremde_anmeldung = make_registration(fremdes_lager, stamm_falken, fremde_leitung)
+    merge(api(veranstaltungsleitung), lager, anmeldung_adler, fremde_anmeldung)
+    assert Registration.objects.filter(id=fremde_anmeldung.id).exists()
+    assert fremde_anmeldung.registrationparticipant_set.count() == 1
+
+
+def test_ansichtsgruppe_legt_keine_anmeldungen_zusammen(api, ansichtsgruppe, lager, anmeldung_adler, anmeldung_falken):
+    from anmelde_tool.registration.models import Registration
+    assert merge(api(ansichtsgruppe), lager, anmeldung_adler, anmeldung_falken).status_code == 403
+    assert Registration.objects.filter(id=anmeldung_falken.id).exists()
+
+
+def test_leitung_legt_eigene_anmeldungen_zusammen(api, veranstaltungsleitung, lager, anmeldung_adler, anmeldung_falken):
+    from anmelde_tool.registration.models import Registration
+    assert merge(api(veranstaltungsleitung), lager, anmeldung_adler, anmeldung_falken).status_code == 200
+    assert not Registration.objects.filter(id=anmeldung_falken.id).exists()
+    assert anmeldung_adler.registrationparticipant_set.count() == 2
+
+
+def test_antwort_nicht_an_zusatzfeld_fremder_veranstaltung(api, anmeldende_leitung, anmeldung_adler, fremdes_lager):
+    fremder_baustein = EventModule.objects.create(name='Fremd', event=fremdes_lager)
+    fremdes_feld = AttributeModule.objects.create(title='Fremd', event_module=fremder_baustein, field_type='StA')
+    api(anmeldende_leitung).post(
+        f'/event/registration/{anmeldung_adler.id}/string-attribute/',
+        {'attribute_module': fremdes_feld.id, 'string_field': 'x'}, format='json')
+    assert not StringAttribute.objects.filter(attribute_module=fremdes_feld).exists()
+
+
+def test_antwort_an_eigenes_zusatzfeld(api, anmeldende_leitung, anmeldung_adler, zusatzfeld):
+    response = api(anmeldende_leitung).post(
+        f'/event/registration/{anmeldung_adler.id}/string-attribute/',
+        {'attribute_module': zusatzfeld.id, 'string_field': 'Keine'}, format='json')
+    assert response.status_code == 201
+
+
+def test_zahlung_nicht_aus_veranstaltung_herausloesbar(api, veranstaltungsleitung, anmeldung_adler):
+    from anmelde_tool.event.cash.models import CashIncome
+    zahlung = CashIncome.objects.create(amount=25, registration=anmeldung_adler)
+    api(veranstaltungsleitung).patch(f'/event/cash/income/{zahlung.id}/', {'amount': '25', 'registration': None}, format='json')
+    zahlung.refresh_from_db()
+    assert zahlung.registration_id == anmeldung_adler.id
+
+
+def test_leitung_bucht_zahlung_nicht_auf_fremde_anmeldung(
+        api, veranstaltungsleitung, fremdes_lager, stamm_falken, fremde_leitung):
+    # Regeltest: Das war schon vor Qualität II geschützt und soll so bleiben.
+    from anmelde_tool.event.cash.models import CashIncome
+    from tests.conftest import make_registration
+    fremde_anmeldung = make_registration(fremdes_lager, stamm_falken, fremde_leitung)
+    response = api(veranstaltungsleitung).post(
+        '/event/cash/income/', {'amount': '25', 'registration': str(fremde_anmeldung.id)}, format='json')
+    assert response.status_code == 403
+    assert not CashIncome.objects.filter(registration=fremde_anmeldung).exists()
+
+
+def test_leitung_bucht_zahlung_auf_eigene_anmeldung(api, veranstaltungsleitung, anmeldung_adler):
+    response = api(veranstaltungsleitung).post(
+        '/event/cash/income/', {'amount': '25,50', 'registration': str(anmeldung_adler.id)}, format='json')
+    assert response.status_code == 201
+
+
+# --- Ansichtsgruppe darf nichts ändern (Entscheidung vom 15.10.2026) -----------
+
+def test_ansichtsgruppe_aendert_keine_bausteine(api, ansichtsgruppe, lager, baustein):
+    response = api(ansichtsgruppe).patch(
+        f'/event/event/{lager.id}/assigned-event-modules/{baustein.id}/', {'name': 'Geändert'}, format='json')
+    assert response.status_code == 403
+    baustein.refresh_from_db()
+    assert baustein.name == 'Gesundheit'
+
+
+def test_ansichtsgruppe_legt_keine_preisstufe_an(api, ansichtsgruppe, lager):
+    from anmelde_tool.event.models import BookingOption
+    response = api(ansichtsgruppe).post(
+        f'/event/event/{lager.id}/booking-options/', {'name': 'Gratis', 'price': '0'}, format='json')
+    assert response.status_code == 403
+    assert not BookingOption.objects.filter(name='Gratis').exists()
+
+
+def test_ansichtsgruppe_sieht_bausteine(api, ansichtsgruppe, lager, baustein):
+    assert api(ansichtsgruppe).get(f'/event/event/{lager.id}/assigned-event-modules/').status_code == 200
+
+
+def test_veranstaltungsleitung_aendert_bausteine(api, veranstaltungsleitung, lager, baustein):
+    response = api(veranstaltungsleitung).patch(
+        f'/event/event/{lager.id}/assigned-event-modules/{baustein.id}/', {'name': 'Geändert'}, format='json')
+    assert response.status_code == 200
+
+
+# --- Gegenproben und Regeln ohne eigenen Fehler ------------------------------
+
+@pytest.fixture
+def leitung_ueber_gruppe(lager, leitungsgruppe, teilnehmer, fake_keycloak):
+    """Der Teilnehmer leitet das Lager nur über die Leitungsgruppe (admin_group)."""
+    lager.admin_group = leitungsgruppe
+    lager.save()
+    fake_keycloak.user_groups[teilnehmer.keycloak_id] = [leitungsgruppe.keycloak_id]
+    return teilnehmer
+
+
+def test_leitung_ueber_gruppe_bearbeitet_veranstaltung(api, leitung_ueber_gruppe, lager, baustein, zusatzfeld, lagerort, monkeypatch):
+    client = api(leitung_ueber_gruppe)
+    assert client.patch(f'/event/attribute-module/{zusatzfeld.id}/', {'title': 'Neu'}, format='json').status_code == 200
+    assert client.patch(f'/event/event/{lager.id}/event-module/{baustein.id}/', {'name': 'Neu'}, format='json').status_code == 200
+    assert client.patch(f'/event/event-location/{lagerort.id}/', {'name': 'Neuer Platz'}, format='json').status_code == 200
+    calls = []
+    monkeypatch.setattr('anmelde_tool.event.cash.views.send_payment_reminder_mail', calls.append)
+    assert client.post('/event/cash/mail-reminder/', {'event_id': str(lager.id)}, format='json').status_code == 200
+    assert calls == [str(lager.id)]
+
+
+def test_veranstaltungsleitung_verschickt_einzelerinnerung(api, veranstaltungsleitung, anmeldung_adler, monkeypatch):
+    calls = []
+    monkeypatch.setattr('anmelde_tool.event.cash.views.send_single_payment_reminder_mail', calls.append)
+    response = api(veranstaltungsleitung).post(
+        '/event/cash/mail-single-reminder/', {'registration_id': str(anmeldung_adler.id)}, format='json')
+    assert response.status_code == 200
+    assert calls == [str(anmeldung_adler.id)]
+
+
+def test_vorlage_fuer_zusatzfeld_nur_anmeldeteam(api, veranstaltungsleitung):
+    vorlage = AttributeModule.objects.create(title='Vorlage', field_type='StA')
+    assert api(veranstaltungsleitung).patch(f'/event/attribute-module/{vorlage.id}/', {'title': 'X'}, format='json').status_code == 403
+    veranstaltungsleitung.is_staff = True
+    veranstaltungsleitung.save()
+    assert api(veranstaltungsleitung).patch(f'/event/attribute-module/{vorlage.id}/', {'title': 'X'}, format='json').status_code == 200
+
+
+def test_leitung_aendert_eigenen_ort(api, veranstaltungsleitung, lagerort):
+    response = api(veranstaltungsleitung).patch(f'/event/event-location/{lagerort.id}/', {'name': 'Neuer Platz'}, format='json')
+    assert response.status_code == 200
+
+
+def test_leitung_aendert_gemeinsamen_ort_nicht(api, veranstaltungsleitung, lagerort, fremdes_lager):
+    # Der Ort wird auch von einer fremden Veranstaltung genutzt: eine Änderung träfe sie mit.
+    fremdes_lager.location = lagerort
+    fremdes_lager.save()
+    response = api(veranstaltungsleitung).patch(f'/event/event-location/{lagerort.id}/', {'name': 'X'}, format='json')
+    assert response.status_code == 403
+
+
+def test_eingeloggte_person_legt_ort_an(api, teilnehmer):
+    response = api(teilnehmer).post('/event/event-location/', {'name': 'Neuer Ort'}, format='json')
+    assert response.status_code == 201

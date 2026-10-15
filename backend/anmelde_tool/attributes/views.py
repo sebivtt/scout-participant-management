@@ -37,10 +37,12 @@ class AttributeModuleViewSet(viewsets.ModelViewSet):
     queryset = AttributeModule.objects.all()
 
     def perform_create(self, serializer):
+        """Legt das Zusatzfeld an, wenn die Person den Baustein aus der Anfrage verwalten darf."""
         require_attribute_module_admin(self.request, AttributeModule(**serializer.validated_data))
         serializer.save()
 
     def perform_update(self, serializer):
+        """Speichert, wenn die Person die alte und gegebenenfalls die neue Zuordnung verwalten darf."""
         # Alte und neue Zuordnung prüfen: sonst ließe sich ein fremdes
         # Zusatzfeld in die eigene Veranstaltung holen oder umgekehrt.
         require_attribute_module_admin(self.request, serializer.instance)
@@ -49,6 +51,7 @@ class AttributeModuleViewSet(viewsets.ModelViewSet):
         serializer.save()
 
     def perform_destroy(self, instance):
+        """Löscht das Zusatzfeld, wenn die Person es verwalten darf."""
         require_attribute_module_admin(self.request, instance)
         instance.delete()
 
@@ -65,6 +68,7 @@ class AttributeAnswerUpdateViewSet(mixins.UpdateModelMixin, viewsets.GenericView
     permission_classes = [IsAuthenticated]
 
     def perform_update(self, serializer):
+        """Speichert die Antwort, wenn die Person die Anmeldung bearbeiten darf und die Frist offen ist."""
         registration = serializer.instance.registration
         if registration is None or not event_permissions.check_registration_permission(registration, self.request):
             raise PermissionDenied('Du darfst diese Anmeldung nicht bearbeiten.')

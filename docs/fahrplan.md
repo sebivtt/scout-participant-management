@@ -32,6 +32,7 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 | 3c Modernisierung Backend | Django 5.2, aktuelle Pakete, pip-audit | ✅ PR #6 |
 | Qualität | Regeln, ruff, Dokumentation, Messung | ✅ PR #7 |
 | **Qualität II: KI-Fehlerprüfung** | siehe unten | **in Arbeit** (PR #9, #10, #11) |
+| **Abstimmung der Funktionen und Abläufe** | siehe unten | offen, nach Qualität II |
 | 4 Frontend und Anmeldeablauf | siehe unten | offen |
 | 5 Datenschutz | siehe unten | offen |
 | 6 Eigene Ideen | Ideen des Projektverantwortlichen umsetzen | offen |
@@ -59,13 +60,14 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 **Vorgehen in dieser Reihenfolge**, jeweils ein eigener Pull Request (am 15.10.2026 mit dem Projektverantwortlichen abgestimmt; Prüftiefe und Abgrenzung zu Phase 4 siehe `docs/entscheidungen.md`):
 - [x] 1a. Pauschale `# noqa` ohne Regelnummer aufräumen, damit sie neue Regeln nicht verstecken. ruff verbietet sie künftig (PR #9).
 - [x] 1b-1. Sicherheitsregeln (ruff `S`) einschalten und die Funde beheben: Administratorkonto mit festem Passwort beim Serverstart, abgeschaltete Zertifikatsprüfung (PR #10).
-- [x] 1b-2. Alle 70 Fundstellen von `fields = '__all__'`, alle schreibenden Schnittstellen und alle öffentlichen Adressen bewertet. 14 Lücken im Zugriffsschutz behoben, automatische Prüfung für schreibende Schnittstellen (PR #11, Ergebnis in `docs/qualitaet.md`).
+- [x] 1b-2. Alle 70 Fundstellen von `fields = '__all__'`, alle schreibenden Schnittstellen und alle öffentlichen Adressen bewertet. 20 Lücken im Zugriffsschutz behoben, darunter die Schreibrechte der Ansichtsgruppe (Entscheidung vom 15.10.2026), automatische Prüfung für schreibende Schnittstellen (PR #11, Ergebnis in `docs/qualitaet.md`).
+- [ ] 1d. Essensplanung (`food`) und Programmideen (`inspi`) abschalten: Adressen entfernen, Code bleibt in der Historie (Entscheidung vom 15.10.2026). Dazu die Menüpunkte im Frontend prüfen.
 - [ ] Noch aus 1b: `add_state` bricht bei einem unbekannten Bundesland mit einem unverständlichen Fehler ab.
 - [ ] 1c. Weitere Regelgruppen (`DJ`, `PERF`, `RET`, `W605`, pauschales `except Exception`) mit Zählung und Bewertung, dazu die 7 Altlasten mit `except:`. Bekannte Treffer: `authentication/views.py` Passwortprüfung (`W605`, ungültige Escape-Sequenz, funktioniert heute noch); `anmelde_tool/registration/signals.py` besteht nur aus auskommentiertem Code (klären, ob die Mail „Anmeldung angelegt“ fehlt oder anderswo verschickt wird).
 - [ ] 2. Frontend-Aufrufe mit den Backend-Endpunkten und ihren Feldnamen abgleichen. Achtung: Das Backend wandelt Feldnamen automatisch um (`first_name` ↔ `firstName`, Paket `djangorestframework-camel-case`). Dazu die Frontend-Pakete prüfen (Tabellenzeile „Erfundene Funktionen“).
 - [ ] 3. Genutzte python-keycloak-Methoden mit der installierten Version (7.1.1) abgleichen, mit Livetest gegen Keycloak 26.7.
-- [ ] 4a. Randfälle und Fehlerbehandlung beim Anmelden und Ändern mit Tests absichern.
-- [ ] 4b. Dasselbe für Rechte und Gruppen, dazu doppelte Logik an mehreren Stellen (Tabellenzeile „Lokal richtig, passt nicht ins Ganze“).
+- [ ] 4a. Randfälle und Fehlerbehandlung beim Anmelden und Ändern mit Tests absichern. **Erst nach der Abstimmung der Funktionen und Abläufe**, damit die Tests die abgestimmten Regeln prüfen.
+- [ ] 4b. Dasselbe für Rechte und Gruppen, dazu doppelte Logik an mehreren Stellen (Tabellenzeile „Lokal richtig, passt nicht ins Ganze“). Ebenfalls erst nach der Abstimmung.
 - [ ] 5. Abschluss: Tabelle oben vollständig beantworten, Ergebnisabschnitt in `docs/qualitaet.md`, neue Review-Regeln in `CONTRIBUTING.md`.
 
 **Fertig ist die Phase**, wenn jede Zeile der Tabelle mit „abgedeckt“ oder „bewusst nicht, weil …“ beantwortet ist und `docs/qualitaet.md` einen Ergebnisabschnitt hat.
@@ -78,6 +80,24 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
   - ein Abgleich der genutzten python-keycloak-Methoden mit der installierten Version.
 - Kleine, thematische Pull Requests. Die Prüfung darf sich in mehrere aufteilen.
 - Vor jedem Pull Request eine unabhängige Prüfung durch eine zweite KI-Instanz (siehe `CLAUDE.md`).
+
+## Abstimmung der Funktionen und Abläufe
+
+Vereinbart am 15.10.2026. Ziel: Für jeden Ablauf ist abgestimmt, wer was darf und wann. Ohne diese Grundlage muss die KI bei Rechten und Fristen raten oder einzeln nachfragen, und der Projektverantwortliche kann nur schwer einschätzen, was wann gilt, solange er nicht nebenbei testen kann.
+
+**Vorgehen:**
+1. Die KI erstellt den Ist-Stand aus dem Code, ein Dokument pro Ablauf in `docs/ablaeufe/`. Beispiele: Veranstaltung anlegen, Anmelden, Anmeldung ändern, Kasse, Auswertung, Gruppen verwalten, Konto und persönliche Daten. Jedes Dokument enthält:
+   - ein Ablaufdiagramm,
+   - eine Tabelle „wer darf was in welcher Phase“, also vor dem Anmeldestart, während der Anmeldung, nach dem Anmeldeschluss und nach der Änderungsfrist,
+   - eine Liste der Stellen, die vermutlich nicht so gewollt sind.
+2. Der Projektverantwortliche geht die Abläufe einzeln durch und entscheidet pro Zeile: so lassen oder ändern. Das Ergebnis steht als Soll im Dokument und in `docs/entscheidungen.md`.
+3. Jede abgestimmte Regel bekommt einen Test. Danach folgen Qualität II 4a/4b und Phase 4.
+
+**Schon gesammelte Fragen:**
+- Wer darf welche Veranstaltung sehen? Heute liefert `/event/event-read/` jeder eingeloggten Person jede Veranstaltung.
+- Wer darf in der geplanten zentralen Ortsverwaltung Orte verwalten?
+- Darf die Ansichtsgruppe Excel-Listen erzeugen? Heute ja, weil das eine Form der Auswertung ist.
+- Was passiert mit Orten, die angelegt, aber keiner Veranstaltung zugeordnet wurden?
 
 ## Phase 4: Frontend und Anmeldeablauf
 
@@ -125,15 +145,14 @@ Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit i
 | Beim Anmelden kann man jeden Stamm wählen, nicht nur den eigenen | PR #3 | Projektverantwortlicher |
 | Feinabstimmung der Rechte des Anmeldeteams (Staff hat heute überall Admin) | PR #2 | Projektverantwortlicher |
 | Begrenzung der Anfragen pro Minute für die öffentlichen Adressen: Registrierung, Kontaktformular, Prüfung von Benutzername und E-Mail (verraten, ob eine Adresse registriert ist) | PR #3, Qualität II 1b-2 | technisch |
-| Darf die Ansichtsgruppe einer Veranstaltung Bausteine und Preisstufen ändern? Der Code erlaubt es, das Glossar sagt „darf nichts ändern“ | Qualität II 1b-2 | Projektverantwortlicher |
-| Wer darf Veranstaltungsorte ändern? Umgesetzt (vorläufig): wer alle Veranstaltungen am Ort leitet, unbenutzte Orte nur das Anmeldeteam | Qualität II 1b-2 | Projektverantwortlicher |
+| Zentrale Verwaltung der Veranstaltungsorte (neue Funktion, Entscheidung vom 15.10.2026). Offen: Welche „Leitungen“ dürfen dort Orte verwalten? | Qualität II 1b-2 | Projektverantwortlicher, in der Abstimmung der Abläufe |
 | Kleinste nötige Rollen für das Keycloak-Dienstkonto (getestet nur mit `realm-admin`) | PR #2 | technisch, mit Verbands-Admin |
 | `django-stdimage` ist veraltet, Nachfolger `django-pictures` | PR #6 | technisch |
 | Dockerfile für den Echtbetrieb. Das alte Setup in `backend/` (Dockerfile, docker-compose.yml, start.sh) ist ungeprüft. Djangos Prüfung für den Echtbetrieb (`manage.py check --deploy`) verlangt dort `SECURE_SSL_REDIRECT=True`, falls der vorgeschaltete Webserver nicht auf HTTPS umleitet | PR #6, Qualität II 1b-1 | mit der Hosting-Entscheidung |
 | `anonymise_data` überschreibt ohne Rückfrage alle Personendaten der Datenbank. Eine Sicherung gegen versehentlichen Aufruf im Echtbetrieb fehlt | Qualität II 1b-1 | technisch |
 | Hosting: vorerst günstiger eigener Server, später ggf. AWS beim Verband | Gespräch | Projektverantwortlicher |
 | Lizenz des Projekts | `docs/entscheidungen.md` | mit den ursprünglichen Entwicklern |
-| Eingefrorene Module (z. B. `food`) behalten oder entfernen. Dringlicher seit Qualität II 1b-2: In `food` und `inspi` kann jede eingeloggte Person rund 40 Arten von Einträgen anderer ändern oder löschen. Abschalten oder absichern? | Phase 1, Qualität II 1b-2 | Projektverantwortlicher |
+| Eingefrorene Module: `food` und `inspi` werden abgeschaltet (Qualität II 1d), ob sie später abgesichert zurückkommen, klärt die Abstimmung der Anforderungen. `messaging` und `notifications` bleiben vorerst | Phase 1, Qualität II 1b-2 | Projektverantwortlicher |
 
 ## Ideen (Phase 6)
 

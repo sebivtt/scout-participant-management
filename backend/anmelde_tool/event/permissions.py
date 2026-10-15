@@ -155,21 +155,6 @@ class IsSubEventSuperResponsiblePerson(permissions.BasePermission):
         return check_event_permission(event_id, request, admin_only=True) == EventRole.ADMIN_ROLE
 
 
-class IsEventResponsiblePersonOrReadOnly(permissions.BasePermission):
-    """Lesen für Eingeloggte, Ändern für Leitung oder Ansichtsgruppe."""
-    message = 'Du darfst dieses Event nicht bearbeiten'
-
-    def has_permission(self, request: Request, view) -> bool:
-        if not request.user or not request.user.is_authenticated:
-            return False
-        if request.user.is_superuser:
-            return True
-        if request.method in SAFE_METHODS:
-            return True
-        event_id: str = view.kwargs.get("pk", None)
-        return check_event_permission(event_id, request) != EventRole.NONE
-
-
 class IsSubEventResponsiblePerson(permissions.BasePermission):
     """Leitung oder Ansichtsgruppe der Veranstaltung (event_pk), z. B. für Auswertungen."""
     message = 'Du darfst dieses Event nicht bearbeiten'
@@ -195,7 +180,11 @@ class IsLeaderPerson(permissions.BasePermission):
 
 
 class IsSubEventResponsiblePersonOrReadOnly(permissions.BasePermission):
-    """Lesen für Eingeloggte, Ändern für Leitung oder Ansichtsgruppe (event_pk)."""
+    """Lesen für Eingeloggte, Ändern nur für die Veranstaltungsleitung (event_pk).
+
+    Die Ansichtsgruppe darf nichts ändern (Entscheidung vom 15.10.2026).
+    Früher durfte sie hier Bausteine und Preisstufen bearbeiten.
+    """
     message = 'Du darfst dieses Event nicht bearbeiten'
 
     def has_permission(self, request: Request, view) -> bool:
@@ -206,7 +195,7 @@ class IsSubEventResponsiblePersonOrReadOnly(permissions.BasePermission):
         if request.method in SAFE_METHODS:
             return True
         event_id: str = view.kwargs.get('event_pk', None)
-        return check_event_permission(event_id, request) != EventRole.NONE
+        return check_event_permission(event_id, request, admin_only=True) == EventRole.ADMIN_ROLE
 
 
 class IsRegistrationResponsiblePerson(permissions.BasePermission):

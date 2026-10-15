@@ -22,6 +22,10 @@ class IsCashResponsiblePerson(permissions.BasePermission):
             return False
         if request.user.is_superuser:
             return True
+        # Eine Zahlung ohne Anmeldung gehört zu keiner Veranstaltung mehr und
+        # verschwände aus der Kasse. Das Feld darf deshalb nicht geleert werden.
+        if 'registration' in request.data and request.data['registration'] is None:
+            return False
         events = []
         registration_id: str = request.data.get('registration', None)
         if registration_id is not None:

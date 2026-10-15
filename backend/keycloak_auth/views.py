@@ -206,7 +206,14 @@ class ShortGroupsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GroupShortSerializer
 
 
-class GroupMembersViewSet(viewsets.ModelViewSet):
+class GroupMembersViewSet(viewsets.ReadOnlyModelViewSet):
+    """Mitglieder einer Gruppe, für Mitglieder und Gruppen mit Ansichtsrecht. Nur lesen.
+
+    Früher ein ModelViewSet: Jedes Mitglied konnte die Konten aller anderen
+    Mitglieder ändern oder löschen. Aufnehmen und Entfernen läuft über
+    invite/ und kick/ mit Admin-Recht.
+    """
+
     permission_classes = [IsAuthenticated, IsGroupViewerOrMember]
     serializer_class = UserListSerializer
     pagination_class = StandardResultsSetPagination
@@ -220,11 +227,8 @@ class GroupMembersViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         serializer = {
-            # 'create': registration_serializers.RegistrationParticipantSerializer,
             'retrieve': FullUserSerializer,
             'list': UserListSerializer,
-            # 'update': registration_serializers.RegistrationParticipantSerializer,
-            # 'destroy': registration_serializers.RegistrationParticipantSerializer
         }
         return serializer.get(self.action, UserListSerializer)
 

@@ -800,7 +800,13 @@ class MyTribeVerifiedViewSet(viewsets.ViewSet):
         )
 
 
-class AddablePersons(viewsets.ModelViewSet):
+class AddablePersons(viewsets.ReadOnlyModelViewSet):
+    """Personen, die die Person einer Anmeldung hinzufügen kann. Nur lesen.
+
+    Das Frontend ruft diese Adresse derzeit nicht auf. Ändern und Löschen
+    eigener Personen läuft über /auth/my-members/.
+    """
+
     serializer_class = auth_serializer.MemberSerializer
     pagination_class = BigResultsSetPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]

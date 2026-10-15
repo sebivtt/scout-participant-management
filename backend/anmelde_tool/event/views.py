@@ -70,6 +70,7 @@ class EventLocationViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     def perform_destroy(self, instance):
+        """Löscht den Ort, wenn die Person ihn ändern darf."""
         self.require_location_admin(instance)
         instance.delete()
 
@@ -91,13 +92,34 @@ class EventScopedModuleMixin:
     """
 
     def get_queryset(self) -> QuerySet:
+        """Nur die Bausteine der Veranstaltung aus der Adresse."""
         return EventModule.objects.filter(event=self.kwargs.get("event_pk", None)).order_by('ordering')
 
     def perform_create(self, serializer):
+        """Legt den Baustein in der Veranstaltung aus der Adresse an."""
         serializer.save(event=event_helper.get_event(self.kwargs.get("event_pk", None)))
 
     def perform_update(self, serializer):
+        """Speichert, ohne den Baustein einer anderen Veranstaltung zuzuordnen."""
         serializer.save(event=serializer.instance.event)
+
+
+class EventReadViewSet(viewsets.ReadOnlyModelViewSet):
+    """Veranstaltungen lesen, z. B. für Detailseite und Anmeldeschritte. Nur lesen.
+
+    Früher ein ModelViewSet: Jede eingeloggte Person konnte darüber jede
+    Veranstaltung ändern oder löschen. Wer welche Veranstaltung sehen darf,
+    ist noch nicht abgestimmt (docs/fahrplan.md, Abstimmung der Abläufe).
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = event_serializers.EventReadSerializer
+
+    def get_queryset(self):
+        technical_name = self.request.query_params.get('technical_name', None)
+        if technical_name is None:
+            return Event.objects.all()
+        return Event.objects.filter(technical_name=technical_name)
 
 
 class EventModuleViewSet(EventScopedModuleMixin, viewsets.ModelViewSet):
@@ -320,7 +342,7 @@ class AvailableEventModulesViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class AssignedEventModulesViewSet(EventScopedModuleMixin, viewsets.ModelViewSet):
-    """Bausteine einer Veranstaltung. Lesen alle Eingeloggten, ändern Leitung oder Ansichtsgruppe."""
+    """Bausteine einer Veranstaltung. Lesen alle Eingeloggten, ändern nur die Veranstaltungsleitung."""
 
     permission_classes = [event_permissions.IsSubEventResponsiblePersonOrReadOnly]
     serializer_class = event_serializers.EventModuleSerializer
