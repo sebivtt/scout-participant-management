@@ -122,6 +122,8 @@ def test_importierte_konstante_gilt_als_unbekannt():
     ("// it's\nconst G = '/*';\naxios.get('/a/');\nconst E = '*/';", '/a/'),
     ("const r = /[\"']/g;\naxios.get('/b/');", '/b/'),
     ("const x = `${a ? \"x\" : 'y'}`;\naxios.get('/c/');", '/c/'),
+    ("function t(p) { return /^\\/*$/.test(p) }\naxios.get('/d/');", '/d/'),
+    ("const r = /\\[/.test(a) && axios.get('/e/') && x[0];", '/e/'),
 ])
 def test_apostroph_oder_ausdruck_verschluckt_keine_aufrufe(source, expected):
     """Ein Apostroph im Kommentar, ein regulärer Ausdruck oder ${…} bringen das Lesen nicht durcheinander."""
@@ -135,10 +137,15 @@ def test_vue_vorlagentext_wird_nicht_gelesen():
     assert '/e/' in text and "Gib's" not in text
 
 
-def test_verlesen_wird_gemeldet():
-    """Endet eine Datei mitten in einer Zeichenkette, meldet das Werkzeug das, statt still Aufrufe zu verlieren."""
+@pytest.mark.parametrize('source', [
+    "const a = 'offen;\naxios.get('/f/');",
+    "const a = `offen ${b};\naxios.get('/f/');",
+    "/* offen\naxios.get('/f/');",
+])
+def test_verlesen_wird_gemeldet(source):
+    """Endet eine Datei in einer offenen Zeichenkette oder einem offenen Kommentar, meldet das Werkzeug das laut."""
     with pytest.raises(frontend_aufrufe.UnreadableSource):
-        frontend_aufrufe.strip_comments("const a = 'offen;\naxios.get('/f/');")
+        frontend_aufrufe.strip_comments(source)
 
 
 def test_karte_zeigt_rechte_je_aktion():

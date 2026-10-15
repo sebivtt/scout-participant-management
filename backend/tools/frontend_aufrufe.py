@@ -19,8 +19,10 @@ Bekannte Grenzen (der Test meldet die ersten beiden, wenn sie auftreten):
 - Konstanten aus anderen Dateien (import) gelten als nicht auflösbar.
 - Funktionsgrenzen kennt das Werkzeug nicht: Es nimmt die letzte Definition
   einer Konstante vor dem Aufruf, auch aus einer anderen Funktion.
-- Ein //-Kommentar mitten in einer Zeile und HTML-Kommentare in .vue-Dateien
-  werden nicht entfernt. Das ergibt höchstens einen Fehlalarm.
+- In .vue-Dateien zählt nur der <script>-Teil. Ein "</script>" in einer
+  Zeichenkette beendet ihn zu früh; das meldet der Leser laut.
+- Nach "i++" oder "i--" hält der Leser ein folgendes "/" für einen regulären
+  Ausdruck; das meldet er meist laut statt still falsch zu lesen.
 """
 import dataclasses
 import pathlib
@@ -159,7 +161,10 @@ class UnreadableSource(ValueError):
 
 
 # Nach diesen Zeichen beginnt mit "/" ein regulärer Ausdruck, sonst ist es eine Division.
+# Grenze: Nach "i++" wird "/" fälschlich als Ausdruck gelesen; das endet meist laut mit UnreadableSource.
 REGEX_PRECEDERS = set('(,=:[!&|?{};+-*%<>~^') | {''}
+# Nach diesen Wörtern beginnt mit "/" ebenfalls ein regulärer Ausdruck (z. B. "return /^a$/").
+REGEX_KEYWORDS = {'return', 'typeof', 'else', 'case', 'in', 'of', 'void', 'delete', 'await', 'yield', 'new', 'throw', 'instanceof', 'do'}
 
 
 class _Scanner:
@@ -214,12 +219,19 @@ class _Scanner:
         if char == '`':
             self.stack.append(['template'])
             return self.emit(i, i + 1)
-        if char == '/' and self.last in REGEX_PRECEDERS:
+        if char == '/' and self.regex_may_start():
             end = self.regex_end(i)
             if end is not None:
                 self.last = '/'
                 return self.emit(i, end)
         return self.plain(i)
+
+    def regex_may_start(self) -> bool:
+        """Kann an dieser Stelle ein regulärer Ausdruck beginnen (statt einer Division)?"""
+        if self.last in REGEX_PRECEDERS:
+            return True
+        tail = re.search(r'(\w+)\s*$', ''.join(self.out[-30:]))
+        return bool(tail) and tail.group(1) in REGEX_KEYWORDS
 
     def comment(self, i: int) -> int:
         """Ersetzt einen //- oder /* */-Kommentar durch Leerzeichen, Zeilenumbrüche bleiben."""
@@ -227,7 +239,10 @@ class _Scanner:
             end = self.text.find('\n', i)
         else:
             end = self.text.find('*/', i + 2)
-            end = end + 2 if end != -1 else -1
+            if end == -1:
+                # Ein offener Block-Kommentar würde den Rest der Datei still verschlucken.
+                raise UnreadableSource(f'Kommentar ab Zeichen {i} wird nicht geschlossen')
+            end += 2
         end = len(self.text) if end == -1 else end
         self.out.append(re.sub(r'[^\n]', ' ', self.text[i:end]))
         return end
@@ -251,7 +266,8 @@ class _Scanner:
             if text[end] == '\n':
                 return None
             if text[end] == '\\':
-                end += 1
+                end += 2  # das maskierte Zeichen zählt nie als "[" "]" oder "/"
+                continue
             in_class = {'[': True, ']': False}.get(text[end], in_class)
             end += 1
         return end + 1 if end < len(text) else None
@@ -272,8 +288,9 @@ def strip_comments(text: str) -> str:
     """Ersetzt Kommentare durch Leerzeichen, Zeilenumbrüche bleiben (für die Zeilennummern).
 
     Auskommentierter Code ist kein Aufruf. Endet der Text mitten in einer
-    Zeichenkette, hat sich das Lesen verschluckt: Dann wird UnreadableSource
-    geworfen, statt still weiterzumachen und Aufrufe zu übersehen.
+    Zeichenkette oder einem Block-Kommentar, oder reicht eine '…'/"…"-Zeichenkette
+    über das Zeilenende, hat sich das Lesen verschluckt: Dann wird
+    UnreadableSource geworfen, statt still weiterzumachen und Aufrufe zu übersehen.
     """
     return _Scanner(text).run()
 
