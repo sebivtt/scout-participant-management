@@ -740,7 +740,7 @@ class MyMembersUploadViewSet(viewsets.ViewSet):
                         eat_habit = get_object_or_404(EatHabit, name__iexact=eat_habit)
                         person_obj.eat_habits.add(eat_habit)
                         person_obj.save()
-                    except:  # noqa: E722
+                    except:  # noqa: E722, S110
                         pass
 
             dict_model = model_to_dict(

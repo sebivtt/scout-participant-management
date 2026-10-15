@@ -18,7 +18,7 @@ logger = get_task_logger(__name__)
 def post_save_issue(sender, instance: Issue, **kwargs):
     try:
         create_notification_issue.delay(instance.id)
-    except:  # noqa: E722
+    except:  # noqa: E722, S110
         pass
 
 

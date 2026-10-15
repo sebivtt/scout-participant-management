@@ -13,6 +13,7 @@ select = [
     "B",     # häufige Fehlerquellen (z. B. veränderliche Standardwerte)
     "C90",   # Komplexität
     "T20",   # print() im Anwendungscode
+    "S",     # Sicherheit (entspricht dem Werkzeug bandit)
     "PGH004", # "# noqa" nur mit Regelnummer, sonst schaltet es auch künftige Regeln ab
     "RUF100", # überflüssige "# noqa"-Ausnahmen melden
 ]
@@ -27,7 +28,13 @@ max-complexity = 12
 # Management-Befehle und Werkzeuge in tools/ geben ihre Ergebnisse bewusst mit print() aus
 "*/management/commands/*" = ["T20"]
 "tools/*" = ["T20"]
-"tests/*" = ["T20"]
+# Tests prüfen mit assert und übergeben erfundene Passwörter.
+"tests/*" = ["T20", "S101", "S106"]
+"*/tests.py" = ["S106"]
+# Zufallszahlen nur, um Personendaten unkenntlich zu machen (Alter ±2 Jahre), keine
+# Sicherheitsfunktion. Ausnahme für die ganze Datei, weil eine gewollte Markierung an
+# der Zeile einen Test verlangen würde, der hier nichts absichert.
+"basic/management/commands/anonymise_data.py" = ["S311"]
 # Einstellungsdateien übernehmen alle Werte per "import *".
 "backend/settings*.py" = ["F403", "F405"]
 # settings_test.py muss vor dem Import Umgebungsvariablen setzen, daher steht er nicht ganz oben.

@@ -22,7 +22,7 @@ Windows
 
 # Load Example Data
 
-1) `python manage.py add_users`
+1) `python manage.py add_users` (nur lokal mit DEBUG=True; im Echtbetrieb `python manage.py createsuperuser`)
 2) `python manage.py add_keycloak_users`
 3) `python manage.py sync_keycloak_groups`
 

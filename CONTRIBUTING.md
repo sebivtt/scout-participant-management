@@ -24,6 +24,7 @@ Was ein Programm prüfen kann, prüft GitHub bei jeder Änderung automatisch (`.
 - **Jede fachliche Regel hat einen Test**, der sie in Alltagssprache benennt, z. B. `test_nach_offiziellem_anmeldeschluss_weiter_moeglich`. (Review)
 - **Jeder behobene Fehler bekommt einen Test**, der ohne den Fix fehlschlägt. (Review)
 - Bekannte, noch offene Fehler werden als `@pytest.mark.xfail(strict=True, raises=..., reason=...)` festgehalten. `raises` nennt genau die erwartete Fehlerart, damit nicht jeder beliebige andere Fehler als „bekannt“ durchgeht (Vorbild: `tests/test_abfragen.py`). Wird einer behoben, meldet der Testlauf das, und die Markierung muss weg. (automatisch, außer `raises`: Review)
+- Bekannte unsichere Muster (abgeschaltete Zertifikatsprüfung, Passwörter im Code, verschluckte Fehler, unsichere Aufrufe) meldet ruff. Ein festes Passwort ist nur in Code erlaubt, der im Echtbetrieb verweigert wird, mit Test. (automatisch, `ruff` S)
 - Rechte werden im Backend geprüft, nie nur in der Oberfläche. Neue Endpunkte verlangen standardmäßig einen Login, öffentliche Endpunkte setzen `AllowAny` ausdrücklich und begründen das im Kommentar. (automatisch über die Standardeinstellung, sonst Review)
 - Keine ungenutzten Importe oder Variablen. (automatisch, `ruff` F)
 
