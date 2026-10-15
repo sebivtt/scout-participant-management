@@ -101,7 +101,9 @@ def test_nachrichtentypen_nur_staff_aendert(api, teilnehmer):
 
 # --- Standard: Login nötig, Ausnahmen öffentlich -----------------------------
 
-@pytest.mark.parametrize('pfad', ['/food/recipe/', '/inspi/activity/', '/basic/search/'])
+# Beispiele für Adressen ohne eigene Rechteangabe, die also nur über die Standardeinstellung
+# geschützt sind. food und inspi sind seit Qualität II 1d abgeschaltet.
+@pytest.mark.parametrize('pfad', ['/auth/my-members-addable/', '/basic/search/'])
 def test_standard_verlangt_login(client, pfad):
     assert client.get(pfad).status_code == 401
 

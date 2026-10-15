@@ -495,7 +495,6 @@ import {
   TableCellsIcon,
   BugAntIcon,
   QuestionMarkCircleIcon,
-  PuzzlePieceIcon,
 } from "@heroicons/vue/24/outline";
 
 import { ref, computed, onMounted } from "vue";
@@ -594,13 +593,6 @@ const navigation = computed(() => {
 
 const secondaryNavigation = computed(() => {
   return [
-    {
-      name: "Weitere Anwendungen",
-      linkName: "InspiMain",
-      route: "inspi",
-      icon: PuzzlePieceIcon,
-      isAuth: true,
-    },
     {
       name: "Meine Daten",
       linkName: "Settings",

@@ -33,11 +33,11 @@ flowchart LR
 | `basic/` | Stammdaten: Pfadfinderstruktur, Postleitzahlen, Auswahllisten | aktiv |
 | `messaging/` | Kontaktformular und Anfragen | eingefroren |
 | `notifications/` | Benachrichtigungen (übernommenes Paket, siehe README dort) | eingefroren |
-| `food/`, `inspi/` | Essensplanung, Programmideen | eingefroren |
+| `food/`, `inspi/` | Essensplanung, Programmideen | abgeschaltet: keine Adressen, Tabellen und Code bleiben (seit 15.10.2026) |
 | `backend/` | Einstellungen, URLs, Celery | aktiv |
 | `tests/` | Tests, siehe `CONTRIBUTING.md` | aktiv |
 
-„Eingefroren“ heißt: läuft weiter, wird aber vorerst nicht weiterentwickelt.
+„Eingefroren“ heißt: läuft weiter, wird aber vorerst nicht weiterentwickelt. „Abgeschaltet“ heißt: Die Adressen sind entfernt, im Frontend gibt es keine Menüpunkte mehr. Code und Datenbanktabellen bleiben, und die Essensauswertung einer Veranstaltung nutzt weiter Rechencode aus `food`.
 
 ## Rechteprüfung
 

@@ -275,7 +275,6 @@ import {
   TableCellsIcon,
   BugAntIcon,
   QuestionMarkCircleIcon,
-  PuzzlePieceIcon,
 } from "@heroicons/vue/24/outline";
 
 import {
@@ -327,10 +326,6 @@ const openTaskCount = computed(() => {
 
 const isAuth = computed(() => {
   return authStore.isAuth;
-});
-
-const user = computed(() => {
-  return authStore.user;
 });
 
 const navigation = computed(() => {
@@ -410,38 +405,11 @@ const secondaryNavigation = computed(() => {
   );
 });
 
-const additionalNavigation = computed(() => {
-  return [
-    {
-      name: "Inspi Verwaltung",
-      linkName: "InspiMain",
-      route: "inspi",
-      icon: PuzzlePieceIcon,
-      isAuth: true,
-      authGroup: 'dpv_ak_digitales',
-    },
-    {
-      name: "Biber Verwaltung",
-      linkName: "InspiMain",
-      route: "masterData",
-      icon: PuzzlePieceIcon,
-      isAuth: true,
-      authGroup: 'dpv_ak_digitales',
-    },
-    {
-      name: "Anmeldetool Verwaltung",
-      linkName: "InspiMain",
-      route: "events",
-      icon: PuzzlePieceIcon,
-      isAuth: true,
-      authGroup: 'dpv_ak_digitales',
-    },
-  ].filter(
-    (item) => {
-      return user.value?.roles?.includes(item.authGroup)
-    } 
-  );
-});
+// Alle drei früheren Einträge führten auf die Programmideen (InspiMain), die seit
+// dem 15.10.2026 abgeschaltet sind (docs/entscheidungen.md). Ein Link auf eine
+// entfernte Seite würde das Menü zum Absturz bringen.
+// Bleibt als leere Liste, weil TopNav und TopNavMobile sie erwarten.
+const additionalNavigation = computed(() => []);
 
 const route = useRoute();
 

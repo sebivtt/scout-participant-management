@@ -15,7 +15,7 @@ Der Code funktioniert und ist seit Phase 1 bis 3 gegen Sicherheitslücken und di
 | Messung | Wert | Ziel | Werkzeug |
 | --- | --- | --- | --- |
 | Umfang | 18.069 Zeilen in 232 Dateien (ohne Migrationen und Tests) | – | – |
-| Tests | 205 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
+| Tests | 210 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
 | Bekannte Sicherheitslücken in Paketen | 0 | 0 | pip-audit |
 | Verstöße gegen Code-Regeln, neu | 0 | 0 (wird bei jeder Änderung geprüft) | ruff |
 | Verstöße gegen Code-Regeln, Altlasten (`# noqa`) | 67 (dazu 6 gewollte Markierungen, siehe unten) | sinkt durch die Pfadfinderregel | ruff |
@@ -132,11 +132,11 @@ Hinweis: In der Kasse lässt sich beim Ändern eines Zahlungseingangs die Person
 
 ### Offen: eingefrorene Module
 
-In `food` (Essensplanung) und `inspi` (Programmideen) gibt es rund 40 Schnittstellen, über die jede eingeloggte Person Einträge anderer ändern oder löschen kann. Personenbezogene Daten sind dort kaum betroffen, aber alle Inhalte könnten von jeder eingeloggten Person verändert werden. Eine Behebung wäre aufwendig. Entscheidung vom 15.10.2026: Beide Module werden zunächst abgeschaltet (nächster Schritt im Fahrplan), abgesichert erst nach der Abstimmung der Anforderungen.
+In `food` (Essensplanung) und `inspi` (Programmideen) gibt es rund 40 Schnittstellen, über die jede eingeloggte Person Einträge anderer ändern oder löschen kann. Personenbezogene Daten sind dort kaum betroffen, aber alle Inhalte könnten von jeder eingeloggten Person verändert werden. Eine Behebung wäre aufwendig. Entscheidung vom 15.10.2026: Beide Module sind abgeschaltet (Qualität II 1d, PR #12). Ihre Adressen sind nicht mehr erreichbar. Abgesichert werden sie gegebenenfalls nach der Abstimmung der Anforderungen.
 
 ### Öffentliche Adressen
 
-Zehn Adressen sind ohne Login erreichbar, alle bewusst: Registrierung, Prüfungen von Benutzername, E-Mail, Passwort und Postleitzahl während der Registrierung, Auswahllisten und das Kontaktformular. Dazu kommen zwei lesend öffentliche Listen in `inspi`. Zwei Schwächen:
+Zehn Adressen sind ohne Login erreichbar, alle bewusst: Registrierung, Prüfungen von Benutzername, E-Mail, Passwort und Postleitzahl während der Registrierung, Auswahllisten und das Kontaktformular. Dazu kamen zwei lesend öffentliche Listen in `inspi`, die mit dem Modul abgeschaltet sind. Zwei Schwächen:
 - „Benutzername frei?“ und „E-Mail frei?“ verraten Fremden, ob eine E-Mail-Adresse im Tool registriert ist.
 - Registrierung und Kontaktformular haben keine Begrenzung der Anfragen pro Minute. Damit wären massenhaft Konten oder Nachrichten möglich.
 
