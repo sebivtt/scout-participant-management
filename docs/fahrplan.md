@@ -98,7 +98,7 @@ Vereinbart am 15.10.2026. Ziel: Für jeden Ablauf ist abgestimmt, wer was darf u
 - Wer darf in der geplanten zentralen Ortsverwaltung Orte verwalten?
 - Darf die Ansichtsgruppe Excel-Listen erzeugen? Heute ja, weil das eine Form der Auswertung ist.
 - Was passiert mit Orten, die angelegt, aber keiner Veranstaltung zugeordnet wurden?
-- Sollen beim Zusammenlegen zweier Anmeldungen auch deren Bewertungen übernommen werden? Heute gehen sie mit der gelöschten Anmeldung verloren.
+- Sollen beim Zusammenlegen zweier Anmeldungen auch deren Bewertungen (und Workshops, falls das Modul wieder eingebunden wird) übernommen werden? Heute gehen sie mit der gelöschten Anmeldung verloren.
 
 ## Phase 4: Frontend und Anmeldeablauf
 
