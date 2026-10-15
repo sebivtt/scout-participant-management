@@ -435,7 +435,13 @@ class MyDecidableRequestGroupAccessViewSet(
             )
 
 
-class UserGroupViewSet(viewsets.ModelViewSet):
+class UserGroupViewSet(viewsets.ReadOnlyModelViewSet):
+    """Gruppen, in denen die Person Mitglied ist. Nur lesen.
+
+    Ändern und Löschen von Gruppen läuft über /keycloak/group/, wo die
+    Gruppenrechte geprüft werden. Hier war beides früher ohne Prüfung möglich.
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = FullGroupSerializer
     pagination_class = BigResultsSetPagination

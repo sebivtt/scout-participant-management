@@ -7,23 +7,31 @@ from anmelde_tool.registration.models import Registration
 
 
 class IsCashResponsiblePerson(permissions.BasePermission):
-    message = 'Du darfst dieses Überweisung nicht bearbeiten'
+    """Veranstaltungsleitung der Veranstaltung, zu der ein Zahlungseingang gehört.
+
+    Geprüft werden die bestehende Zahlung (pk aus der URL) und die Anmeldung
+    aus dem Inhalt der Anfrage, falls angegeben. Beide müssen zu einer
+    Veranstaltung gehören, die die Person leitet. Sonst ließe sich eine
+    fremde Zahlung in die eigene Veranstaltung umbuchen.
+    """
+
+    message = 'Du darfst diese Überweisung nicht bearbeiten'
 
     def has_permission(self, request: Request, view) -> bool:
-        registration_id: str = request.data.get('registration', None)
-        pk: str = view.kwargs.get("pk", None)
-
         if not request.user or not request.user.is_authenticated:
             return False
         if request.user.is_superuser:
             return True
+        events = []
+        registration_id: str = request.data.get('registration', None)
         if registration_id is not None:
-            registration: Registration = get_object_or_404(Registration, id=registration_id)
-            event = registration.event
-        elif pk is not None:
+            events.append(get_object_or_404(Registration, id=registration_id).event)
+        pk: str = view.kwargs.get("pk", None)
+        if pk is not None:
             cash_income: CashIncome = get_object_or_404(CashIncome, id=pk)
-            event = cash_income.registration.event
-        else:
-            raise Exception('Error')
-
-        return check_event_permission(event, request, admin_only=True) != EventRole.NONE
+            if cash_income.registration is None:
+                return False
+            events.append(cash_income.registration.event)
+        # Ohne Bezug zu einer Veranstaltung (z. B. Liste aller Zahlungen) kein Zugriff.
+        return bool(events) and all(
+            check_event_permission(event, request, admin_only=True) != EventRole.NONE for event in events)

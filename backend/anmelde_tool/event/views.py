@@ -6,7 +6,7 @@ from django.db.models import Q, QuerySet
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
-from rest_framework.exceptions import NotFound, MethodNotAllowed
+from rest_framework.exceptions import NotFound, MethodNotAllowed, PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -45,6 +45,14 @@ def add_event_module(module: EventModule, event: Event) -> EventModule:
 
 
 class EventLocationViewSet(viewsets.ModelViewSet):
+    """Veranstaltungsorte. Lesen und Anlegen alle Eingeloggten, Ändern und Löschen eingeschränkt.
+
+    Anlegen muss jede eingeloggte Person können, weil beim Erstellen einer
+    Veranstaltung der Ort zuerst angelegt wird. Ändern und Löschen darf nur,
+    wer alle Veranstaltungen an diesem Ort leitet, denn eine Änderung wirkt
+    auf jede davon. Unbenutzte Orte ändert nur das Anmeldeteam (Staff).
+    """
+
     permission_classes = [IsAuthenticated]
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name',)
@@ -56,25 +64,47 @@ class EventLocationViewSet(viewsets.ModelViewSet):
         return super().create(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs) -> Response:
+        """Prüft das Recht auf den Ort, ergänzt die Postleitzahl und speichert."""
+        self.require_location_admin(self.get_object())
         get_zipcode(request)
         return super().update(request, *args, **kwargs)
 
+    def perform_destroy(self, instance):
+        self.require_location_admin(instance)
+        instance.delete()
 
-class EventModuleViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
-    queryset = EventModule.objects.all()
+    def require_location_admin(self, location) -> None:
+        """Wirft PermissionDenied, wenn die Person den Ort nicht ändern darf (siehe Klassenbeschreibung)."""
+        if self.request.user.is_superuser or self.request.user.is_staff:
+            return
+        events = Event.objects.filter(location=location)
+        if not events.exists() or not all(event_permissions.is_event_manager(self.request, event) for event in events):
+            raise PermissionDenied('Diesen Ort darf nur die Leitung der Veranstaltungen dort ändern.')
+
+
+class EventScopedModuleMixin:
+    """Bausteine immer der Veranstaltung aus der URL zuordnen.
+
+    Der Serializer gibt alle Felder frei, auch "event". Ohne diese Vorgabe
+    könnte man einen Baustein in eine fremde Veranstaltung verschieben oder
+    dort anlegen.
+    """
+
+    def get_queryset(self) -> QuerySet:
+        return EventModule.objects.filter(event=self.kwargs.get("event_pk", None)).order_by('ordering')
+
+    def perform_create(self, serializer):
+        serializer.save(event=event_helper.get_event(self.kwargs.get("event_pk", None)))
+
+    def perform_update(self, serializer):
+        serializer.save(event=serializer.instance.event)
+
+
+class EventModuleViewSet(EventScopedModuleMixin, viewsets.ModelViewSet):
+    """Bausteine einer Veranstaltung bearbeiten (nur Veranstaltungsleitung)."""
+
+    permission_classes = [event_permissions.IsSubEventSuperResponsiblePerson]
     serializer_class = event_serializers.EventModuleSerializer
-
-
-class EventReadViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
-    serializer_class = event_serializers.EventReadSerializer
-
-    def get_queryset(self):
-        technical_name = self.request.query_params.get('technical_name', None)
-        if technical_name is None:
-            return Event.objects.all()
-        return Event.objects.filter(technical_name=technical_name)
 
 
 class MyInvitationsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -289,13 +319,11 @@ class AvailableEventModulesViewSet(viewsets.ReadOnlyModelViewSet):
         return EventModule.objects.exclude(name__in=mapper).exclude(event__isnull=False).order_by('ordering')
 
 
-class AssignedEventModulesViewSet(viewsets.ModelViewSet):
+class AssignedEventModulesViewSet(EventScopedModuleMixin, viewsets.ModelViewSet):
+    """Bausteine einer Veranstaltung. Lesen alle Eingeloggten, ändern Leitung oder Ansichtsgruppe."""
+
     permission_classes = [event_permissions.IsSubEventResponsiblePersonOrReadOnly]
     serializer_class = event_serializers.EventModuleSerializer
-
-    def get_queryset(self) -> QuerySet:
-        event_id = self.kwargs.get("event_pk", None)
-        return EventModule.objects.filter(event=event_id).order_by('ordering')
 
 
 class EventOverviewViewSet(viewsets.ReadOnlyModelViewSet):

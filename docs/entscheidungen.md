@@ -6,6 +6,18 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-15 · Rechte auf schreibende Schnittstellen
+
+**Entscheidung (technisch):**
+- Wer etwas ändert, braucht das Recht auf genau dieses Objekt: die Anmeldung (anmeldende Leitung oder Veranstaltungsleitung) oder die Veranstaltung (Veranstaltungsleitung). Der Login allein genügt nie.
+- Die Zugehörigkeit eines Eintrags (zu welcher Veranstaltung, zu welcher Anmeldung) kommt aus der Adresse, nicht aus dem Inhalt der Anfrage.
+- Antworten auf Zusatzfelder unterliegen derselben Änderungsfrist wie die Anmeldung.
+- Gemeinsam genutzte Daten (Vorlagen für Zusatzfelder, Farbschemata) ändert nur das Anmeldeteam.
+- Vorläufig, Bestätigung durch den Projektverantwortlichen offen: Veranstaltungsorte ändert, wer alle Veranstaltungen an diesem Ort leitet. Unbenutzte Orte ändert nur das Anmeldeteam.
+
+**Begründung:** Qualität II fand 14 Lücken dieser Art, darunter Lesen und Ändern der Antworten aller Anmeldungen durch jede eingeloggte Person. Die Regeln folgen aus der Entscheidung „Wer sieht welche Anmeldungen“ vom 14.10.2026.
+**Umsetzung:** `tests/test_zugriffsschutz.py`, `tests/test_schreibrechte_inventar.py`, `CONTRIBUTING.md` Abschnitt 3 (PR #11)
+
 ## 2026-10-15 · Sicherheitsregeln und feste Passwörter
 
 **Entscheidung:**

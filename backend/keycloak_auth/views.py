@@ -310,7 +310,13 @@ class GroupParentViewSet(viewsets.ViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class AllMembersViewSet(viewsets.ModelViewSet):
+class AllMembersViewSet(viewsets.ReadOnlyModelViewSet):
+    """Personensuche für Gruppenleitungen (z. B. zum Einladen). Nur lesen.
+
+    Früher ein ModelViewSet: Jede Gruppenleitung hätte damit beliebige
+    Benutzerkonten ändern oder löschen können.
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = PartialUserSerializer
     pagination_class = StandardResultsSetPagination

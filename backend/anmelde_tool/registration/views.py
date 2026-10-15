@@ -8,6 +8,7 @@ from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import mixins, viewsets, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -192,8 +193,11 @@ class RegistrationSingleParticipantViewSet(viewsets.ModelViewSet):
         elif "eat_habit" in request.data:
             del request.data["eat_habit"]
 
-        self.participant_initialization(request)
+        registration = self.participant_initialization(request)
 
+        # Die Anmeldung kommt aus der URL. Sonst ließe sich die Person über das
+        # Feld "registration" in eine fremde Anmeldung verschieben.
+        request.data["registration"] = registration.id
         request.data["generated"] = False
         return super().update(request, *args, **kwargs)
 
@@ -228,8 +232,21 @@ class RegistrationSingleParticipantViewSet(viewsets.ModelViewSet):
         # Früher: "if not IsEventSuperResponsiblePerson" prüfte eine Klasse
         # (immer wahr) und die Fristen griffen nie.
         event_permissions.require_changes_open(request, registration.event)
+        require_booking_option_of_event(request.data.get("booking_option"), registration.event)
 
         return registration
+
+
+def require_booking_option_of_event(booking_option_id, event) -> None:
+    """Wirft ValidationError, wenn die Preisstufe nicht zur Veranstaltung der Anmeldung gehört.
+
+    Sonst ließe sich eine günstigere Preisstufe einer anderen Veranstaltung wählen.
+    """
+    if booking_option_id is None:
+        return
+    if not event_models.BookingOption.objects.filter(id=booking_option_id, event=event).exists():
+        raise ValidationError({'booking_option': 'Diese Preisstufe gehört nicht zu dieser Veranstaltung.'})
+
 
 class CheckPersonViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [event_permissions.IsSubRegistrationResponsiblePerson]
@@ -519,3 +536,10 @@ class RegistrationRatingViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return RegistrationRating.objects.filter(registration=self.kwargs.get('registration_pk'))
+
+    # Die Anmeldung kommt immer aus der URL, nicht aus dem Feld "registration".
+    def perform_create(self, serializer):
+        serializer.save(registration=get_registration(self.kwargs.get('registration_pk')))
+
+    def perform_update(self, serializer):
+        serializer.save(registration=serializer.instance.registration)
