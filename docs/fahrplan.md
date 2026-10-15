@@ -22,7 +22,7 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 - Fachliche Fragen (wer darf was, welche Fristen gelten) entscheidet er. Technische Fragen entscheidet die KI und begründet sie.
 - Pull Requests werden nicht aufeinander aufgebaut. Der nächste beginnt erst, wenn der vorige in `main` ist. (PR #12 landete sonst im falschen Branch und musste mit PR #13 nachgeholt werden.)
 
-## Übergabe (Stand 15.10.2026, nach PR #14)
+## Übergabe (Stand 15.10.2026, nach PR #16)
 
 ### Was erledigt ist
 
@@ -33,35 +33,26 @@ Qualität II, KI-Fehlerprüfung, bisher:
 - **PR #12/#13:** Essensplanung und Programmideen abgeschaltet
 - **PR #14:** automatischer Abgleich zwischen Frontend und Backend, dazu die Karte `docs/schnittstellen.md`
 
+Phase 3d:
+- **PR #16:** Sicherheitsupdates im Frontend innerhalb der Hauptversionen. Bekannte Lücken in den Programmpaketen von 63 auf 4, übrig sind nur die bewusst offenen (`uuid`, `quill`, `@vue/server-renderer`). Zahlen in `docs/qualitaet.md`, Regel für mitgebrachte Pakete in `docs/entscheidungen.md`.
+
 Tests: 228 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). Ergebnisse in `docs/qualitaet.md`, Entscheidungen in `docs/entscheidungen.md`.
 
-### Nächster Schritt: Sicherheitsupdates im Frontend innerhalb der Hauptversionen
+### Nächster Schritt: Rauchtests für das Frontend
 
-Ziel ist, bekannte Sicherheitslücken in Code zu schließen, der im Browser läuft, ohne große Versionssprünge.
+Ziel: Nach den großen Versionssprüngen (Phase 3d) muss sich automatisch prüfen lassen, ob das Frontend noch funktioniert. Heute gibt es dafür keinen einzigen Test. Rauchtest heißt: Jede Seite wird einmal geöffnet und darf keinen Fehler zeigen, dazu ein Durchlauf des Anmeldeablaufs.
 
-- **Bestandsaufnahme:** `yarn audit --groups dependencies` im Ordner `frontend/`. Am 15.10. waren es 63 Lücken (1 kritisch, 31 hoch, 30 mittel, 1 niedrig). Betroffen sind u. a.:
-  - `axios`: in `package.json` fest auf `1.7.4`, darüber auch `form-data` (kritisch) und `follow-redirects`
-  - `nanoid`, `postcss`, `source-map-js`: mitgeliefert über andere Pakete
-  - `moment`
-  - `uuid`, `quill` und `@vue/server-renderer`: siehe „bleiben offen“ unten
-- **Grundregel: Kein Paket verlässt seine Hauptversion.** Aus `1.7.4` darf `1.20.0` werden, aus `9.0.0` aber nicht `11.x`. Das gilt für jedes Paket, nicht nur für die großen Bausteine (Vite, vue-router, Pinia, Tailwind, TypeScript, eslint).
-- **Bleiben in diesem Schritt bewusst offen** (Phase 3d):
-  - **`uuid`:** erst ab 11.1.1 behoben, also zwei Hauptversionen weiter.
-  - **`quill`:** 1.3.7 über `@vueup/vue-quill` 1.x, eine behobene Version gibt es nicht.
-  - **`@vue/server-renderer`:** erst ab Vue 3.5.42 behoben. Vue 3.5 gehört zur Modernisierung, zusammen mit Vite, weil `@vitejs/plugin-vue ~2` und Vite 2.9 dazu passen müssen. Diese Lücke betrifft nur das Rendern auf dem Server, das dieses Tool nicht nutzt. Hinweis: `yarn.lock` enthält zwei Vue-Fassungen, 3.3.4 direkt und 3.4.15 über `@vue-leaflet/vue-leaflet`.
-- **`keycloak-js` nicht anfassen:** Jede Änderung an der Keycloak-Anbindung verlangt einen Livetest (`CLAUDE.md`). Sie gehört zu Qualität II, Schritt 3.
-- **Wie aktualisieren:**
-  - Gezielt einzeln, z. B. `yarn upgrade axios@1.<neueste 1.x>`. Danach `package.json` prüfen: axios ist fest eingetragen und soll fest bleiben.
-  - Mitgelieferte Pakete (`form-data`, `follow-redirects`, `nanoid`, `postcss`, `source-map-js`) über das Feld `resolutions` in `package.json`, jeweils auf die niedrigste behobene Version innerhalb der Hauptversion, die das übergeordnete Paket erwartet.
-  - **Verboten:** pauschales `yarn upgrade` ohne Paketnamen, `npm audit fix --force`, Wechsel auf npm.
-  - `yarn.lock` wird mit aktualisiert. Jede Paketänderung bekommt eine Begründung im Pull Request (`CONTRIBUTING.md` Abschnitt 5).
-- **Prüfen, ob noch alles geht:**
-  - `yarn build` mit den Umgebungsvariablen, ohne Fehler
-  - im Ordner `backend/`: `.venv/bin/ruff check . && .venv/bin/pytest`, darin auch `tests/test_frontend_abgleich.py`
-  - eslint in den geänderten Dateien vorher und nachher vergleichen: `npx eslint <dateien>` im Ordner `frontend/`, keine neuen Fehler
-  - `yarn audit --groups dependencies --summary` vorher und nachher. Übrig bleiben dürfen nur die Lücken aus „bleiben offen“.
-  - Klickliste für Sebastian im Pull Request: Login, Veranstaltung ansehen und bearbeiten, Anmeldung anlegen und ändern, Person löschen, Kasse, Gruppen
-- **Danach** laut Reihenfolge oben: Rauchtests mit Anleitung zum lokalen Start, dann die großen Versionssprünge (Phase 3d).
+Bekannt ist:
+- Werkzeug voraussichtlich Playwright, weil es einen echten Browser steuert und nicht von der Vite-Version abhängt. Neues Paket, also mit Begründung (`CONTRIBUTING.md` Abschnitt 5).
+- Dazu gehört eine Anleitung, das Tool lokal mit Beispieldaten zu starten. Die Rauchtests nutzen dieselben Beispieldaten.
+- Liste der Seiten und ihrer Anfragen: `docs/schnittstellen.md`.
+
+Zuerst zu klären, bevor etwas gebaut wird:
+- **Login ohne Keycloak:** In der Cloud-Sitzung lässt sich Keycloak nicht starten (siehe unten). Wie melden sich die Rauchtests an? Ein Test-Ersatz darf, wie das feste Passwort in `add_users`, nur außerhalb des Echtbetriebs funktionieren, mit Test.
+- Wie Backend, Datenbank und Frontend für die Tests gemeinsam gestartet werden, lokal auf dem Mac und in der automatischen Prüfung auf GitHub.
+- Ob die Rauchtests sofort Teil der automatischen Prüfung auf GitHub werden.
+
+Den Plan vor dem Bauen mit Sebastian abstimmen.
 
 ### Offene Fragen an Sebastian
 
@@ -110,8 +101,8 @@ Ziel ist, bekannte Sicherheitslücken in Code zu schließen, der im Browser läu
 ### Reihenfolge der nächsten Schritte (Bestandsaufnahme vom 15.10.2026)
 
 1. ✅ **Qualität II, Schritt 2a: Frontend und Backend abgleichen**, mit automatischer Prüfung (PR #14). Das erste Sicherheitsnetz für alle weiteren Änderungen, dazu die Karte `docs/schnittstellen.md`. Der Feldnamen-Abgleich (2b) ist nach hinten verschoben, siehe Punkt 3a.
-2. **← als Nächstes: Sicherheitsupdates im Frontend innerhalb der Hauptversionen**, Details im Abschnitt „Übergabe“. Wenig riskant und dringend: 63 bekannte Sicherheitslücken betreffen Code, der im Browser läuft.
-3. **Rauchtests für das Frontend**: jede Seite einmal öffnen, dazu ein Durchlauf des Anmeldeablaufs. Ohne sie lässt sich nach den großen Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test.
+2. ✅ **Sicherheitsupdates im Frontend innerhalb der Hauptversionen** (PR #16). Bekannte Lücken in den Programmpaketen von 63 auf 4.
+3. **← als Nächstes: Rauchtests für das Frontend**, Details im Abschnitt „Übergabe“: jede Seite einmal öffnen, dazu ein Durchlauf des Anmeldeablaufs. Ohne sie lässt sich nach den großen Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test.
 3a. **Qualität II, Schritt 2b: Feldnamen abgleichen.** Nach den Rauchtests, weil diese viele Feldfehler direkt zeigen (eine Seite bleibt leer oder meldet Fehler).
 4. **Phase 3d, Modernisierung Frontend**: die großen Versionssprünge einzeln, je mit Rauchtests und Klicktest. Vor Phase 4, damit der neue Anmeldeablauf nicht auf dem alten Fundament entsteht.
 5. **Qualität II, Schritt 3: Keycloak-Abgleich**, zusammen mit dem Keycloak-Baustein im Frontend.
@@ -148,7 +139,7 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 - [ ] 3. Genutzte python-keycloak-Methoden mit der installierten Version (7.1.1) abgleichen, mit Livetest gegen Keycloak 26.7.
 - [ ] 4a. Randfälle und Fehlerbehandlung beim Anmelden und Ändern mit Tests absichern. **Erst nach der Abstimmung der Funktionen und Abläufe**, damit die Tests die abgestimmten Regeln prüfen.
 - [ ] 4b. Dasselbe für Rechte und Gruppen, dazu doppelte Logik an mehreren Stellen (Tabellenzeile „Lokal richtig, passt nicht ins Ganze“). Ebenfalls erst nach der Abstimmung.
-- [ ] 5. Abschluss: Tabelle oben vollständig beantworten, Ergebnisabschnitt in `docs/qualitaet.md`, neue Review-Regeln in `CONTRIBUTING.md`.
+- [ ] 5. Abschluss: Tabelle oben vollständig beantworten, Ergebnisabschnitt in `docs/qualitaet.md`, neue Review-Regeln in `CONTRIBUTING.md`. Dabei auch die Docstring-Quote in `docs/qualitaet.md` angleichen: Die Kurzfassung nennt 8 %, die Tabelle 13 %.
 
 **Fertig ist die Phase**, wenn jede Zeile der Tabelle mit „abgedeckt“ oder „bewusst nicht, weil …“ beantwortet ist und `docs/qualitaet.md` einen Ergebnisabschnitt hat.
 
@@ -163,9 +154,15 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 
 ## Phase 3d: Modernisierung Frontend
 
-Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 4.6 (7), eslint 8 (10). Bekannte Sicherheitslücken: 329, davon 63 in Code, der im Browser läuft (u. a. axios, form-data).
+Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 4.6 (7), eslint 8 (10). Bekannte Sicherheitslücken nach PR #16: 242, davon 4 in den Programmpaketen (`uuid`, `quill`, zweimal `@vue/server-renderer`), der Rest in Entwicklungswerkzeugen. Vorher 329 bzw. 63. Die 63 waren nicht alle Code, der im Browser läuft, siehe `docs/qualitaet.md`.
 
-- [ ] Sicherheitsupdates innerhalb der Hauptversionen (Reihenfolge oben, Schritt 2; Anleitung im Abschnitt „Übergabe“).
+- [x] Sicherheitsupdates innerhalb der Hauptversionen (PR #16). Vorgehen für künftige Updates:
+  - Direkte Pakete gezielt einzeln (`yarn upgrade axios@1.20.0`), nie pauschal `yarn upgrade`, nie `npm audit fix --force`, kein Wechsel auf npm.
+  - Mitgelieferte Pakete über `resolutions` in `package.json`, jeweils auf die niedrigste behobene Version innerhalb der Hauptversion. Vorher prüfen, ob das übergeordnete Paket die behobene Version schon selbst verlangt: Dann ist keine Vorgabe nötig (so bei `form-data` und `follow-redirects`, die axios 1.20.0 mitbringt).
+  - Was ein aktualisiertes Paket zwingend mitbringt, darf seine Hauptversion verlassen. Neue Hauptversionen und neue Pakete werden im Pull Request genannt und begründet (Entscheidung vom 15.10.2026).
+  - Für Frontend-Pakete gibt es noch keine automatische Prüfung auf Sicherheitslücken wie `pip-audit` im Backend. Mit eslint in die automatischen Prüfungen aufnehmen und `CONTRIBUTING.md` Abschnitt 5 dann ergänzen.
+  - Prüfen: `yarn build`, eslint und `npx tsc --noEmit` vorher und nachher vergleichen, Backend-Tests, `yarn audit --groups dependencies --summary`, Änderungsprotokoll des Pakets gegen unsere Aufrufe lesen.
+  - Die `resolutions` (`postcss`, `nanoid`, `source-map-js`) beim Sprung auf Vue 3.5 und Vite neu bewerten und entfernen, wenn die neuen Fassungen behobene Versionen selbst verlangen.
 - [ ] Bei den großen Sprüngen mit erledigen: `uuid` (9 → 11), `quill` (über `@vueup/vue-quill`, ggf. Ersatz), Vue 3.5 (schließt die Lücke in `@vue/server-renderer`; doppelte Vue-Fassung über `@vue-leaflet/vue-leaflet` beachten).
 - [ ] Rauchtests: jede Seite lädt ohne Fehler, Anmeldeablauf läuft durch. Werkzeug voraussichtlich Playwright (steuert einen echten Browser, unabhängig von der Vite-Version); als neues Paket mit Begründung.
 - [ ] Anleitung, das Tool lokal mit Beispieldaten zu starten (dieselben Beispieldaten nutzen die Rauchtests).
@@ -214,6 +211,7 @@ Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit i
 - [ ] **Adressfelder** sollen aufgeteilt werden (Straße, PLZ, Ort) und um ein **Bundesland** ergänzt werden.
 - [ ] Nach dem **Speichern** führt die Weiterleitung auf die nächste Seite (`router.push`) ins Leere oder scheitert. Welche Seite betroffen war, ist nicht mehr bekannt: nachfragen, reproduzieren, beheben.
 - [ ] Ein **abgelaufener Login** führt zu stillen 401-Fehlern. Stattdessen soll man eine klare Meldung sehen oder neu angemeldet werden.
+- [ ] Die zentrale Fehlerbehandlung für Antworten (`frontend/src/plugin/auth.ts`) liest `error.response.status`, ohne zu prüfen, ob es eine Antwort gibt. Ist das Backend nicht erreichbar oder bricht eine Anfrage ab, zum Beispiel bei der Weiterleitung zum Login, entsteht dort ein zweiter Fehler, der den eigentlichen verdeckt. Das war schon vor PR #16 so. axios 1.20 ändert nur, dass auch der aktuelle Firefox solche Abbrüche als Fehler meldet statt als leere Antwort. Beim Seitenwechsel ist es unsichtbar, weil die Seite ohnehin verlassen wird. Zusammen mit dem Punkt darüber beheben.
 - [ ] Die Schaltfläche **„Anmeldungen zusammenfassen“** in der Auswertung erscheint auch für Ansichtsgruppe sowie Bundes- und Ringführung. Seit Qualität II 1b-2 lehnt das Backend das ab, die Oberfläche zeigt dann keine Meldung, sondern bricht still ab. Nur der Veranstaltungsleitung anzeigen, Fehler anzeigen.
 - [ ] Die **Schalter für Fristen und Sperren** aus Phase 3b sind im Backend fertig, haben aber keine Bedienelemente im Frontend.
 
