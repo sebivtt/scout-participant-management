@@ -19,6 +19,7 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 - Er prüft und übernimmt Pull Requests auf GitHub, den Code selbst liest er nicht. Die Beschreibung eines Pull Requests ist deshalb sein wichtigstes Werkzeug (siehe `CONTRIBUTING.md` Abschnitt 6).
 - Er möchte ehrlich hören, was nicht funktioniert und welche Fehler die KI selbst gemacht hat.
 - Fachliche Fragen (wer darf was, welche Fristen gelten) entscheidet er. Technische Fragen entscheidet die KI und begründet sie.
+- Pull Requests werden nicht aufeinander aufgebaut. Der nächste beginnt erst, wenn der vorige in `main` ist. (PR #12 landete sonst im falschen Branch und musste mit PR #13 nachgeholt werden.)
 
 ## Phasen
 
@@ -31,13 +32,24 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 | 3b Fristen | Anmelde- und Änderungsfristen, manuelle Sperren | ✅ PR #5 |
 | 3c Modernisierung Backend | Django 5.2, aktuelle Pakete, pip-audit | ✅ PR #6 |
 | Qualität | Regeln, ruff, Dokumentation, Messung | ✅ PR #7 |
-| **Qualität II: KI-Fehlerprüfung** | siehe unten | **in Arbeit** (PR #9 bis #12) |
-| **Abstimmung der Funktionen und Abläufe** | siehe unten | offen, nach Qualität II |
+| **Qualität II: KI-Fehlerprüfung** | siehe unten | **in Arbeit** (PR #9 bis #14) |
+| 3d Modernisierung Frontend | siehe unten | offen |
+| **Abstimmung der Funktionen und Abläufe** | siehe unten | offen, kann parallel zu 3d beginnen |
 | 4 Frontend und Anmeldeablauf | siehe unten | offen |
 | 5 Datenschutz | siehe unten | offen |
 | 6 Eigene Ideen | Ideen des Projektverantwortlichen umsetzen | offen |
 | 7 Anforderungsanalyse | Andere im Verband nach Bedarf fragen | offen |
 | Betrieb | Hosting, Dockerfile, Lizenz | offen, wartet auf Entscheidung |
+
+### Reihenfolge der nächsten Schritte (Bestandsaufnahme vom 15.10.2026)
+
+1. **Qualität II, Schritt 2: Frontend und Backend abgleichen**, mit automatischer Prüfung. Adressen und Anfragearten erledigt (2a, PR #14), Feldnamen offen (2b). Das ist das erste Sicherheitsnetz für alle weiteren Änderungen und liefert die Karte „welche Seite ruft welche Schnittstelle auf“, die die Abstimmung der Abläufe braucht.
+2. **Sicherheitsupdates im Frontend innerhalb der Hauptversionen**, z. B. axios. Wenig riskant und dringend: 63 bekannte Sicherheitslücken betreffen Code, der im Browser läuft.
+3. **Rauchtests für das Frontend**: jede Seite einmal öffnen, dazu ein Durchlauf des Anmeldeablaufs. Ohne sie lässt sich nach den großen Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test.
+4. **Phase 3d, Modernisierung Frontend**: die großen Versionssprünge einzeln, je mit Rauchtests und Klicktest. Vor Phase 4, damit der neue Anmeldeablauf nicht auf dem alten Fundament entsteht.
+5. **Qualität II, Schritt 3: Keycloak-Abgleich**, zusammen mit dem Keycloak-Baustein im Frontend.
+6. **Qualität II, Schritt 1c**: die restlichen Prüfregeln, klein und unabhängig, auch zwischendurch möglich.
+7. **Abstimmung der Funktionen und Abläufe**, danach Qualität II 4a/4b und Phase 4. Die Abstimmung kann beginnen, sobald die Karte aus Schritt 1 steht, parallel zur technischen Arbeit.
 
 ## Qualität II: Prüfung auf typische KI-Fehler
 
@@ -64,7 +76,8 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 - [x] 1d. Essensplanung (`food`) und Programmideen (`inspi`) abgeschaltet: Adressen und Menüpunkte entfernt, Code und Datenbanktabellen bleiben (Entscheidung vom 15.10.2026, PR #12).
 - [ ] Noch aus 1b: `add_state` bricht bei einem unbekannten Bundesland mit einem unverständlichen Fehler ab.
 - [ ] 1c. Weitere Regelgruppen (`DJ`, `PERF`, `RET`, `W605`, pauschales `except Exception`) mit Zählung und Bewertung, dazu die 7 Altlasten mit `except:`. Bekannte Treffer: `authentication/views.py` Passwortprüfung (`W605`, ungültige Escape-Sequenz, funktioniert heute noch); `anmelde_tool/registration/signals.py` besteht nur aus auskommentiertem Code (klären, ob die Mail „Anmeldung angelegt“ fehlt oder anderswo verschickt wird).
-- [ ] 2. Frontend-Aufrufe mit den Backend-Endpunkten und ihren Feldnamen abgleichen. Achtung: Das Backend wandelt Feldnamen automatisch um (`first_name` ↔ `firstName`, Paket `djangorestframework-camel-case`). Dazu die Frontend-Pakete prüfen (Tabellenzeile „Erfundene Funktionen“).
+- [x] 2a. Frontend-Aufrufe mit den Backend-Adressen und Anfragearten abgleichen, automatisch bei jeder Änderung (`tests/test_frontend_abgleich.py`), dazu die Karte `docs/schnittstellen.md` (PR #14). Frontend-Pakete: Die automatische Prüfung installiert sie bei jedem Lauf aus der festen Paketliste, erfundene Pakete würden dort scheitern.
+- [ ] 2b. Feldnamen abgleichen: Liest das Frontend Felder, die das Backend nicht liefert? Achtung: Das Backend wandelt Feldnamen automatisch um (`first_name` ↔ `firstName`, Paket `djangorestframework-camel-case`).
 - [ ] 3. Genutzte python-keycloak-Methoden mit der installierten Version (7.1.1) abgleichen, mit Livetest gegen Keycloak 26.7.
 - [ ] 4a. Randfälle und Fehlerbehandlung beim Anmelden und Ändern mit Tests absichern. **Erst nach der Abstimmung der Funktionen und Abläufe**, damit die Tests die abgestimmten Regeln prüfen.
 - [ ] 4b. Dasselbe für Rechte und Gruppen, dazu doppelte Logik an mehreren Stellen (Tabellenzeile „Lokal richtig, passt nicht ins Ganze“). Ebenfalls erst nach der Abstimmung.
@@ -80,6 +93,16 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
   - ein Abgleich der genutzten python-keycloak-Methoden mit der installierten Version.
 - Kleine, thematische Pull Requests. Die Prüfung darf sich in mehrere aufteilen.
 - Vor jedem Pull Request eine unabhängige Prüfung durch eine zweite KI-Instanz (siehe `CLAUDE.md`).
+
+## Phase 3d: Modernisierung Frontend
+
+Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 4.6 (7), eslint 8 (10). Bekannte Sicherheitslücken: 329, davon 63 in Code, der im Browser läuft (u. a. axios, form-data).
+
+- [ ] Sicherheitsupdates innerhalb der Hauptversionen (Reihenfolge oben, Schritt 2).
+- [ ] Rauchtests: jede Seite lädt ohne Fehler, Anmeldeablauf läuft durch. Werkzeug voraussichtlich Playwright (steuert einen echten Browser, unabhängig von der Vite-Version); als neues Paket mit Begründung.
+- [ ] Anleitung, das Tool lokal mit Beispieldaten zu starten (dieselben Beispieldaten nutzen die Rauchtests).
+- [ ] eslint in die automatischen Prüfungen auf GitHub. Heute 198 Fehler und ca. 2.800 Warnungen: zuerst die Fehler, Warnungen schrittweise.
+- [ ] Große Versionssprünge einzeln, je ein Pull Request mit Rauchtests und Klicktest.
 
 ## Abstimmung der Funktionen und Abläufe
 
@@ -128,9 +151,9 @@ Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit i
 
 ### Technische Grundlage Frontend
 
-- [ ] eslint (automatische Code-Prüfung für das Frontend) in die automatischen Prüfungen auf GitHub (CI) aufnehmen. Heute gibt es 198 Fehler und ca. 2.800 Warnungen. Zuerst die Fehler beheben, die Warnungen schrittweise.
-- [ ] Erste Tests für das Frontend, mindestens für den Anmeldeablauf.
 - [ ] Die Hauptdatei (1,2 MB) aufteilen, sodass Seiten erst bei Bedarf geladen werden.
+
+eslint in den automatischen Prüfungen und die ersten Frontend-Tests sind in Phase 3d vorgezogen.
 
 ## Phase 5: Datenschutz
 

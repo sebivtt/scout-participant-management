@@ -6,6 +6,18 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-15 · Abgleich Frontend und Backend als automatische Prüfung
+
+**Entscheidung (technisch):** Jede Anfrage des Frontends muss eine vorhandene Backend-Adresse mit erlaubter Anfrageart treffen. Ein Test prüft das bei jeder Änderung, und die Karte `docs/schnittstellen.md` wird aus dem Code erzeugt statt von Hand gepflegt.
+**Begründung:** In PR #11 hätte das Entfernen einer Adresse fast alle Veranstaltungsseiten lahmgelegt, weil eine Textsuche zusammengesetzte Pfade nicht fand. Eine von Hand gepflegte Liste würde schnell veralten.
+**Umsetzung:** `backend/tools/frontend_aufrufe.py`, `backend/tools/schnittstellen_karte.py`, `tests/test_frontend_abgleich.py` (PR #14)
+
+## 2026-10-15 · Reihenfolge: erst Sicherheitsnetz, dann Frontend aktualisieren
+
+**Entscheidung:** Vor den großen Versionssprüngen im Frontend entsteht ein Sicherheitsnetz: der automatische Abgleich zwischen Frontend und Backend und Rauchtests für das Frontend. Sicherheitsupdates innerhalb der Hauptversionen kommen früher. Die Modernisierung des Frontends (Phase 3d) kommt vor Phase 4. Die vollständige Reihenfolge steht im Fahrplan.
+**Begründung:** Das Backend-Update war beherrschbar, weil 135 Tests jeden Schritt geprüft haben. Das Frontend hat keinen Test, ob nach einem Update noch alles geht, ließe sich also nur durch Klicken prüfen. Phase 4 baut den Anmeldeablauf stark um und soll nicht auf dem alten Fundament entstehen.
+**Umsetzung:** `docs/fahrplan.md` Abschnitte „Reihenfolge der nächsten Schritte“ und „Phase 3d“
+
 ## 2026-10-15 · Abstimmung aller Funktionen und Abläufe vor Phase 4
 
 **Entscheidung:** Bevor Anforderungen und Funktionen angepasst werden, stimmen KI und Projektverantwortlicher alle Funktionen und Abläufe gemeinsam ab. Am Ende gibt es zu jedem Ablauf einen Prozessablauf, und jede Funktion ist mit ihren Anforderungen abgestimmt: was kann wer, was darf wer und wann darf was gemacht werden.

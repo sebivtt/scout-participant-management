@@ -5,7 +5,7 @@ const BASE_URL = import.meta.env.VITE_APP_API;
 
 export default {
   fetchScoutOrgaLevel() {
-    return axios.get(`${BASE_URL}/basic/scout-orga-level`);
+    return axios.get(`${BASE_URL}/basic/scout-orga-level/`);
   },
   fetchTravelTypeChoices() {
     return axios.get(`${BASE_URL}/event/travel-type-choices/`);
@@ -29,12 +29,12 @@ export default {
     return axios.get(`${BASE_URL}/auth/groups/`);
   },
   fetchEatHabit() {
-    return axios.get(`${BASE_URL}/basic/eat-habits`);
+    return axios.get(`${BASE_URL}/basic/eat-habits/`);
   },
   fetchEmailSets() {
-    return axios.get(`${BASE_URL}/event/email-sets`);
+    return axios.get(`${BASE_URL}/event/email-sets/`);
   },
   fetchEventLocations() {
-    return axios.get(`${BASE_URL}/event/event-location`);
+    return axios.get(`${BASE_URL}/event/event-location/`);
   },
 };

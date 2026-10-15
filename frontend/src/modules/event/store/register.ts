@@ -45,9 +45,6 @@ export const useEventRegisterStore = defineStore("eventRegisterStore", {
     async sendConfirmMail(regId: number) {
       return await RegistrationApi.sendConfirmMail(regId);
     },
-    async addablePersons(regId: number, params: any) {
-      return await RegistrationApi.addablePersons(regId, params);
-    },
     async createRating(regId: number, data: any) {
       return await RegistrationApi.createRating(regId, data);
     },

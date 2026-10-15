@@ -82,6 +82,7 @@ sequenceDiagram
 | Thema | Datei |
 | --- | --- |
 | Fristregeln | `backend/anmelde_tool/event/deadlines.py` |
+| Welche Seite welche Schnittstelle aufruft | `docs/schnittstellen.md` (erzeugt) |
 | Rechte auf Veranstaltungen und Anmeldungen | `backend/anmelde_tool/event/permissions.py` |
 | Rechte auf Gruppen | `backend/keycloak_auth/access.py` |
 | Abgleich der Pfadfinderstruktur mit Keycloak | `backend/basic/helper/initialize_keycloak_scout_hierarchies.py`, `sync_keycloak_groups.py` |

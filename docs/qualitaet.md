@@ -14,12 +14,12 @@ Der Code funktioniert und ist seit Phase 1 bis 3 gegen Sicherheitslücken und di
 
 | Messung | Wert | Ziel | Werkzeug |
 | --- | --- | --- | --- |
-| Umfang | 18.069 Zeilen in 232 Dateien (ohne Migrationen und Tests) | – | – |
-| Tests | 210 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
+| Umfang | 18.360 Zeilen in 234 Dateien (ohne Migrationen und Tests) | – | – |
+| Tests | 214 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
 | Bekannte Sicherheitslücken in Paketen | 0 | 0 | pip-audit |
 | Verstöße gegen Code-Regeln, neu | 0 | 0 (wird bei jeder Änderung geprüft) | ruff |
 | Verstöße gegen Code-Regeln, Altlasten (`# noqa`) | 67 (dazu 6 gewollte Markierungen, siehe unten) | sinkt durch die Pfadfinderregel | ruff |
-| Funktionen und Klassen mit Beschreibung | 167 von 1.545 (11 %) | Kernbereiche 100 %, sonst wachsend | `tools/qualitaet_messen.py` |
+| Funktionen und Klassen mit Beschreibung | 184 von 1.560 (12 %) | Kernbereiche 100 %, sonst wachsend | `tools/qualitaet_messen.py` |
 
 ### Altlasten nach Art
 
@@ -146,6 +146,23 @@ Weitere Beobachtungen ohne Rechteproblem, für die Abstimmung der Abläufe notie
 - Wer welche Veranstaltung über `/event/event-read/` lesen darf, ist nicht abgestimmt: heute jede eingeloggte Person jede Veranstaltung.
 - Ein neu angelegter Ort ist bis zur Zuordnung zu einer Veranstaltung nur für das Anmeldeteam änderbar. Scheitert die Zuordnung, bleibt er ohne Veranstaltung zurück.
 - Ändern eines Zahlungseingangs ohne Betrag bricht mit einem Serverfehler ab (fehlendes Feld `amount`).
+
+## Abgleich Frontend und Backend (Qualität II, Schritt 2a)
+
+Geprüft am 15.10.2026. `backend/tools/frontend_aufrufe.py` liest alle 211 Anfragen des Frontends aus und setzt dabei zusammengesetzte Pfade wie `${SERVICE}-read` richtig zusammen. Diese Pfade hatte eine Textsuche in PR #11 übersehen. `tests/test_frontend_abgleich.py` prüft bei jeder Änderung, dass es jede Adresse im Backend gibt und dass sie die Anfrageart erlaubt. Die Ergebnisse stehen als Karte in `docs/schnittstellen.md`.
+
+Vor der Behebung gab es 27 Abweichungen:
+
+| Befund | Anzahl | Auswirkung | Behebung |
+| --- | --- | --- | --- |
+| Person aus einer Anmeldung löschen: Pfad ohne abschließenden Schrägstrich | 1 | Lokal (Entwicklungseinstellungen) Serverfehler, im Echtbetrieb abhängig von der Weiterleitung des Browsers | Schrägstrich ergänzt |
+| Auswahllisten (Ebenen, Essgewohnheiten, Mailvorlagen, Orte, Personensuche): Pfad ohne Schrägstrich | 9 Aufrufe | Funktionierte über eine stille Weiterleitung, kostete eine zusätzliche Anfrage | Schrägstrich ergänzt |
+| Hilfsfunktionen, die nie aufgerufen werden und Adressen nutzen, die es nicht gibt oder die nur lesen erlauben | 13 | keine, aber irreführend | entfernt |
+| Vier Dateien in `help/services` und `task/services`, nirgends eingebunden | 4 | keine | entfernt |
+
+Nebenbei gefunden: Das Werkzeug hatte zunächst auch auskommentierten Code als Anfrage gelesen. Außerdem übersah es Backend-Klassen, die Ändern und Löschen über direkt benannte Methoden verarbeiten. Beides ist korrigiert, damit der Abgleich weder Fehlalarme noch Lücken hat.
+
+Offen ist Schritt 2b: ob das Frontend Felder liest, die das Backend nicht liefert.
 
 ## Frontend
 
