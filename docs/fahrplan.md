@@ -58,7 +58,8 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 
 **Vorgehen in dieser Reihenfolge**, jeweils ein eigener Pull Request (am 15.10.2026 mit dem Projektverantwortlichen abgestimmt; Prüftiefe und Abgrenzung zu Phase 4 siehe `docs/entscheidungen.md`):
 - [x] 1a. Pauschale `# noqa` ohne Regelnummer aufräumen, damit sie neue Regeln nicht verstecken. ruff verbietet sie künftig (PR #9).
-- [ ] 1b. Sicherheitsregeln (ruff `S`) einschalten und jede Fundstelle von `fields = '__all__'` bewerten (gesamter Code, auch eingefrorene Module).
+- [x] 1b-1. Sicherheitsregeln (ruff `S`) einschalten und die Funde beheben: Administratorkonto mit festem Passwort beim Serverstart, abgeschaltete Zertifikatsprüfung (PR #10).
+- [ ] 1b-2. Jede Fundstelle von `fields = '__all__'` (71) und jeden öffentlichen Endpunkt (`AllowAny`, 15) bewerten, im gesamten Code einschließlich eingefrorener Module.
 - [ ] 1c. Weitere Regelgruppen (`DJ`, `PERF`, `RET`, `W605`, pauschales `except Exception`) mit Zählung und Bewertung, dazu die 7 Altlasten mit `except:`. Bekannte Treffer: `authentication/views.py` Passwortprüfung (`W605`, ungültige Escape-Sequenz, funktioniert heute noch); `anmelde_tool/registration/signals.py` besteht nur aus auskommentiertem Code (klären, ob die Mail „Anmeldung angelegt“ fehlt oder anderswo verschickt wird).
 - [ ] 2. Frontend-Aufrufe mit den Backend-Endpunkten und ihren Feldnamen abgleichen. Achtung: Das Backend wandelt Feldnamen automatisch um (`first_name` ↔ `firstName`, Paket `djangorestframework-camel-case`). Dazu die Frontend-Pakete prüfen (Tabellenzeile „Erfundene Funktionen“).
 - [ ] 3. Genutzte python-keycloak-Methoden mit der installierten Version (7.1.1) abgleichen, mit Livetest gegen Keycloak 26.7.
@@ -125,7 +126,8 @@ Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit i
 | Begrenzung der Anfragen pro Minute für die öffentliche E-Mail-Prüfung | PR #3 | technisch |
 | Kleinste nötige Rollen für das Keycloak-Dienstkonto (getestet nur mit `realm-admin`) | PR #2 | technisch, mit Verbands-Admin |
 | `django-stdimage` ist veraltet, Nachfolger `django-pictures` | PR #6 | technisch |
-| Dockerfile für den Echtbetrieb | PR #6 | mit der Hosting-Entscheidung |
+| Dockerfile für den Echtbetrieb. Das alte Setup in `backend/` (Dockerfile, docker-compose.yml, start.sh) ist ungeprüft. Djangos Prüfung für den Echtbetrieb (`manage.py check --deploy`) verlangt dort `SECURE_SSL_REDIRECT=True`, falls der vorgeschaltete Webserver nicht auf HTTPS umleitet | PR #6, Qualität II 1b-1 | mit der Hosting-Entscheidung |
+| `anonymise_data` überschreibt ohne Rückfrage alle Personendaten der Datenbank. Eine Sicherung gegen versehentlichen Aufruf im Echtbetrieb fehlt | Qualität II 1b-1 | technisch |
 | Hosting: vorerst günstiger eigener Server, später ggf. AWS beim Verband | Gespräch | Projektverantwortlicher |
 | Lizenz des Projekts | `docs/entscheidungen.md` | mit den ursprünglichen Entwicklern |
 | Eingefrorene Module (z. B. `food`) behalten oder entfernen | Phase 1 | Projektverantwortlicher |

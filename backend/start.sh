@@ -5,8 +5,8 @@ set -o nounset
 
 echo "Apply database migrations"
 python manage.py migrate
-echo "Apply test user"
-python manage.py add_users
+# Kein Konto mit festem Passwort beim Serverstart (siehe tests/test_verwaltungsbefehle.py).
+# Administratoren einmalig mit "python manage.py createsuperuser" anlegen.
 echo "Load main data"
 #python manage.py loaddata data/main/*.json
 echo "Load test data"

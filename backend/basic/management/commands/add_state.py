@@ -1,5 +1,4 @@
 import json
-import ssl
 from urllib import request
 
 from django.core.management.base import BaseCommand
@@ -12,15 +11,21 @@ get_abbr = lambda state: [abbrevation for abbrevation, name in choices.items() i
 
 
 class Command(BaseCommand):
-    help = 'add all fixtures'
+    """Ergänzt bei allen Postleitzahlen das Bundesland über den öffentlichen Dienst opendatasoft.
+
+    Stellt eine Anfrage pro Postleitzahl, braucht also Internetzugang und bei
+    allen deutschen Postleitzahlen entsprechend lange.
+    """
+
+    help = 'Ergänzt das Bundesland bei allen Postleitzahlen (Internetzugang nötig)'
 
     def handle(self, *args, **options):
         zip_codes: ZipCode = ZipCode.objects.all()
-        context = ssl._create_unverified_context()
-
         for zip_code in zip_codes:
             api_url = f'https://public.opendatasoft.com/api/records/1.0/search/?dataset=georef-germany-postleitzahl&q={zip_code.zip_code}&facet=lan_name'
-            contents = request.urlopen(api_url, context=context).read()
+            # Ohne eigenen Kontext prüft Python das Zertifikat. Die frühere Abschaltung
+            # der Prüfung hätte gefälschte Antworten in die Datenbank gelassen.
+            contents = request.urlopen(api_url).read()
             result_json = json.loads(contents)
             state = result_json['facet_groups'][0]['facets'][0]['name']
 

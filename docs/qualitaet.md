@@ -14,12 +14,12 @@ Der Code funktioniert und ist seit Phase 1 bis 3 gegen Sicherheitslücken und di
 
 | Messung | Wert | Ziel | Werkzeug |
 | --- | --- | --- | --- |
-| Umfang | 17.850 Zeilen in 232 Dateien (ohne Migrationen und Tests) | – | – |
-| Tests | 140 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
+| Umfang | 17.866 Zeilen in 232 Dateien (ohne Migrationen und Tests) | – | – |
+| Tests | 144 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
 | Bekannte Sicherheitslücken in Paketen | 0 | 0 | pip-audit |
 | Verstöße gegen Code-Regeln, neu | 0 | 0 (wird bei jeder Änderung geprüft) | ruff |
-| Verstöße gegen Code-Regeln, Altlasten (`# noqa`) | 65 (dazu 5 gewollte Markierungen, siehe unten) | sinkt durch die Pfadfinderregel | ruff |
-| Funktionen und Klassen mit Beschreibung | 126 von 1.533 (8 %) | Kernbereiche 100 %, sonst wachsend | `tools/qualitaet_messen.py` |
+| Verstöße gegen Code-Regeln, Altlasten (`# noqa`) | 67 (dazu 6 gewollte Markierungen, siehe unten) | sinkt durch die Pfadfinderregel | ruff |
+| Funktionen und Klassen mit Beschreibung | 128 von 1.533 (8 %) | Kernbereiche 100 %, sonst wachsend | `tools/qualitaet_messen.py` |
 
 ### Altlasten nach Art
 
@@ -29,9 +29,10 @@ Der Code funktioniert und ist seit Phase 1 bis 3 gegen Sicherheitslücken und di
 | F841 | 9 | Variable wird gesetzt, aber nie benutzt |
 | E722 | 7 | Pauschales `except:` verschluckt jeden Fehler, auch echte Programmfehler |
 | C901 | 5 | Funktion zu verschachtelt (siehe unten) |
+| S110 | 2 | `try`/`except`/`pass`: dieselben Stellen wie bei E722, von der Sicherheitsregel ein zweites Mal gemeldet |
 | sonstige | 5 | einzelne Importe und Kleinigkeiten (B007, 2× F401, F811, F842) |
 
-Gewollt und keine Altlast: fünf `# noqa: F401` in den `apps.py`-Dateien, erkennbar an der Begründung nach `--`. Vier Importe registrieren Signal-Empfänger, einer meldet den Keycloak-Abgleich bei Celery an. Sie dürfen nicht entfernt werden (Test: `tests/test_signale.py`).
+Gewollt und keine Altlast: fünf `# noqa: F401` in den `apps.py`-Dateien, erkennbar an der Begründung nach `--`. Vier Importe registrieren Signal-Empfänger, einer meldet den Keycloak-Abgleich bei Celery an. Sie dürfen nicht entfernt werden (Test: `tests/test_signale.py`). Dazu kommt ein `# noqa: S105` in `basic/management/commands/add_users.py`: Das feste Passwort ist dort gewollt, weil der Befehl nur lokal läuft (Test: `tests/test_verwaltungsbefehle.py`).
 
 Korrektur am 15.10.2026 (Qualität II, Schritt 1): Die erste Messung übersah 15 Markierungen ohne Regelnummer (`# noqa`). Sie schalteten auf ihrer Zeile jede Prüfung ab, auch künftig eingeschaltete. Zehn waren wirkungslos und sind entfernt. Fünf sind jetzt gezielt: vier gewollte mit Begründung und eine Altlast (`notifications/models.py`). Außerdem:
 - Die Markierung in `anmelde_tool/registration/apps.py` galt bisher als gewollt, der Import meldet aber nichts an: `anmelde_tool/registration/signals.py` enthält nur auskommentierten Code. Sie zählt jetzt als Altlast.
@@ -79,6 +80,8 @@ Keycloak wird in den aktiven Modulen jetzt höchstens einmal pro Seitenaufruf ge
 | Der API-Logger speichert jede Anfrage samt Inhalt dauerhaft in der Datenbank. | Datenschutz, wachsende Datenbank | Phase 5 |
 | Signal-Empfänger werden nur über unbenutzte Importe registriert. Ein Aufräumwerkzeug hatte sie beim Einführen der Regeln entfernt. | Keycloak-Abgleich und Benachrichtigungen wären still weggefallen | Behoben, Test `tests/test_signale.py` |
 | Wer Veranstaltungsleitung ist und zugleich in der Ansichtsgruppe, wurde bei den Buchungsoptionen nur als Betrachter erkannt. | Leitung sah nicht alle Buchungsoptionen | Behoben, Test in `tests/test_rechte.py` |
+| Das alte Startskript für den Server (`backend/start.sh`, genutzt von `backend/docker-compose.yml`) legte bei jedem Start ein Administratorkonto mit festem, öffentlich bekanntem Passwort an. Über die Verwaltung unter `/admin/` hätte sich damit jeder als Administrator anmelden können. | Vollzugriff für Fremde, falls jemand mit dem alten Startskript betreibt | Behoben (Qualität II, 1b-1): Startskript legt kein Konto mehr an, `add_users` läuft nur lokal. Tests in `tests/test_verwaltungsbefehle.py` |
+| Der Abruf der Bundesländer zu Postleitzahlen (`add_state`) schaltete die Zertifikatsprüfung ab. | Gefälschte Antworten hätten falsche Bundesländer in die Datenbank geschrieben | Behoben (Qualität II, 1b-1), Test in `tests/test_verwaltungsbefehle.py` |
 | Die Reihenfolge der Daten (Ende nach Beginn, Anmeldeschluss nach Anmeldestart, letzte Änderung vor Beginn) wurde beim Bearbeiten nur an einer von zwei Stellen geprüft. | Widersprüchliche Fristen möglich | Behoben, Tests in `tests/test_fristen.py` |
 
 ## Frontend
