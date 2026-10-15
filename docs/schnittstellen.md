@@ -148,7 +148,7 @@ Welche Anfrage des Frontends welche Klasse im Backend trifft und welche Rechtepr
 | GET | `/keycloak/group/{x}/kickable-members/` | `keycloak_auth.views.GroupKickableMemberViewSet` | IsAuthenticated, IsGroupAdmin | `src/modules/group/services/group.ts:47` |
 | POST | `/keycloak/group/{x}/leave/` | `keycloak_auth.views.LeaveGroupViewSet` | IsAuthenticated | `src/modules/group/services/group.ts:25` |
 | GET | `/keycloak/group/{x}/members/` | `keycloak_auth.views.GroupMembersViewSet` | IsAuthenticated, IsGroupViewerOrMember | `src/modules/group/services/group.ts:54` |
-| GET | `/keycloak/group/{x}/requests/` | `keycloak_auth.views.RequestGroupAccessViewSet` | IsAuthenticated | `src/modules/group/services/group.ts:28` |
+| GET | `/keycloak/group/{x}/requests/` | `keycloak_auth.views.RequestGroupAccessViewSet` | IsAuthenticated, IsGroupAdmin | `src/modules/group/services/group.ts:28` |
 | POST | `/keycloak/group/{x}/requests/` | `keycloak_auth.views.RequestGroupAccessViewSet` | IsAuthenticated | `src/modules/group/services/group.ts:31` |
 | POST | `/keycloak/group/{x}/requests/{x}/accept/` | `keycloak_auth.views.AcceptRequestGroupAccessViewSet` | IsAuthenticated, IsGroupAdmin | `src/modules/group/services/group.ts:37` |
 | POST | `/keycloak/group/{x}/requests/{x}/decline/` | `keycloak_auth.views.DeclineRequestGroupAccessViewSet` | IsAuthenticated, IsGroupAdmin | `src/modules/group/services/group.ts:34` |
@@ -169,7 +169,7 @@ Welche Anfrage des Frontends welche Klasse im Backend trifft und welche Rechtepr
 
 | Methode | Adresse | Backend-Klasse | Rechte | Aufgerufen in |
 | --- | --- | --- | --- | --- |
-| POST | `/message/issue-init-create/` | `messaging.views.IssueInitCreateViewSet` | IsAuthenticated | `src/modules/message/services/issue.ts:15` |
+| POST | `/message/issue-init-create/` | `messaging.views.IssueInitCreateViewSet` | AllowAny | `src/modules/message/services/issue.ts:15` |
 | GET | `/message/issue-read/` | `messaging.views.IssueReadViewSet` | IsAuthenticated | `src/modules/message/services/issue.ts:7` |
 | GET | `/message/issue-read/{x}/` | `messaging.views.IssueReadViewSet` | IsAuthenticated | `src/modules/message/services/issue.ts:12` |
 | GET | `/message/issue-type-read-short/` | `messaging.views.IssueTypeReadShortViewSet` | IsStaffOrReadOnly | `src/modules/message/services/issueType.ts:12` |

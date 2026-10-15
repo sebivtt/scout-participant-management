@@ -46,7 +46,7 @@ def backend_allows(method: str, path: str) -> tuple[bool, str]:
 
 
 def frontend_calls():
-    """Alle Aufrufe des Frontends, außer denen in abgeschalteten Modulen (food, inspi)."""
+    """Alle Aufrufe des Frontends, außer denen im abgeschalteten Modul Programmideen (inspi)."""
     calls = frontend_aufrufe.all_calls()
     return [call for call in calls if not call.file.startswith('src/modules/inspi/')]
 
@@ -91,3 +91,36 @@ def test_karte_der_schnittstellen_aktuell():
     assert karte.OUTPUT.read_text(encoding='utf-8') == karte.render(), (
         'docs/schnittstellen.md ist veraltet. Im Ordner backend/ ausführen: '
         'DJANGO_SETTINGS_MODULE=backend.settings_test .venv/bin/python tools/schnittstellen_karte.py')
+
+
+def test_frontend_nutzt_nur_erkannte_aufrufarten():
+    """Das Werkzeug erkennt nur axios.get/post/put/patch/delete. Andere Schreibweisen fielen still durch."""
+    import re
+    other = re.compile(r'\bfetch\(|\baxios\(|\baxios\.(request|create)\b')
+    found = []
+    for path in frontend_aufrufe.FRONTEND_SRC.rglob('*'):
+        if path.suffix not in ('.ts', '.vue') or 'modules/inspi/' in path.as_posix():
+            continue
+        text = frontend_aufrufe.strip_comments(path.read_text(encoding='utf-8'))
+        found += [f'{path.relative_to(frontend_aufrufe.FRONTEND_SRC.parent)}: {m.group(0)}' for m in other.finditer(text)]
+    assert not found, 'Neue Aufrufart, tools/frontend_aufrufe.py erweitern:\n' + '\n'.join(found)
+
+
+def test_kommentarzeichen_in_zeichenketten_verschlucken_keine_aufrufe(tmp_path):
+    """Ein "/*" in einer Zeichenkette ist kein Kommentar, die Aufrufe danach müssen erkannt werden."""
+    source = 'const GLOB = "/*";\naxios.get(`${BASE_URL}/basic/gender/`);\nconst END = "*/";\n'
+    assert '/basic/gender/' in frontend_aufrufe.strip_comments(source)
+
+
+def test_importierte_konstante_gilt_als_unbekannt():
+    """Eine nicht in der Datei definierte Konstante wird nicht zum Platzhalter, sondern als unbekannt gemeldet."""
+    assert frontend_aufrufe.resolve('`${BASE_URL}/event/${IMPORTED}/`', {}) is not None
+    resolved = frontend_aufrufe.resolve('`${BASE_URL}/event/${IMPORTED}/`', {})
+    assert frontend_aufrufe.UNRESOLVED in resolved
+
+
+def test_karte_zeigt_rechte_je_aktion():
+    """Legt eine Klasse ihre Rechte je Aktion fest, zeigt die Karte die Rechte genau dieser Anfrageart."""
+    karte_text = (pathlib.Path(__file__).resolve().parents[2] / 'docs' / 'schnittstellen.md').read_text(encoding='utf-8')
+    assert '| POST | `/message/issue-init-create/` | `messaging.views.IssueInitCreateViewSet` | AllowAny |' in karte_text
+    assert '| GET | `/keycloak/group/{x}/requests/` | `keycloak_auth.views.RequestGroupAccessViewSet` | IsAuthenticated, IsGroupAdmin |' in karte_text

@@ -12,6 +12,15 @@ andere (Kennungen, Variablen) wird zum Platzhalter {x}.
 
 Genutzt von tests/test_frontend_abgleich.py, der prüft, ob es jede dieser
 Adressen im Backend gibt.
+
+Bekannte Grenzen (der Test meldet die ersten beiden, wenn sie auftreten):
+- Erkannt werden nur axios.get/post/put/patch/delete. fetch(), axios({...}),
+  axios.request und eigene Instanzen über axios.create nicht.
+- Konstanten aus anderen Dateien (import) gelten als nicht auflösbar.
+- Funktionsgrenzen kennt das Werkzeug nicht: Es nimmt die letzte Definition
+  einer Konstante vor dem Aufruf, auch aus einer anderen Funktion.
+- Ein //-Kommentar mitten in einer Zeile und HTML-Kommentare in .vue-Dateien
+  werden nicht entfernt. Das ergibt höchstens einen Fehlalarm.
 """
 import dataclasses
 import pathlib
@@ -19,6 +28,8 @@ import re
 
 FRONTEND_SRC = pathlib.Path(__file__).resolve().parents[2] / 'frontend' / 'src'
 PLACEHOLDER = '{x}'
+# Markiert einen Baustein, der sich nicht auflösen lässt; der ganze Pfad gilt dann als unbekannt.
+UNRESOLVED = '\x00'
 
 CALL = re.compile(r'axios\.(get|post|put|patch|delete)\(\s*', re.S)
 # const NAME = "…" | '…' | `…`  (auch let/var, auch ohne Semikolon)
@@ -78,6 +89,10 @@ def resolve(expression: str, constants: dict[str, str], seen: frozenset = frozen
             if inner is None:
                 return None
             result += inner
+        elif re.fullmatch(r'[A-Z][A-Z0-9_]*', part):
+            # Unbekannte Konstante (z. B. importiert): nicht raten, sonst prüft der
+            # Abgleich womöglich still eine falsche Adresse.
+            return None
         elif re.fullmatch(r'[\w.?\[\]()]+', part):
             result += PLACEHOLDER
         else:
@@ -92,7 +107,9 @@ def interpolate(name: str, constants: dict[str, str], seen: frozenset) -> str:
         return ''
     if name in constants and name not in seen:
         value = resolve(constants[name], constants, seen | {name})
-        return value if value is not None else PLACEHOLDER
+        return value if value is not None else UNRESOLVED
+    if re.fullmatch(r'[A-Z][A-Z0-9_]*', name):
+        return UNRESOLVED
     return PLACEHOLDER
 
 
@@ -132,8 +149,31 @@ def strip_comments(text: str) -> str:
     Zeilen, die mit // beginnen. Ein // mitten in einer Zeile bleibt, weil es
     auch in Adressen wie "https://…" vorkommt.
     """
-    text = re.sub(r'/\*.*?\*/', lambda m: re.sub(r'[^\n]', ' ', m.group(0)), text, flags=re.S)
-    return re.sub(r'(?m)^[ \t]*//.*$', '', text)
+    result, i, quote = [], 0, None
+    while i < len(text):
+        char = text[i]
+        if quote:
+            result.append(char)
+            if char == '\\' and i + 1 < len(text):
+                result.append(text[i + 1])
+                i += 2
+                continue
+            if char == quote:
+                quote = None
+        elif char in '\'"`':
+            quote = char
+            result.append(char)
+        elif text.startswith('/*', i):
+            # Zeichenketten sind oben schon abgefangen: "/*" in einer Adresse ist kein Kommentar.
+            end = text.find('*/', i + 2)
+            end = len(text) if end == -1 else end + 2
+            result.append(re.sub(r'[^\n]', ' ', text[i:end]))
+            i = end
+            continue
+        else:
+            result.append(char)
+        i += 1
+    return re.sub(r'(?m)^[ \t]*//.*$', '', ''.join(result))
 
 
 def calls_in_file(path: pathlib.Path) -> list[Call]:
@@ -145,6 +185,8 @@ def calls_in_file(path: pathlib.Path) -> list[Call]:
         constants = {name: value for pos, name, value in definitions if pos < match.start()}
         raw = first_argument(text, match.end())
         resolved = resolve(raw, constants)
+        if resolved is not None and UNRESOLVED in resolved:
+            resolved = None
         result.append(Call(
             file=str(path.relative_to(FRONTEND_SRC.parent)),
             line=text.count('\n', 0, match.start()) + 1,

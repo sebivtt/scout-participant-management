@@ -34,14 +34,38 @@ def permission_names(view_cls) -> str:
     return ', '.join(names) or '–'
 
 
+def permissions_for(view_cls, callback, method: str) -> str:
+    """Rechte für genau diese Anfrageart.
+
+    Manche Klassen legen ihre Rechte erst je Aktion fest (eigene Methode
+    get_permissions, z. B. Anlegen öffentlich, alles andere nur für Admins).
+    Dann wird die Methode für die Aktion dieser Anfrage aufgerufen. Gelingt das
+    nicht, steht in der Karte ein Hinweis statt einer womöglich falschen Angabe.
+    """
+    overrides = any('get_permissions' in vars(cls) for cls in view_cls.__mro__
+                    if not cls.__module__.startswith('rest_framework'))
+    if not overrides:
+        return permission_names(view_cls)
+    action = (getattr(callback, 'actions', None) or {}).get(method.lower())
+    try:
+        view = view_cls()
+        view.action, view.request, view.kwargs = action, None, {}
+        return ', '.join(describe_permission(p) for p in view.get_permissions())
+    # Typische Folgen, wenn get_permissions mehr als die Aktion braucht (z. B. die Anfrage).
+    except (AttributeError, TypeError, KeyError):
+        return 'abhängig von der Aktion, siehe Code'
+
+
 def describe_permission(permission) -> str:
     """Name einer Rechteklasse; bei einer Verknüpfung A | B beide Seiten."""
     if inspect.isclass(permission):
         return permission.__name__
-    op1, op2 = getattr(permission, 'op1_class', None), getattr(permission, 'op2_class', None)
+    # Verknüpfung als Klasse (OperandHolder) oder als fertiges Objekt (OR/AND)
+    op1 = getattr(permission, 'op1_class', None) or getattr(permission, 'op1', None)
+    op2 = getattr(permission, 'op2_class', None) or getattr(permission, 'op2', None)
     if op1 is not None and op2 is not None:
-        operator = getattr(permission, 'operator_class', None)
-        joiner = ' oder ' if operator is not None and operator.__name__ == 'OR' else ' und '
+        operator = getattr(permission, 'operator_class', None) or type(permission)
+        joiner = ' oder ' if operator.__name__ == 'OR' else ' und '
         return describe_permission(op1) + joiner + describe_permission(op2)
     return type(permission).__name__
 
@@ -67,7 +91,7 @@ def build_rows():
                 match = resolve(path.replace(frontend_aufrufe.PLACEHOLDER, '00000000-0000-0000-0000-000000000001'))
                 view_cls = getattr(match.func, 'cls', None) or getattr(match.func, 'view_class', None)
                 target = f'`{view_cls.__module__}.{view_cls.__name__}`'
-                rights = permission_names(view_cls)
+                rights = permissions_for(view_cls, match.func, method)
             except Resolver404:
                 target, rights = '**fehlt**', '–'
             rows[module].append((method, path, target, rights, places))

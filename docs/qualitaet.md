@@ -14,12 +14,12 @@ Der Code funktioniert und ist seit Phase 1 bis 3 gegen Sicherheitslücken und di
 
 | Messung | Wert | Ziel | Werkzeug |
 | --- | --- | --- | --- |
-| Umfang | 18.360 Zeilen in 234 Dateien (ohne Migrationen und Tests) | – | – |
-| Tests | 214 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
+| Umfang | 18.426 Zeilen in 234 Dateien (ohne Migrationen und Tests) | – | – |
+| Tests | 218 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
 | Bekannte Sicherheitslücken in Paketen | 0 | 0 | pip-audit |
 | Verstöße gegen Code-Regeln, neu | 0 | 0 (wird bei jeder Änderung geprüft) | ruff |
 | Verstöße gegen Code-Regeln, Altlasten (`# noqa`) | 67 (dazu 6 gewollte Markierungen, siehe unten) | sinkt durch die Pfadfinderregel | ruff |
-| Funktionen und Klassen mit Beschreibung | 184 von 1.560 (12 %) | Kernbereiche 100 %, sonst wachsend | `tools/qualitaet_messen.py` |
+| Funktionen und Klassen mit Beschreibung | 185 von 1.561 (12 %) | Kernbereiche 100 %, sonst wachsend | `tools/qualitaet_messen.py` |
 
 ### Altlasten nach Art
 
@@ -149,7 +149,7 @@ Weitere Beobachtungen ohne Rechteproblem, für die Abstimmung der Abläufe notie
 
 ## Abgleich Frontend und Backend (Qualität II, Schritt 2a)
 
-Geprüft am 15.10.2026. `backend/tools/frontend_aufrufe.py` liest alle 211 Anfragen des Frontends aus und setzt dabei zusammengesetzte Pfade wie `${SERVICE}-read` richtig zusammen. Diese Pfade hatte eine Textsuche in PR #11 übersehen. `tests/test_frontend_abgleich.py` prüft bei jeder Änderung, dass es jede Adresse im Backend gibt und dass sie die Anfrageart erlaubt. Die Ergebnisse stehen als Karte in `docs/schnittstellen.md`.
+Geprüft am 15.10.2026. `backend/tools/frontend_aufrufe.py` liest alle Anfragen des Frontends aus und setzt dabei zusammengesetzte Pfade wie `${SERVICE}-read` richtig zusammen. Vor der Bereinigung waren es 211 Anfragen, davon 196 außerhalb der abgeschalteten Programmideen. Danach sind es 175. Diese Pfade hatte eine Textsuche in PR #11 übersehen. `tests/test_frontend_abgleich.py` prüft bei jeder Änderung, dass es jede Adresse im Backend gibt und dass sie die Anfrageart erlaubt. Die Ergebnisse stehen als Karte in `docs/schnittstellen.md`.
 
 Vor der Behebung gab es 27 Abweichungen:
 
@@ -160,7 +160,12 @@ Vor der Behebung gab es 27 Abweichungen:
 | Hilfsfunktionen, die nie aufgerufen werden und Adressen nutzen, die es nicht gibt oder die nur lesen erlauben | 13 | keine, aber irreführend | entfernt |
 | Vier Dateien in `help/services` und `task/services`, nirgends eingebunden | 4 | keine | entfernt |
 
-Nebenbei gefunden: Das Werkzeug hatte zunächst auch auskommentierten Code als Anfrage gelesen. Außerdem übersah es Backend-Klassen, die Ändern und Löschen über direkt benannte Methoden verarbeiten. Beides ist korrigiert, damit der Abgleich weder Fehlalarme noch Lücken hat.
+Am Werkzeug selbst korrigiert:
+- Es las zunächst auch auskommentierten Code als Anfrage.
+- Es übersah Backend-Klassen, die Ändern und Löschen über direkt benannte Methoden verarbeiten.
+- Die Karte zeigte bei zwei Klassen, die ihre Rechte je Aktion festlegen, falsche Rechte.
+
+Seine bekannten Grenzen stehen in der Beschreibung des Werkzeugs. Andere Aufrufarten als `axios.get/post/put/patch/delete` und Konstanten aus anderen Dateien melden Tests, statt sie still zu übergehen.
 
 Offen ist Schritt 2b: ob das Frontend Felder liest, die das Backend nicht liefert.
 
