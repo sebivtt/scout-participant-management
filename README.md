@@ -25,7 +25,7 @@ Neben dem Anmeldetool enthält das Backend weitere Module (Essensplanung, Inspi,
 
 ## Lokal starten
 
-Voraussetzungen: Docker, Python 3.11 bis 3.13, Node.js 20 oder neuer, Yarn.
+Voraussetzungen: Docker, Python 3.11 bis 3.13, Node.js 20.19 oder neuer bzw. 22.13 oder neuer (verlangt eslint 10), Yarn.
 
 ### 1. Hilfsdienste starten (Datenbank, Redis, Keycloak)
 

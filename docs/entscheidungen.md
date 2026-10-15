@@ -6,6 +6,12 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-15 · Modernisierung des Frontends: risikoarme Sprünge vor den Rauchtests
+
+**Entscheidung:** Die Versionssprünge im Frontend werden nach Risiko aufgeteilt (Weg C). Risikoarme Sprünge kommen sofort, je als kleiner Pull Request mit Klickliste: TypeScript und eslint, `uuid`, Vue 3.5. Danach folgen die Rauchtests, dann die riskanten Sprünge (Vite, Pinia, vue-router, `quill`, Tailwind). Zieht ein risikoarmer Sprung einen riskanten nach sich, wird er nach hinten verschoben.
+**Begründung:** Ändert den Eintrag „Reihenfolge: erst Sicherheitsnetz, dann Frontend aktualisieren“ vom selben Tag. Fehler beim Bauen meldet die automatische Prüfung schon heute. Rauchtests fangen zusätzlich Seiten ab, die sich bauen lassen, im Browser aber leer bleiben oder Fehler zeigen. Dieses Risiko ist bei Vite, Pinia, vue-router und `quill` hoch, bei TypeScript und eslint (nur Entwicklungswerkzeuge), `uuid` (eine Stelle) und Vue 3.5 (verträglich) gering. So geht die Modernisierung sofort voran, ohne an den riskanten Stellen auf das Sicherheitsnetz zu verzichten. Tailwind verändert das Aussehen, das auch Rauchtests nicht sehen: Dort prüft zusätzlich der Projektverantwortliche das Aussehen.
+**Umsetzung:** `docs/fahrplan.md` Abschnitte „Reihenfolge der nächsten Schritte“ und „Phase 3d“
+
 ## 2026-10-15 · Sicherheitsupdates: Hauptversion und mitgebrachte Pakete
 
 **Entscheidung:** Bei Sicherheitsupdates verlässt kein Paket, das wir selbst wählen, seine Hauptversion. Das gilt für Pakete in `package.json` und für Vorgaben über `resolutions`. Was ein aktualisiertes Paket zwingend selbst verlangt, darf mitkommen, auch in einer neuen Hauptversion. Jedes mitgebrachte Paket in neuer Hauptversion und jedes neu hinzugekommene Paket wird im Pull Request genannt und begründet (`CONTRIBUTING.md` Abschnitt 5). Kleine Hilfspakete desselben Ursprungs dürfen in einer Sammelzeile stehen.
