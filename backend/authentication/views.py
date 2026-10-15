@@ -803,8 +803,10 @@ class MyTribeVerifiedViewSet(viewsets.ViewSet):
 class AddablePersons(viewsets.ReadOnlyModelViewSet):
     """Personen, die die Person einer Anmeldung hinzufügen kann. Nur lesen.
 
-    Das Frontend ruft diese Adresse derzeit nicht auf. Ändern und Löschen
-    eigener Personen läuft über /auth/my-members/.
+    Das Frontend liest darüber beim Hinzufügen von Stammesmitgliedern zu einer
+    Anmeldung (services/person.ts setzt die Adresse aus "my-members" und
+    "-addable" zusammen). Ändern und Löschen eigener Personen läuft über
+    /auth/my-members/.
     """
 
     serializer_class = auth_serializer.MemberSerializer

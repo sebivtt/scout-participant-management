@@ -116,6 +116,7 @@ class EventReadViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = event_serializers.EventReadSerializer
 
     def get_queryset(self):
+        """Alle Veranstaltungen oder die mit dem angegebenen Kurznamen (technical_name)."""
         technical_name = self.request.query_params.get('technical_name', None)
         if technical_name is None:
             return Event.objects.all()

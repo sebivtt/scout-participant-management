@@ -226,6 +226,7 @@ class GroupMembersViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     def get_serializer_class(self):
+        """Ausführliche Angaben für eine einzelne Person, kurze für die Liste."""
         serializer = {
             'retrieve': FullUserSerializer,
             'list': UserListSerializer,

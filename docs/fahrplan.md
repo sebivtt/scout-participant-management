@@ -98,6 +98,7 @@ Vereinbart am 15.10.2026. Ziel: Für jeden Ablauf ist abgestimmt, wer was darf u
 - Wer darf in der geplanten zentralen Ortsverwaltung Orte verwalten?
 - Darf die Ansichtsgruppe Excel-Listen erzeugen? Heute ja, weil das eine Form der Auswertung ist.
 - Was passiert mit Orten, die angelegt, aber keiner Veranstaltung zugeordnet wurden?
+- Sollen beim Zusammenlegen zweier Anmeldungen auch deren Bewertungen übernommen werden? Heute gehen sie mit der gelöschten Anmeldung verloren.
 
 ## Phase 4: Frontend und Anmeldeablauf
 
@@ -122,6 +123,7 @@ Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit i
 - [ ] **Adressfelder** sollen aufgeteilt werden (Straße, PLZ, Ort) und um ein **Bundesland** ergänzt werden.
 - [ ] Nach dem **Speichern** führt die Weiterleitung auf die nächste Seite (`router.push`) ins Leere oder scheitert. Welche Seite betroffen war, ist nicht mehr bekannt: nachfragen, reproduzieren, beheben.
 - [ ] Ein **abgelaufener Login** führt zu stillen 401-Fehlern. Stattdessen soll man eine klare Meldung sehen oder neu angemeldet werden.
+- [ ] Die Schaltfläche **„Anmeldungen zusammenfassen“** in der Auswertung erscheint auch für Ansichtsgruppe sowie Bundes- und Ringführung. Seit Qualität II 1b-2 lehnt das Backend das ab, die Oberfläche zeigt dann keine Meldung, sondern bricht still ab. Nur der Veranstaltungsleitung anzeigen, Fehler anzeigen.
 - [ ] Die **Schalter für Fristen und Sperren** aus Phase 3b sind im Backend fertig, haben aber keine Bedienelemente im Frontend.
 
 ### Technische Grundlage Frontend

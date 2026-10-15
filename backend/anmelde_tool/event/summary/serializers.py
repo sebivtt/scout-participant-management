@@ -471,3 +471,22 @@ class EventModuleSummarySerializer(serializers.ModelSerializer):
             queryset, many=True, context={"request": self.context["request"]}
         ).data
         return result
+
+
+class MergeRegistrationsSerializer(serializers.Serializer):
+    """Eingaben zum Zusammenlegen zweier Anmeldungen.
+
+    Zwei verschiedene Anmeldungen sind Pflicht: Mit sich selbst zusammengelegt
+    und dabei gelöscht, verschwände die Anmeldung samt Teilnehmenden.
+    """
+
+    reg_primary = serializers.UUIDField()
+    reg_secondary = serializers.UUIDField()
+    copy_responsible_persons = serializers.BooleanField(default=False)
+    delete_secondary = serializers.BooleanField(default=False)
+
+    def validate(self, attrs):
+        """Lehnt das Zusammenlegen einer Anmeldung mit sich selbst ab."""
+        if attrs['reg_primary'] == attrs['reg_secondary']:
+            raise serializers.ValidationError('Eine Anmeldung kann nicht mit sich selbst zusammengelegt werden.')
+        return attrs

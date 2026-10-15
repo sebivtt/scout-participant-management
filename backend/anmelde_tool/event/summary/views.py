@@ -9,6 +9,7 @@ from rest_framework import mixins, viewsets, status
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 
@@ -31,6 +32,7 @@ from anmelde_tool.event.helper import (
     filter_registrations_by_query_params,
     get_count_by_age_gender_leader,
 )
+from anmelde_tool.event.cash.models import CashIncome
 from anmelde_tool.event.models import EventModule
 from anmelde_tool.event.summary import serializers as summary_serializers
 from anmelde_tool.event.summary.serializers import EventModuleSummarySerializer
@@ -815,16 +817,18 @@ class MergeRegistrationsViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet
     permission_classes = [event_permissions.IsSubEventSuperResponsiblePerson]
 
     def create(self, request, *args, **kwargs):
-        """Verschiebt Teilnehmende und Antworten der zweiten Anmeldung in die erste und löscht sie auf Wunsch."""
-        data = request.data
+        """Verschiebt Teilnehmende, Antworten und Zahlungen der zweiten Anmeldung in die erste und löscht sie auf Wunsch."""
+        serializer = summary_serializers.MergeRegistrationsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
         event_id = self.kwargs.get("event_pk", None)
 
         # Beide Anmeldungen müssen zur Veranstaltung aus der Adresse gehören.
         reg_primary = get_object_or_404(Registration, id=data["reg_primary"], event=event_id)
         reg_secondary = get_object_or_404(Registration, id=data["reg_secondary"], event=event_id)
-        reg_id_primary = reg_primary.id
-        reg_id_secondary = reg_secondary.id
 
+        # Zahlungen gehören dazu: Beim Löschen der zweiten Anmeldung verlören sie
+        # sonst ihre Anmeldung und verschwänden aus der Kasse.
         model_list = [
             RegistrationParticipant,
             BooleanAttribute,
@@ -833,21 +837,18 @@ class MergeRegistrationsViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet
             StringAttribute,
             DateTimeAttribute,
             TravelAttribute,
+            CashIncome,
         ]
 
-        for model in model_list:
-            # move all items from secondary to primary
-            secondary_list = model.objects.filter(registration=reg_id_secondary)
-            secondary_list.update(registration=reg_id_primary)
+        # Ganz oder gar nicht: Bricht ein Schritt ab, bleibt alles wie vorher.
+        with transaction.atomic():
+            for model in model_list:
+                model.objects.filter(registration=reg_secondary).update(registration=reg_primary)
 
-        # copy responsible persons from secondary to primary
-        if data["copy_responsible_persons"]:
-            reg_primary.responsible_persons.add(
-                *reg_secondary.responsible_persons.all()
-            )
+            if data["copy_responsible_persons"]:
+                reg_primary.responsible_persons.add(*reg_secondary.responsible_persons.all())
 
-        # delete secondary registration
-        if data["delete_secondary"]:
-            reg_secondary.delete()
+            if data["delete_secondary"]:
+                reg_secondary.delete()
 
         return Response({"id": reg_primary.event.id}, status=status.HTTP_200_OK)

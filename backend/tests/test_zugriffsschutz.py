@@ -499,3 +499,30 @@ def test_leitung_aendert_gemeinsamen_ort_nicht(api, veranstaltungsleitung, lager
 def test_eingeloggte_person_legt_ort_an(api, teilnehmer):
     response = api(teilnehmer).post('/event/event-location/', {'name': 'Neuer Ort'}, format='json')
     assert response.status_code == 201
+
+
+# --- Anmeldungen zusammenlegen: Datenfehler (Pfadfinderregel, Qualität II 1b-2) -
+
+def test_anmeldung_nicht_mit_sich_selbst_zusammenlegen(api, veranstaltungsleitung, lager, anmeldung_adler):
+    from anmelde_tool.registration.models import Registration
+    response = merge(api(veranstaltungsleitung), lager, anmeldung_adler, anmeldung_adler)
+    assert response.status_code == 400
+    assert Registration.objects.filter(id=anmeldung_adler.id).exists()
+
+
+def test_zusammenlegen_uebernimmt_zahlungen(api, veranstaltungsleitung, lager, anmeldung_adler, anmeldung_falken):
+    from anmelde_tool.event.cash.models import CashIncome
+    zahlung = CashIncome.objects.create(amount=25, registration=anmeldung_falken)
+    merge(api(veranstaltungsleitung), lager, anmeldung_adler, anmeldung_falken)
+    zahlung.refresh_from_db()
+    assert zahlung.registration_id == anmeldung_adler.id
+
+
+def test_zusammenlegen_ohne_angaben_meldet_fehler(api, veranstaltungsleitung, lager):
+    response = api(veranstaltungsleitung).post(f'/event/event/{lager.id}/summary/merge-registrations/', {}, format='json')
+    assert response.status_code == 400
+
+
+def test_hinzufuegbare_personen_lesbar(api, anmeldende_leitung):
+    # Das Frontend liest darüber beim Hinzufügen von Stammesmitgliedern zu einer Anmeldung.
+    assert api(anmeldende_leitung).get('/auth/my-members-addable/').status_code == 200

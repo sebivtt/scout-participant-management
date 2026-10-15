@@ -15,7 +15,7 @@ Der Code funktioniert und ist seit Phase 1 bis 3 gegen Sicherheitslücken und di
 | Messung | Wert | Ziel | Werkzeug |
 | --- | --- | --- | --- |
 | Umfang | 18.069 Zeilen in 232 Dateien (ohne Migrationen und Tests) | – | – |
-| Tests | 201 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
+| Tests | 205 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
 | Bekannte Sicherheitslücken in Paketen | 0 | 0 | pip-audit |
 | Verstöße gegen Code-Regeln, neu | 0 | 0 (wird bei jeder Änderung geprüft) | ruff |
 | Verstöße gegen Code-Regeln, Altlasten (`# noqa`) | 67 (dazu 6 gewollte Markierungen, siehe unten) | sinkt durch die Pfadfinderregel | ruff |
@@ -82,6 +82,7 @@ Keycloak wird in den aktiven Modulen jetzt höchstens einmal pro Seitenaufruf ge
 | Wer Veranstaltungsleitung ist und zugleich in der Ansichtsgruppe, wurde bei den Buchungsoptionen nur als Betrachter erkannt. | Leitung sah nicht alle Buchungsoptionen | Behoben, Test in `tests/test_rechte.py` |
 | Das alte Startskript für den Server (`backend/start.sh`, genutzt von `backend/docker-compose.yml`) legte bei jedem Start ein Administratorkonto mit festem, öffentlich bekanntem Passwort an. Über die Verwaltung unter `/admin/` hätte sich damit jeder als Administrator anmelden können. | Vollzugriff für Fremde, falls jemand mit dem alten Startskript betreibt | Behoben (Qualität II, 1b-1): Startskript legt kein Konto mehr an, `add_users` läuft nur lokal. **Auf einer bestehenden Installation, die mit dem alten Startskript lief, existiert das Konto weiter: dort das Konto `admin` löschen oder sein Passwort ändern.** Tests in `tests/test_verwaltungsbefehle.py` |
 | Der Abruf der Bundesländer zu Postleitzahlen (`add_state`) schaltete die Zertifikatsprüfung ab. | Gefälschte Antworten hätten falsche Bundesländer in die Datenbank geschrieben | Behoben (Qualität II, 1b-1), Test in `tests/test_verwaltungsbefehle.py` |
+| Anmeldungen zusammenlegen: Mit sich selbst zusammengelegt wurde die Anmeldung samt Teilnehmenden gelöscht. Zahlungseingänge zogen nicht mit um und verschwanden beim Löschen aus der Kasse. Fehlende Angaben führten zu einem Serverfehler. | Datenverlust, Zahlungen nicht mehr auffindbar | Behoben (Qualität II, 1b-2): Eingabeprüfung, Zahlungen ziehen mit um, alles in einem Schritt (ganz oder gar nicht). Tests in `tests/test_zugriffsschutz.py` |
 | Die Reihenfolge der Daten (Ende nach Beginn, Anmeldeschluss nach Anmeldestart, letzte Änderung vor Beginn) wurde beim Bearbeiten nur an einer von zwei Stellen geprüft. | Widersprüchliche Fristen möglich | Behoben, Tests in `tests/test_fristen.py` |
 
 ## Zugriffsschutz und Datenfreigabe (Qualität II, Schritt 1b-2)
