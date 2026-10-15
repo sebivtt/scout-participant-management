@@ -52,7 +52,7 @@ def check_group_admin_permission(group_id: str) -> bool:
 
 
 def get_groups_of_user(token, keycloak_id):
-    """Veraltet: nur noch im eingefrorenen Modul food genutzt.
+    """Veraltet: nur noch im abgeschalteten Modul food genutzt (dessen Adressen seit 15.10.2026 entfernt sind).
 
     Neuer Code nutzt keycloak_auth.access.member_group_ids(request). Das fragt
     Keycloak höchstens einmal pro Anfrage, statt bei jedem Aufruf.
