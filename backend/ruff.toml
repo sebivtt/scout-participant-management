@@ -28,6 +28,7 @@ max-complexity = 12
 "*/management/commands/*" = ["T20"]
 "tools/*" = ["T20"]
 "tests/*" = ["T20"]
-# Einstellungsdateien übernehmen alle Werte per "import *"; settings_test.py muss
-# vorher Umgebungsvariablen setzen, daher steht der Import nicht ganz oben (E402).
-"backend/settings*.py" = ["E402", "F403", "F405"]
+# Einstellungsdateien übernehmen alle Werte per "import *".
+"backend/settings*.py" = ["F403", "F405"]
+# settings_test.py muss vor dem Import Umgebungsvariablen setzen, daher steht er nicht ganz oben.
+"backend/settings_test.py" = ["E402", "F403", "F405"]

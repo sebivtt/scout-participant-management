@@ -33,7 +33,7 @@ def count_noqa(files):
     """
     legacy, intended = collections.Counter(), collections.Counter()
     for path in files:
-        for match in re.finditer(r'# noqa: ([A-Z0-9, ]+)(\s*--)?', path.read_text()):
+        for match in re.finditer(r'#\s*noqa:\s*([A-Z]+[0-9]+(?:\s*,\s*[A-Z]+[0-9]+)*)(\s*--)?', path.read_text()):
             target = intended if match.group(2) else legacy
             for code in match.group(1).replace(' ', '').split(','):
                 target[code] += 1

@@ -37,10 +37,12 @@ def test_signal_registriert(signal, sender, module):
 def test_geplante_aufgabe_registriert(schedule_name):
     """Jede geplante Aufgabe (z. B. der Keycloak-Abgleich alle 15 Minuten) ist bei Celery bekannt.
 
-    Celery findet von sich aus nur Aufgaben in Dateien namens tasks.py. Der
-    Keycloak-Abgleich liegt woanders und wird nur durch einen Import in
-    authentication/apps.py bekannt gemacht. Fehlt der Import, verwirft Celery
-    den Zeitplan-Eintrag bei jedem Lauf, und der Abgleich findet nie statt.
+    Celery findet von sich aus nur Aufgaben in Dateien namens tasks.py. Die
+    geplanten Aufgaben liegen woanders und werden nur durch Importe in apps.py
+    bekannt gemacht: der Keycloak-Abgleich in authentication/apps.py, die
+    Sammel-Benachrichtigungen (alle 3 h, 12 h, täglich, wöchentlich) über den
+    Signal-Import in authentication/custom_notifications/apps.py. Fehlt ein
+    Import, verwirft Celery den Zeitplan-Eintrag bei jedem Lauf still.
     """
     # Wie beim Start eines Celery-Workers: erst die übliche Suche nach tasks.py.
     celery_app.loader.import_default_modules()

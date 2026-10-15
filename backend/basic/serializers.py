@@ -1,10 +1,6 @@
 from rest_framework import serializers
 from basic import models as basic_models
 
-"""
-# noqa turn off pycharm warnings about missing abstract methods, which is a bug of pycharm
-"""
-
 
 def get_parent_scout_organisation(obj: basic_models.ScoutHierarchy, filter_level: str) -> str:
     if isinstance(obj, basic_models.ScoutHierarchy):

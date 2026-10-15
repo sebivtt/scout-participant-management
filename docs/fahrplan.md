@@ -8,7 +8,7 @@ Stand 15.10.2026. Dieses Dokument ist der Einstieg für jede neue Arbeitssitzung
 2. `docs/entscheidungen.md` lesen. Was dort steht, ist entschieden und wird nicht still geändert.
 3. `docs/architektur.md`, `docs/glossar.md` (Fachbegriffe) und `docs/qualitaet.md` überfliegen.
 4. `README.md` für die lokale Installation. Entwicklungswerkzeuge mit `pip install -r backend/requirements-dev.txt`, Prüfung vor jedem Commit im Ordner `backend/` mit `ruff check . && pytest`. Ein echtes Keycloak 26.7 für Livetests startet über `dev/`.
-5. Mit dem nächsten offenen Punkt unten weitermachen. Als Erstes steht die KI-Fehlerprüfung an.
+5. Mit dem nächsten offenen Punkt unten weitermachen. Derzeit läuft die KI-Fehlerprüfung (Qualität II), der nächste offene Schritt steht in ihrer Checkliste.
 
 Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z. B. `tests/test_abfragen.py` = `backend/tests/test_abfragen.py`. Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `main` von `sebivtt/scout-participant-management`.
 
@@ -59,7 +59,7 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 **Vorgehen in dieser Reihenfolge**, jeweils ein eigener Pull Request (am 15.10.2026 mit dem Projektverantwortlichen abgestimmt; Prüftiefe und Abgrenzung zu Phase 4 siehe `docs/entscheidungen.md`):
 - [x] 1a. Pauschale `# noqa` ohne Regelnummer aufräumen, damit sie neue Regeln nicht verstecken. ruff verbietet sie künftig (PR #9).
 - [ ] 1b. Sicherheitsregeln (ruff `S`) einschalten und jede Fundstelle von `fields = '__all__'` bewerten (gesamter Code, auch eingefrorene Module).
-- [ ] 1c. Weitere Regelgruppen (`DJ`, `PERF`, `RET`, `W605`, pauschales `except Exception`) mit Zählung und Bewertung, dazu die 7 Altlasten mit `except:`. Bekannter Treffer: `authentication/views.py` Passwortprüfung (`W605`, ungültige Escape-Sequenz, funktioniert heute noch).
+- [ ] 1c. Weitere Regelgruppen (`DJ`, `PERF`, `RET`, `W605`, pauschales `except Exception`) mit Zählung und Bewertung, dazu die 7 Altlasten mit `except:`. Bekannte Treffer: `authentication/views.py` Passwortprüfung (`W605`, ungültige Escape-Sequenz, funktioniert heute noch); `anmelde_tool/registration/signals.py` besteht nur aus auskommentiertem Code (klären, ob die Mail „Anmeldung angelegt“ fehlt oder anderswo verschickt wird).
 - [ ] 2. Frontend-Aufrufe mit den Backend-Endpunkten und ihren Feldnamen abgleichen. Achtung: Das Backend wandelt Feldnamen automatisch um (`first_name` ↔ `firstName`, Paket `djangorestframework-camel-case`). Dazu die Frontend-Pakete prüfen (Tabellenzeile „Erfundene Funktionen“).
 - [ ] 3. Genutzte python-keycloak-Methoden mit der installierten Version (7.1.1) abgleichen, mit Livetest gegen Keycloak 26.7.
 - [ ] 4a. Randfälle und Fehlerbehandlung beim Anmelden und Ändern mit Tests absichern.
