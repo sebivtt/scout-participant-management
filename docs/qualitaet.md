@@ -14,12 +14,12 @@ Der Code funktioniert und ist seit Phase 1 bis 3 gegen Sicherheitslücken und di
 
 | Messung | Wert | Ziel | Werkzeug |
 | --- | --- | --- | --- |
-| Umfang | 18.426 Zeilen in 234 Dateien (ohne Migrationen und Tests) | – | – |
-| Tests | 218 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
+| Umfang | 18.545 Zeilen in 234 Dateien (ohne Migrationen und Tests) | – | – |
+| Tests | 224 bestanden, 6 bekannte Probleme (`xfail`) | wächst mit jeder Änderung | pytest |
 | Bekannte Sicherheitslücken in Paketen | 0 | 0 | pip-audit |
 | Verstöße gegen Code-Regeln, neu | 0 | 0 (wird bei jeder Änderung geprüft) | ruff |
 | Verstöße gegen Code-Regeln, Altlasten (`# noqa`) | 67 (dazu 6 gewollte Markierungen, siehe unten) | sinkt durch die Pfadfinderregel | ruff |
-| Funktionen und Klassen mit Beschreibung | 185 von 1.561 (12 %) | Kernbereiche 100 %, sonst wachsend | `tools/qualitaet_messen.py` |
+| Funktionen und Klassen mit Beschreibung | 197 von 1.573 (13 %) | Kernbereiche 100 %, sonst wachsend | `tools/qualitaet_messen.py` |
 
 ### Altlasten nach Art
 
@@ -164,6 +164,7 @@ Am Werkzeug selbst korrigiert:
 - Es las zunächst auch auskommentierten Code als Anfrage.
 - Es übersah Backend-Klassen, die Ändern und Löschen über direkt benannte Methoden verarbeiten.
 - Die Karte zeigte bei zwei Klassen, die ihre Rechte je Aktion festlegen, falsche Rechte.
+- Apostrophe in Kommentaren oder im Seitentext von `.vue`-Dateien hätten das Lesen durcheinanderbringen können. Das Werkzeug liest Code jetzt Zeichen für Zeichen, wertet bei `.vue` nur den Programmteil aus und meldet es laut, wenn es sich verliest.
 
 Seine bekannten Grenzen stehen in der Beschreibung des Werkzeugs. Andere Aufrufarten als `axios.get/post/put/patch/delete` und Konstanten aus anderen Dateien melden Tests, statt sie still zu übergehen.
 

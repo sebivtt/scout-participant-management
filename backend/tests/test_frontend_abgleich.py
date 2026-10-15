@@ -101,7 +101,7 @@ def test_frontend_nutzt_nur_erkannte_aufrufarten():
     for path in frontend_aufrufe.FRONTEND_SRC.rglob('*'):
         if path.suffix not in ('.ts', '.vue') or 'modules/inspi/' in path.as_posix():
             continue
-        text = frontend_aufrufe.strip_comments(path.read_text(encoding='utf-8'))
+        text = frontend_aufrufe.strip_comments(frontend_aufrufe.script_part(path, path.read_text(encoding='utf-8')))
         found += [f'{path.relative_to(frontend_aufrufe.FRONTEND_SRC.parent)}: {m.group(0)}' for m in other.finditer(text)]
     assert not found, 'Neue Aufrufart, tools/frontend_aufrufe.py erweitern:\n' + '\n'.join(found)
 
@@ -114,9 +114,31 @@ def test_kommentarzeichen_in_zeichenketten_verschlucken_keine_aufrufe(tmp_path):
 
 def test_importierte_konstante_gilt_als_unbekannt():
     """Eine nicht in der Datei definierte Konstante wird nicht zum Platzhalter, sondern als unbekannt gemeldet."""
-    assert frontend_aufrufe.resolve('`${BASE_URL}/event/${IMPORTED}/`', {}) is not None
-    resolved = frontend_aufrufe.resolve('`${BASE_URL}/event/${IMPORTED}/`', {})
-    assert frontend_aufrufe.UNRESOLVED in resolved
+    assert frontend_aufrufe.resolve_path('`${BASE_URL}/event/${IMPORTED}/`', {}) is None
+    assert frontend_aufrufe.resolve_path('`${BASE_URL}/event/${id}/`', {}) == '/event/{x}/'
+
+
+@pytest.mark.parametrize('source,expected', [
+    ("// it's\nconst G = '/*';\naxios.get('/a/');\nconst E = '*/';", '/a/'),
+    ("const r = /[\"']/g;\naxios.get('/b/');", '/b/'),
+    ("const x = `${a ? \"x\" : 'y'}`;\naxios.get('/c/');", '/c/'),
+])
+def test_apostroph_oder_ausdruck_verschluckt_keine_aufrufe(source, expected):
+    """Ein Apostroph im Kommentar, ein regulärer Ausdruck oder ${…} bringen das Lesen nicht durcheinander."""
+    assert expected in frontend_aufrufe.strip_comments(source)
+
+
+def test_vue_vorlagentext_wird_nicht_gelesen():
+    """In .vue-Dateien zählt nur der <script>-Teil. Ein Apostroph im Seitentext ist keine Zeichenkette."""
+    source = "<template><p>Gib's ein</p></template>\n<script>\nconst G = '/*';\naxios.get('/e/');\n</script>"
+    text = frontend_aufrufe.strip_comments(frontend_aufrufe.script_part(pathlib.Path('x.vue'), source))
+    assert '/e/' in text and "Gib's" not in text
+
+
+def test_verlesen_wird_gemeldet():
+    """Endet eine Datei mitten in einer Zeichenkette, meldet das Werkzeug das, statt still Aufrufe zu verlieren."""
+    with pytest.raises(frontend_aufrufe.UnreadableSource):
+        frontend_aufrufe.strip_comments("const a = 'offen;\naxios.get('/f/');")
 
 
 def test_karte_zeigt_rechte_je_aktion():
@@ -124,3 +146,20 @@ def test_karte_zeigt_rechte_je_aktion():
     karte_text = (pathlib.Path(__file__).resolve().parents[2] / 'docs' / 'schnittstellen.md').read_text(encoding='utf-8')
     assert '| POST | `/message/issue-init-create/` | `messaging.views.IssueInitCreateViewSet` | AllowAny |' in karte_text
     assert '| GET | `/keycloak/group/{x}/requests/` | `keycloak_auth.views.RequestGroupAccessViewSet` | IsAuthenticated, IsGroupAdmin |' in karte_text
+
+
+def test_karte_meldet_unklare_rechte_statt_zu_raten():
+    """Braucht get_permissions mehr als die Aktion, steht ein Hinweis in der Karte statt falscher Rechte."""
+    spec = importlib.util.spec_from_file_location(
+        'schnittstellen_karte', pathlib.Path(__file__).resolve().parents[1] / 'tools' / 'schnittstellen_karte.py')
+    karte = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(karte)
+
+    class NeedsRequest:
+        def get_permissions(self):
+            return [] if self.request.user else []
+
+    class Callback:
+        actions = {'get': 'list'}
+
+    assert karte.permissions_for(NeedsRequest, Callback, 'GET') == 'abhängig von der Aktion, siehe Code'
