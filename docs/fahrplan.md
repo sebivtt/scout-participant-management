@@ -35,8 +35,8 @@ Qualität II, KI-Fehlerprüfung, bisher:
 
 Phase 3d:
 - **PR #16:** Sicherheitsupdates im Frontend innerhalb der Hauptversionen. Bekannte Lücken in den Programmpaketen von 63 auf 4, übrig sind nur die bewusst offenen (`uuid`, `quill`, `@vue/server-renderer`).
-- **PR #18:** `uuid` 9 → 14. Schließt eine Lücke, uuid bringt jetzt eigene Typbeschreibungen mit.
 - **PR #17:** TypeScript 4.6 → 6.0 und eslint 8 → 10, neue eslint-Einstellung `frontend/eslint.config.mjs`, Aufruf `yarn lint`. Dabei zwei echte Fehler und eine tote Datei im Frontend gefunden (Fahrplan, Phase 4).
+- **PR #18:** `uuid` 9 → 14. Schließt eine Lücke, uuid bringt jetzt eigene Typbeschreibungen mit.
 - Reihenfolge geändert (Entscheidung vom 15.10.2026, Weg C): erst die risikoarmen Sprünge, dann Rauchtests, dann die riskanten.
 
 Tests: 228 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). Ergebnisse in `docs/qualitaet.md`, Entscheidungen in `docs/entscheidungen.md`.
@@ -173,7 +173,7 @@ Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia
   - Prüfen: `yarn build`, eslint und `npx tsc --noEmit` vorher und nachher vergleichen, Backend-Tests, `yarn audit --groups dependencies --summary`, Änderungsprotokoll des Pakets gegen unsere Aufrufe lesen.
   - Die `resolutions` (`postcss`, `nanoid`, `source-map-js`) beim Sprung auf Vue 3.5 und Vite neu bewerten und entfernen, wenn die neuen Fassungen behobene Versionen selbst verlangen.
 - [x] TypeScript 4.6 → 6.0 und eslint 8 → 10 (PR #17). eslint nutzt jetzt `frontend/eslint.config.mjs` statt `.eslintrc.js`, Aufruf mit `yarn lint`. Die Regeln entsprechen weitgehend den bisherigen. Unterschiede und Zahlen stehen in `docs/qualitaet.md`. Die Regel `comma-dangle` fällt mit eslint 11 weg. Drei unbenutzte eslint-Zusatzbausteine (`eslint-plugin-import`, `-node`, `-promise`) sind entfernt.
-- [x] `uuid` 9 → 14 (PR #18). Gewählt wurde die neueste Version statt der niedrigsten behobenen (11.1.1): Sie verlangt TypeScript ab 5.4 (vorhanden) und einen Browser mit `crypto`, den ohnehin schon `keycloak-js` voraussetzt. Genutzt wird nur `v4()` in `register.ts`, das unverändert über die Zufallsfunktion des Browsers arbeitet.
+- [x] `uuid` 9 → 14 (PR #18). Gewählt wurde die neueste Version statt der niedrigsten behobenen (11.1.1): Sie verlangt TypeScript ab 5.4 (vorhanden). Im Browser braucht sie wie schon uuid 9 die eingebaute Zufallsfunktion `crypto.getRandomValues`, die auch `keycloak-js` voraussetzt. Genutzt wird nur `v4()` in `register.ts`, das unverändert über die Zufallsfunktion des Browsers arbeitet.
 - [ ] Risikoarm, vor den Rauchtests (Entscheidung vom 15.10.2026): Vue 3.5 (schließt die Lücke in `@vue/server-renderer`; doppelte Vue-Fassung über `@vue-leaflet/vue-leaflet` beachten; wandert nach hinten, falls es einen neueren `@vitejs/plugin-vue` verlangt).
 - [ ] Riskant, nach den Rauchtests, einzeln je ein Pull Request mit Rauchtests und Klicktest: Vite, Pinia, vue-router, `quill` (über `@vueup/vue-quill`, ggf. Ersatz), Tailwind (zusätzlich Aussehen prüfen).
 - [ ] Rauchtests: jede Seite lädt ohne Fehler, Anmeldeablauf läuft durch. Werkzeug voraussichtlich Playwright (steuert einen echten Browser, unabhängig von der Vite-Version); als neues Paket mit Begründung.
