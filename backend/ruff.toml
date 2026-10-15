@@ -13,6 +13,8 @@ select = [
     "B",     # häufige Fehlerquellen (z. B. veränderliche Standardwerte)
     "C90",   # Komplexität
     "T20",   # print() im Anwendungscode
+    "PGH004", # "# noqa" nur mit Regelnummer, sonst schaltet es auch künftige Regeln ab
+    "RUF100", # überflüssige "# noqa"-Ausnahmen melden
 ]
 ignore = [
     "B904",  # "raise ... from": in Views nicht hilfreich, Fehlermeldung bleibt gleich
@@ -26,4 +28,6 @@ max-complexity = 12
 "*/management/commands/*" = ["T20"]
 "tools/*" = ["T20"]
 "tests/*" = ["T20"]
-"backend/settings*.py" = ["F403", "F405"]
+# Einstellungsdateien übernehmen alle Werte per "import *"; settings_test.py muss
+# vorher Umgebungsvariablen setzen, daher steht der Import nicht ganz oben (E402).
+"backend/settings*.py" = ["E402", "F403", "F405"]

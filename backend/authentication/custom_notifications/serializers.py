@@ -12,7 +12,7 @@ from messaging.serializers import IssueReadSerializer
 User: CustomUser = get_user_model()
 
 
-class GenericNotificationRelatedField(serializers.RelatedField):  # noqa
+class GenericNotificationRelatedField(serializers.RelatedField):
 
     def to_representation(self, value):
         if isinstance(value, RequestGroupAccess):
@@ -60,5 +60,5 @@ class NotificationSerializer(serializers.ModelSerializer):
 
         return ''
 
-class UpdateNotificationSerializer(serializers.Serializer):  # noqa
+class UpdateNotificationSerializer(serializers.Serializer):
     ids = serializers.ListSerializer(child=serializers.IntegerField(), required=False)

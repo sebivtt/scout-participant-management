@@ -12,5 +12,5 @@ class Config(AppConfig):
     def ready(self):
         super(Config, self).ready()
         # this is for backwards compatibility
-        import notifications.signals  # noqa: F401 -- registriert die Signal-Empfänger
+        import notifications.signals  # registriert die Signal-Empfänger
         notifications.notify = notifications.signals.notify

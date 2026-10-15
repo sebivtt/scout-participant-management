@@ -6,4 +6,4 @@ class AuthenticationConfig(AppConfig):
     name = 'authentication.custom_notifications'
 
     def ready(self):
-        import authentication.custom_notifications.signals  # noqa
+        import authentication.custom_notifications.signals  # noqa: F401 -- registriert die Signal-Empfänger

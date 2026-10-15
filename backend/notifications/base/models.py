@@ -18,7 +18,7 @@ from notifications.signals import notify
 from notifications.utils import id2slug
 from swapper import load_model
 
-from django.contrib.contenttypes.fields import GenericForeignKey  # noqa
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 try:
     # Django >= 1.7

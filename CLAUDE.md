@@ -37,5 +37,5 @@ Lies und befolge `CONTRIBUTING.md`. Kurzfassung:
 
 - Keine Änderungen am gemeinsamen Verbands-Keycloak voraussetzen (z. B. veraltete Feature-Flags). Das Tool muss mit der Standard-Konfiguration von Keycloak laufen.
 - Bekannte Fehler nicht stillschweigend „mitbeheben“, ohne Test und ohne Erwähnung im Pull Request.
-- `# noqa` nicht für neuen Code verwenden. Die bestehenden Markierungen sind Altlasten.
+- `# noqa` nicht für neuen Code verwenden. Die bestehenden Markierungen sind Altlasten. Einzige Ausnahme sind gewollte Markierungen mit Begründung und Test (`CONTRIBUTING.md`, Abschnitt Altlasten).
 - Keine echten Personendaten in Tests, Beispieldaten oder Logs.

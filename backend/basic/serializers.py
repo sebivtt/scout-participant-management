@@ -152,5 +152,5 @@ class DescriptionSerializer(serializers.ModelSerializer):
         exclude = ('public', 'type')
 
 
-class CheckZipCodeSerializer(serializers.Serializer):  # noqa
+class CheckZipCodeSerializer(serializers.Serializer):
     zip_code = serializers.CharField(required=True)
