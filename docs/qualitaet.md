@@ -132,7 +132,7 @@ Hinweis: In der Kasse lässt sich beim Ändern eines Zahlungseingangs die Person
 
 ### Offen: eingefrorene Module
 
-In `food` (Essensplanung) und `inspi` (Programmideen) gibt es rund 40 Schnittstellen, über die jede eingeloggte Person Einträge anderer ändern oder löschen kann. Personenbezogene Daten sind dort kaum betroffen, aber alle Inhalte könnten von jeder eingeloggten Person verändert werden. Eine Behebung wäre aufwendig. Entscheidung vom 15.10.2026: Beide Module sind abgeschaltet (Qualität II 1d, PR #12). Ihre Adressen sind nicht mehr erreichbar. Abgesichert werden sie gegebenenfalls nach der Abstimmung der Anforderungen.
+In `food` (Essensplanung) und `inspi` (Programmideen) gibt es rund 40 Schnittstellen, über die jede eingeloggte Person Einträge anderer ändern oder löschen kann. Personenbezogene Daten sind dort kaum betroffen, aber alle Inhalte könnten von jeder eingeloggten Person verändert werden. Eine Behebung wäre aufwendig. Entscheidung vom 15.10.2026: Beide Module sind abgeschaltet (Qualität II 1d, PR #12). Ihre Adressen sind nicht mehr erreichbar. Nur die Verwaltungsseiten unter `/admin/` bleiben, und die sind dem Anmeldeteam (Staff) vorbehalten. Abgesichert werden sie gegebenenfalls nach der Abstimmung der Anforderungen.
 
 ### Öffentliche Adressen
 

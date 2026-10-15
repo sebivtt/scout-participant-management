@@ -33,7 +33,7 @@ flowchart LR
 | `basic/` | Stammdaten: Pfadfinderstruktur, Postleitzahlen, Auswahllisten | aktiv |
 | `messaging/` | Kontaktformular und Anfragen | eingefroren |
 | `notifications/` | Benachrichtigungen (übernommenes Paket, siehe README dort) | eingefroren |
-| `food/`, `inspi/` | Essensplanung, Programmideen | abgeschaltet: keine Adressen, Tabellen und Code bleiben (seit 15.10.2026) |
+| `food/`, `inspi/` | Essensplanung, Programmideen | abgeschaltet: keine Adressen, Tabellen und Code bleiben, Verwaltungsseiten unter `/admin/` nur für Staff (seit 15.10.2026) |
 | `backend/` | Einstellungen, URLs, Celery | aktiv |
 | `tests/` | Tests, siehe `CONTRIBUTING.md` | aktiv |
 
