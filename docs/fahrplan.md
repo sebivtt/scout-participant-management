@@ -22,7 +22,7 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 - Fachliche Fragen (wer darf was, welche Fristen gelten) entscheidet er. Technische Fragen entscheidet die KI und begründet sie.
 - Pull Requests werden nicht aufeinander aufgebaut. Der nächste beginnt erst, wenn der vorige in `main` ist. (PR #12 landete sonst im falschen Branch und musste mit PR #13 nachgeholt werden.)
 
-## Übergabe (Stand 15.10.2026, nach PR #16)
+## Übergabe (Stand 15.10.2026, nach PR #17)
 
 ### Was erledigt ist
 
@@ -34,25 +34,26 @@ Qualität II, KI-Fehlerprüfung, bisher:
 - **PR #14:** automatischer Abgleich zwischen Frontend und Backend, dazu die Karte `docs/schnittstellen.md`
 
 Phase 3d:
-- **PR #16:** Sicherheitsupdates im Frontend innerhalb der Hauptversionen. Bekannte Lücken in den Programmpaketen von 63 auf 4, übrig sind nur die bewusst offenen (`uuid`, `quill`, `@vue/server-renderer`). Zahlen in `docs/qualitaet.md`, Regel für mitgebrachte Pakete in `docs/entscheidungen.md`.
+- **PR #16:** Sicherheitsupdates im Frontend innerhalb der Hauptversionen. Bekannte Lücken in den Programmpaketen von 63 auf 4, übrig sind nur die bewusst offenen (`uuid`, `quill`, `@vue/server-renderer`).
+- **PR #17:** TypeScript 4.6 → 6.0 und eslint 8 → 10, neue eslint-Einstellung `frontend/eslint.config.mjs`, Aufruf `yarn lint`. Dabei drei echte Fehler im Frontend gefunden (Fahrplan, Phase 4).
+- Reihenfolge geändert (Entscheidung vom 15.10.2026, Weg C): erst die risikoarmen Sprünge, dann Rauchtests, dann die riskanten.
 
 Tests: 228 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). Ergebnisse in `docs/qualitaet.md`, Entscheidungen in `docs/entscheidungen.md`.
 
-### Nächster Schritt: Rauchtests für das Frontend
+### Nächster Schritt: `uuid` 9 → 11
 
-Ziel: Nach den großen Versionssprüngen (Phase 3d) muss sich automatisch prüfen lassen, ob das Frontend noch funktioniert. Heute gibt es dafür keinen einzigen Test. Rauchtest heißt: Jede Seite wird einmal geöffnet und darf keinen Fehler zeigen, dazu ein Durchlauf des Anmeldeablaufs.
+- Genutzt an einer Stelle: `frontend/src/modules/event/store/register.ts` (Kennungen für Einträge im Anmeldeablauf). Das Änderungsprotokoll von 10 und 11 gegen diesen Aufruf lesen.
+- Schließt eine der vier verbleibenden Lücken in den Programmpaketen.
+- Prüfen wie in Phase 3d beschrieben: `yarn build`, `yarn lint` und `npx tsc --noEmit` vorher und nachher vergleichen, Backend-Tests, `yarn audit --groups dependencies --summary`. Klickliste: eine Anmeldung mit zwei Personen anlegen und eine davon wieder entfernen.
+- Danach Vue 3.5 (siehe Reihenfolge).
 
-Bekannt ist:
-- Werkzeug voraussichtlich Playwright, weil es einen echten Browser steuert und nicht von der Vite-Version abhängt. Neues Paket, also mit Begründung (`CONTRIBUTING.md` Abschnitt 5).
-- Dazu gehört eine Anleitung, das Tool lokal mit Beispieldaten zu starten. Die Rauchtests nutzen dieselben Beispieldaten.
-- Liste der Seiten und ihrer Anfragen: `docs/schnittstellen.md`.
+### Vorarbeit für die Rauchtests (Schritt 4)
 
-Zuerst zu klären, bevor etwas gebaut wird:
-- **Login ohne Keycloak:** In der Cloud-Sitzung lässt sich Keycloak nicht starten (siehe unten). Wie melden sich die Rauchtests an? Ein Test-Ersatz darf, wie das feste Passwort in `add_users`, nur außerhalb des Echtbetriebs funktionieren, mit Test.
-- Wie Backend, Datenbank und Frontend für die Tests gemeinsam gestartet werden, lokal auf dem Mac und in der automatischen Prüfung auf GitHub.
-- Ob die Rauchtests sofort Teil der automatischen Prüfung auf GitHub werden.
-
-Den Plan vor dem Bauen mit Sebastian abstimmen.
+Am 15.10.2026 geklärt:
+- **In der Cloud-Sitzung gibt es keinen Browser.** Die Download-Seiten für Browser (Playwright) sind gesperrt, ebenso Keycloak (Docker-Abbild, GitHub, Maven). Ein Login-Ersatz würde das Problem also nicht lösen und brächte gefährlichen Code in die Login-Anbindung.
+- **Vorschlag, mit Sebastian besprochen, noch nicht entschieden:** Die Rauchtests laufen mit einem echten Keycloak 26.7 automatisch auf GitHub und auf Sebastians Mac. `dev/keycloak-setup.sh` legt schon drei Testkonten an (`leitung`, `stammesleitung`, `teilnehmer`). Als Erstes prüfen, ob GitHub das Keycloak-Abbild laden darf. Aufteilung in drei Pull Requests: Beispieldaten und Anleitung „lokal starten“, dann „jede Seite lädt“, dann „Anmeldeablauf“.
+- **Offene Fragen an Sebastian dazu:** Hat er Docker Desktop auf dem Mac? Welcher Anmeldeablauf ist der wichtigste (Vorschlag: Stammesleitung meldet ihren Stamm mit zwei Personen an, die Veranstaltungsleitung sieht die Anmeldung in der Auswertung)? Sollen rote Rauchtests eine Übernahme blockieren (Vorschlag: ja, sobald sie stabil laufen)?
+- Werkzeug voraussichtlich Playwright, weil es einen echten Browser steuert und nicht von der Vite-Version abhängt. Neues Paket, also mit Begründung (`CONTRIBUTING.md` Abschnitt 5). Liste der Seiten und ihrer Anfragen: `docs/schnittstellen.md`.
 
 ### Offene Fragen an Sebastian
 
@@ -100,11 +101,15 @@ Den Plan vor dem Bauen mit Sebastian abstimmen.
 
 ### Reihenfolge der nächsten Schritte (Bestandsaufnahme vom 15.10.2026)
 
-1. ✅ **Qualität II, Schritt 2a: Frontend und Backend abgleichen**, mit automatischer Prüfung (PR #14). Das erste Sicherheitsnetz für alle weiteren Änderungen, dazu die Karte `docs/schnittstellen.md`. Der Feldnamen-Abgleich (2b) ist nach hinten verschoben, siehe Punkt 3a.
+1. ✅ **Qualität II, Schritt 2a: Frontend und Backend abgleichen**, mit automatischer Prüfung (PR #14). Das erste Sicherheitsnetz für alle weiteren Änderungen, dazu die Karte `docs/schnittstellen.md`. Der Feldnamen-Abgleich (2b) ist nach hinten verschoben, siehe Punkt 4a.
 2. ✅ **Sicherheitsupdates im Frontend innerhalb der Hauptversionen** (PR #16). Bekannte Lücken in den Programmpaketen von 63 auf 4.
-3. **← als Nächstes: Rauchtests für das Frontend**, Details im Abschnitt „Übergabe“: jede Seite einmal öffnen, dazu ein Durchlauf des Anmeldeablaufs. Ohne sie lässt sich nach den großen Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test.
-3a. **Qualität II, Schritt 2b: Feldnamen abgleichen.** Nach den Rauchtests, weil diese viele Feldfehler direkt zeigen (eine Seite bleibt leer oder meldet Fehler).
-4. **Phase 3d, Modernisierung Frontend**: die großen Versionssprünge einzeln, je mit Rauchtests und Klicktest. Vor Phase 4, damit der neue Anmeldeablauf nicht auf dem alten Fundament entsteht.
+3. **Risikoarme Versionssprünge im Frontend** (Entscheidung vom 15.10.2026, Weg C), je ein Pull Request mit Klickliste, in dieser Reihenfolge:
+   - ✅ **TypeScript 4.6 → 6.0 und eslint 8 → 10** (PR #17), gemeinsam, weil das neue eslint mindestens TypeScript 4.8 verlangt. TypeScript 7 lässt sich noch nicht nutzen, siehe Phase 3d.
+   - **← als Nächstes: `uuid` 9 → 11**
+   - Vue 3.3 → 3.5. Verlangt es einen neueren Vite-Baustein (`@vitejs/plugin-vue`), wandert es zu den riskanten Sprüngen.
+4. **Rauchtests für das Frontend**, Details im Abschnitt „Übergabe“: jede Seite einmal öffnen, dazu ein Durchlauf des Anmeldeablaufs. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test.
+4a. **Qualität II, Schritt 2b: Feldnamen abgleichen.** Nach den Rauchtests, weil diese viele Feldfehler direkt zeigen (eine Seite bleibt leer oder meldet Fehler).
+4b. **Phase 3d, riskante Versionssprünge**: Vite, Pinia, vue-router, `quill`, Tailwind, einzeln, je mit Rauchtests und Klicktest, bei Tailwind zusätzlich Prüfung des Aussehens. Vor Phase 4, damit der neue Anmeldeablauf nicht auf dem alten Fundament entsteht.
 5. **Qualität II, Schritt 3: Keycloak-Abgleich**, zusammen mit dem Keycloak-Baustein im Frontend.
 6. **Qualität II, Schritt 1c**: die restlichen Prüfregeln, klein und unabhängig, auch zwischendurch möglich.
 7. **Abstimmung der Funktionen und Abläufe**, danach Qualität II 4a/4b und Phase 4. Die Abstimmung kann beginnen, sobald die Karte aus Schritt 1 steht, parallel zur technischen Arbeit.
@@ -154,7 +159,9 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 
 ## Phase 3d: Modernisierung Frontend
 
-Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 4.6 (7), eslint 8 (10). Bekannte Sicherheitslücken nach PR #16: 242, davon 4 in den Programmpaketen (`uuid`, `quill`, zweimal `@vue/server-renderer`), der Rest in Entwicklungswerkzeugen. Vorher 329 bzw. 63. Die 63 waren nicht alle Code, der im Browser läuft, siehe `docs/qualitaet.md`.
+Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 6.0 (7, siehe unten), eslint 10 (10). Bekannte Sicherheitslücken nach PR #17: 172, davon 4 in den Programmpaketen (`uuid`, `quill`, zweimal `@vue/server-renderer`), der Rest in Entwicklungswerkzeugen. Nach PR #16 waren es 242, davor 329 bzw. 63. Die 63 waren nicht alle Code, der im Browser läuft, siehe `docs/qualitaet.md`.
+
+**TypeScript 7** ist neu geschrieben und hat noch keine feste Schnittstelle für andere Werkzeuge. `typescript-eslint` unterstützt deshalb nur TypeScript bis 6.0 (Stand 15.10.2026, `typescript-eslint` 8.71). Erst aktualisieren, wenn `typescript-eslint` TypeScript 7 unterstützt. Die Einstellung `moduleResolution: bundler` in `tsconfig.json` ist dafür schon vorbereitet.
 
 - [x] Sicherheitsupdates innerhalb der Hauptversionen (PR #16). Vorgehen für künftige Updates:
   - Direkte Pakete gezielt einzeln (`yarn upgrade axios@1.20.0`), nie pauschal `yarn upgrade`, nie `npm audit fix --force`, kein Wechsel auf npm.
@@ -163,10 +170,12 @@ Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia
   - Für Frontend-Pakete gibt es noch keine automatische Prüfung auf Sicherheitslücken wie `pip-audit` im Backend. Mit eslint in die automatischen Prüfungen aufnehmen und `CONTRIBUTING.md` Abschnitt 5 dann ergänzen.
   - Prüfen: `yarn build`, eslint und `npx tsc --noEmit` vorher und nachher vergleichen, Backend-Tests, `yarn audit --groups dependencies --summary`, Änderungsprotokoll des Pakets gegen unsere Aufrufe lesen.
   - Die `resolutions` (`postcss`, `nanoid`, `source-map-js`) beim Sprung auf Vue 3.5 und Vite neu bewerten und entfernen, wenn die neuen Fassungen behobene Versionen selbst verlangen.
-- [ ] Bei den großen Sprüngen mit erledigen: `uuid` (9 → 11), `quill` (über `@vueup/vue-quill`, ggf. Ersatz), Vue 3.5 (schließt die Lücke in `@vue/server-renderer`; doppelte Vue-Fassung über `@vue-leaflet/vue-leaflet` beachten).
+- [x] TypeScript 4.6 → 6.0 und eslint 8 → 10 (PR #17). eslint nutzt jetzt `frontend/eslint.config.mjs` statt `.eslintrc.js`, Aufruf mit `yarn lint`. Die Regeln entsprechen den bisherigen, Unterschiede und Zahlen in `docs/qualitaet.md`. Drei unbenutzte eslint-Zusatzbausteine (`eslint-plugin-import`, `-node`, `-promise`) sind entfernt.
+- [ ] Risikoarm, vor den Rauchtests (Entscheidung vom 15.10.2026): `uuid` (9 → 11), Vue 3.5 (schließt die Lücke in `@vue/server-renderer`; doppelte Vue-Fassung über `@vue-leaflet/vue-leaflet` beachten; wandert nach hinten, falls es einen neueren `@vitejs/plugin-vue` verlangt).
+- [ ] Riskant, nach den Rauchtests: Vite, Pinia, vue-router, `quill` (über `@vueup/vue-quill`, ggf. Ersatz), Tailwind (zusätzlich Aussehen prüfen).
 - [ ] Rauchtests: jede Seite lädt ohne Fehler, Anmeldeablauf läuft durch. Werkzeug voraussichtlich Playwright (steuert einen echten Browser, unabhängig von der Vite-Version); als neues Paket mit Begründung.
 - [ ] Anleitung, das Tool lokal mit Beispieldaten zu starten (dieselben Beispieldaten nutzen die Rauchtests).
-- [ ] eslint in die automatischen Prüfungen auf GitHub. Heute 198 Fehler und ca. 2.800 Warnungen: zuerst die Fehler, Warnungen schrittweise.
+- [ ] eslint in die automatischen Prüfungen auf GitHub. Nach PR #17: 259 Fehler und 2.796 Warnungen (`yarn lint`, Aufschlüsselung in `docs/qualitaet.md`): zuerst die Fehler, Warnungen schrittweise. Die vorübergehend gelockerten Stufen in `eslint.config.mjs` dabei bewusst einzeln schärfer stellen.
 - [ ] Große Versionssprünge einzeln, je ein Pull Request mit Rauchtests und Klicktest.
 
 ## Abstimmung der Funktionen und Abläufe
@@ -214,6 +223,11 @@ Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit i
 - [ ] Die zentrale Fehlerbehandlung für Antworten (`frontend/src/plugin/auth.ts`) liest `error.response.status`, ohne zu prüfen, ob es eine Antwort gibt. Ist das Backend nicht erreichbar oder bricht eine Anfrage ab, zum Beispiel bei der Weiterleitung zum Login, entsteht dort ein zweiter Fehler, der den eigentlichen verdeckt. Das war schon vor PR #16 so. axios 1.20 ändert nur, dass auch der aktuelle Firefox solche Abbrüche als Fehler meldet statt als leere Antwort. Beim Seitenwechsel ist es unsichtbar, weil die Seite ohnehin verlassen wird. Zusammen mit dem Punkt darüber beheben.
 - [ ] Die Schaltfläche **„Anmeldungen zusammenfassen“** in der Auswertung erscheint auch für Ansichtsgruppe sowie Bundes- und Ringführung. Seit Qualität II 1b-2 lehnt das Backend das ab, die Oberfläche zeigt dann keine Meldung, sondern bricht still ab. Nur der Veranstaltungsleitung anzeigen, Fehler anzeigen.
 - [ ] Die **Schalter für Fristen und Sperren** aus Phase 3b sind im Backend fertig, haben aber keine Bedienelemente im Frontend.
+
+- [ ] **Funde von eslint 10** (PR #17), je mit Test oder Klickprüfung beheben:
+  - `frontend/src/modules/event/components/eventModule/Form.vue` (Zeile 148): Die Position eines neuen Bausteins wird berechnet und verworfen, die Funktion liefert immer 1. Vermutlich landen neue Bausteine deshalb an falscher Stelle.
+  - `frontend/src/components/stepper/StepFrame.vue`: `isLoading` ist zugleich Eigenschaft von außen (Prop) und eigener Wert. Welcher im Formular gilt, ist unklar.
+  - `frontend/src/modules/help/store/index.ts`: Die Abfragen `task` und `isLoading` geben nie etwas zurück. Erst prüfen, ob das Hilfe-Modul überhaupt eingebunden ist.
 
 ### Technische Grundlage Frontend
 

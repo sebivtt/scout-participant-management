@@ -172,15 +172,34 @@ Offen ist Schritt 2b: ob das Frontend Felder liest, die das Backend nicht liefer
 
 ## Frontend
 
-Gemessen am 14.10.2026, Prüfung mit eslint. Wird in Phase 4 Teil der automatischen Prüfungen.
+Gemessen am 14.10.2026, aktualisiert am 15.10.2026 nach dem Wechsel auf eslint 10 und TypeScript 6 (PR #17). eslint wird in Phase 3d Teil der automatischen Prüfungen.
 
 | Messung | Wert |
 | --- | --- |
 | Umfang | ca. 34.000 Zeilen |
-| eslint-Fehler | 198 |
-| eslint-Warnungen | ca. 2.800 (v. a. ungenutzte Variablen und Formatierung) |
+| eslint-Fehler | 259 (mit eslint 8: 198, Erklärung unten) |
+| eslint-Warnungen | 2.796 (mit eslint 8: 2.780; v. a. ungenutzte Variablen und Formatierung) |
+| Meldungen der Typprüfung (`npx tsc --noEmit`) | 87 (mit TypeScript 4.6: 107) |
 | Tests | keine |
 | Größte Programmdatei nach dem Bauen | 1,2 MB, wird bei jedem Aufruf komplett geladen |
+
+### Wechsel auf eslint 10 und TypeScript 6 (PR #17)
+
+Die neue Einstellung (`frontend/eslint.config.mjs`) prüft mit denselben Regelsätzen wie bisher: Vue 3, TypeScript, Sicherheit, ohne Formatierungsregeln. Regeln, die `typescript-eslint` 8 strenger eingestuft oder aus seinem Standardsatz genommen hat, stehen auf der alten Stufe. Woher die Unterschiede kommen:
+
+| Regel | eslint 8 | eslint 10 | Grund |
+| --- | --- | --- | --- |
+| `ban-types` → `no-wrapper-object-types`, `no-empty-object-type` | 24 | 23 | dieselbe Regel, aufgeteilt. Eine Stelle (`Number` als Typ in `components/field/Base.vue`) meldet die Nachfolgerin nicht mehr |
+| `prefer-const` | 0 | 32 | galt bisher nur in `.ts`-Dateien, jetzt auch in `.vue` |
+| `vue/block-lang` | – | 25 | neu: `<script>` ohne Angabe der Sprache |
+| `no-unused-expressions` | – | 4 | neu: Ausdrücke ohne Wirkung. Zwei davon sind echte Fehler (Fahrplan, Phase 4) |
+| `vue/no-dupe-keys` | 0 | 1 | genauer: doppelter Name in `StepFrame.vue` (Fahrplan, Phase 4) |
+| `no-unused-vars` (Warnung) | 1.176 | 1.189 | genauer |
+| `vue/no-required-prop-with-default` (Warnung) | – | 2 | neu |
+| Kommentar ohne Wirkung (Warnung) | – | 2 | neu: zwei `eslint-disable`-Kommentare in `router.ts` schalten Regeln ab, die gar nicht aktiv sind |
+| `security/detect-non-literal-fs-filename` (Warnung) | 1 | 0 | genauer |
+
+Die Typprüfung meldet weniger, weil TypeScript mit der neuen Einstellung `moduleResolution: bundler` Pakete so findet wie Vite und z. B. die Typen von `keycloak-js` jetzt kennt. Drei Meldungen sind neu: Für `vue3-apexcharts` und `@pinia/testing` findet sie keine Typen mehr, und der Import der CSS-Datei in `main.ts` wird jetzt geprüft. Die Typprüfung läuft nicht beim Bauen, das Programm ist davon nicht betroffen.
 
 ### Sicherheitslücken in Frontend-Paketen
 
@@ -190,6 +209,8 @@ Gemessen am 15.10.2026 mit `yarn audit` im Ordner `frontend/`, vor und nach dem 
 | --- | --- | --- |
 | Pakete des Programms (`--groups dependencies`) | 63 (1 kritisch, 31 hoch, 30 mittel, 1 niedrig) | 4 (2 hoch, 2 mittel) |
 | alle Pakete, auch Entwicklungswerkzeuge | 329 | 242 |
+
+Nach PR #17 (eslint 10, TypeScript 6): alle Pakete 172. Das alte eslint brachte viele veraltete Hilfspakete mit.
 
 Übrig sind im Programm nur die bewusst offenen Pakete: `@vue/server-renderer` (zweimal gezählt, weil zwei Vue-Fassungen enthalten sind), `uuid` und `quill`. Sie folgen mit den großen Versionssprüngen (Phase 3d). Die übrigen 238 betreffen Entwicklungswerkzeuge wie Vite, eslint und Cypress, die nur auf dem eigenen Rechner bzw. beim Bauen laufen. Darunter erscheinen auch `axios` und `uuid` noch einmal: Das Startwerkzeug `wait-on` bringt eine alte axios-Fassung (0.25) mit, Cypress eine eigene uuid-Fassung. Sie gehören nicht zum Programm.
 
