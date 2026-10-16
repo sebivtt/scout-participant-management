@@ -22,7 +22,7 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 - Fachliche Fragen (wer darf was, welche Fristen gelten) entscheidet er. Technische Fragen entscheidet die KI und begründet sie.
 - Pull Requests werden nicht aufeinander aufgebaut. Der nächste beginnt erst, wenn der vorige in `main` ist. (PR #12 landete sonst im falschen Branch und musste mit PR #13 nachgeholt werden.)
 
-## Übergabe (Stand 15.10.2026, nach PR #21)
+## Übergabe (Stand 16.10.2026, nach PR #22)
 
 ### Was erledigt ist
 
@@ -41,17 +41,11 @@ Phase 3d:
 
 Fehlerbehebungen:
 - **PR #21 (Issue #19):** Neue Anmeldungen mit Personen waren seit PR #3 unmöglich. Die Dublettenprüfung hat jetzt eine eigene Adresse für neue Anmeldungen, meldet Dubletten sofort, auch bei Stammesmitgliedern, und hält bearbeitete Personen nicht mehr für ihre eigene Dublette (Entscheidung vom 15.10.2026). Dabei behoben: Wer in einer neuen Anmeldung eine Person bearbeitete, hatte sie danach doppelt in der Liste (Altcode).
+- **PR #22 (Issue #20):** Nach dem Speichern eines Lagerbeitrags und nach dem Ändern eines Orts blieb die Veranstaltungsseite leer, weil die Weiterleitung die Kennung des gespeicherten Eintrags statt der Veranstaltung nahm (Altcode). Ziel ist jetzt die Veranstaltung aus der Adresse der Seite.
 
 Tests: 253 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). Ergebnisse in `docs/qualitaet.md`, Entscheidungen in `docs/entscheidungen.md`.
 
-### Nächster Schritt: Issue #20, Weiterleitung nach dem Speichern
-
-- Nach dem Speichern eines Lagerbeitrags (`frontend/src/modules/event/components/EventEdit/FormBookings.vue`, Anlegen und Ändern) und nach dem Ändern eines Orts (`EventEdit/location/Form.vue`) springt die Seite zur Veranstaltung mit der Kennung aus der Antwort des Backends, also der des Lagerbeitrags bzw. Orts. Die Seite bleibt leer. Gespeichert wird trotzdem.
-- Behebung: Ziel der Weiterleitung ist die Veranstaltung aus der Adresse der Seite (`route.params.id`). Die übrigen Formulare der Veranstaltung (Namen, Daten, Rechte, Eigenes) speichern die Veranstaltung selbst und sind richtig.
-- Altcode der ursprünglichen Entwickler. Das Frontend hat keine Tests: Prüfung über Klickliste, der Fall kommt als Pflichtpunkt in die Rauchtests.
-- Ähnliches Muster im eingefrorenen Modul `messaging` (`issueTypeEdit/Form.vue` springt mit der Kennung eines Nachrichtentyps zur Nachrichtenseite). Nur festhalten, nicht beheben (Entscheidung zu eingefrorenen Modulen).
-
-### Danach: Vue 3.3 → 3.5
+### Nächster Schritt: Vue 3.3 → 3.5
 
 - Schließt die letzten hohen Lücken in den Programmpaketen (`@vue/server-renderer`, zweimal gezählt). Danach bleibt nur `quill`.
 - `yarn.lock` enthält zwei Vue-Fassungen: 3.3.4 direkt und 3.4.15 über `@vue-leaflet/vue-leaflet` (verlangt `^3.2.25`). Ziel ist eine einzige Fassung 3.5.x.
@@ -118,8 +112,8 @@ Am 15.10.2026 geklärt:
 3. **Risikoarme Versionssprünge im Frontend** (Entscheidung vom 15.10.2026, Weg C), je ein Pull Request mit Klickliste, in dieser Reihenfolge:
    - ✅ **TypeScript 4.6 → 6.0 und eslint 8 → 10** (PR #17), gemeinsam, weil das neue eslint mindestens TypeScript 4.8 verlangt. TypeScript 7 lässt sich noch nicht nutzen, siehe Phase 3d.
    - ✅ **`uuid` 9 → 14** (PR #18)
-   - Dazwischen vorgezogen, weil sie das Anmelden bzw. Bearbeiten blockieren: ✅ Issue #19 (PR #21), **← als Nächstes: Issue #20** (Weiterleitung nach dem Speichern), Details in der Übergabe
-   - Vue 3.3 → 3.5. Verlangt es einen neueren Vite-Baustein (`@vitejs/plugin-vue`), wandert es zu den riskanten Sprüngen.
+   - Dazwischen vorgezogen, weil sie das Anmelden bzw. Bearbeiten blockieren: ✅ Issue #19 (PR #21), ✅ Issue #20 (PR #22)
+   - **← als Nächstes: Vue 3.3 → 3.5.** Verlangt es einen neueren Vite-Baustein (`@vitejs/plugin-vue`), wandert es zu den riskanten Sprüngen.
 4. **Rauchtests für das Frontend**, Details im Abschnitt „Übergabe“: jede Seite einmal öffnen, dazu ein Durchlauf des Anmeldeablaufs. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test.
 4a. **Qualität II, Schritt 2b: Feldnamen abgleichen.** Nach den Rauchtests, weil diese viele Feldfehler direkt zeigen (eine Seite bleibt leer oder meldet Fehler).
 4b. **Phase 3d, riskante Versionssprünge**: Vite, Pinia, vue-router, `quill`, Tailwind, einzeln, je mit Rauchtests und Klicktest, bei Tailwind zusätzlich Prüfung des Aussehens. Vor Phase 4, damit der neue Anmeldeablauf nicht auf dem alten Fundament entsteht.
@@ -231,7 +225,8 @@ Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit i
 - [ ] Die **Stammauswahl** ist eine lange flache Liste, die sich schlecht scrollen lässt. Gewünscht ist eine hierarchische Auswahl (Bund → Ring/Gau → Stamm).
 - [ ] Das **E-Mail-Feld** in den persönlichen Daten ist gesperrt, ohne Erklärung. Es kommt aus Keycloak. Ein erklärender Hinweis fehlt.
 - [ ] **Adressfelder** sollen aufgeteilt werden (Straße, PLZ, Ort) und um ein **Bundesland** ergänzt werden.
-- [ ] Nach dem **Speichern** führt die Weiterleitung auf die nächste Seite (`router.push`) ins Leere oder scheitert. Geklärt am 15.10.2026: Lagerbeitrag und Ort, als Issue #20 vorgezogen (siehe Übergabe).
+- [x] Nach dem **Speichern** führt die Weiterleitung auf die nächste Seite (`router.push`) ins Leere oder scheitert. Geklärt am 15.10.2026: Lagerbeitrag und Ort, behoben mit PR #22 (Issue #20).
+- [ ] **Keine Bestätigung nach dem Speichern:** Alle Formulare einer Veranstaltung (Namen, Daten, Rechte, Lagerbeiträge, Eigenes, Ort) laden nach dem Speichern die ganze Seite neu (`router.go`). Eine Meldung „Gespeichert“ erscheint deshalb nie, und bei einem Fehler beim Speichern passiert gar nichts Sichtbares, der Bearbeitungsbereich bleibt einfach offen. Gewünscht laut Issue #20: Speichern bestätigen und den Bearbeitungsbereich schließen. Lösung: Bereich schließen, Veranstaltung neu laden statt der ganzen Seite, Bestätigung bzw. Fehlermeldung zeigen. Auch das eingefrorene Modul `messaging` (`issueTypeEdit/Form.vue`) springt nach dem Speichern mit der Kennung eines Nachrichtentyps zur Nachrichtenseite, dort nur festhalten.
 - [ ] Ein **abgelaufener Login** führt zu stillen 401-Fehlern. Stattdessen soll man eine klare Meldung sehen oder neu angemeldet werden.
 - [ ] Die zentrale Fehlerbehandlung für Antworten (`frontend/src/plugin/auth.ts`) liest `error.response.status`, ohne zu prüfen, ob es eine Antwort gibt. Ist das Backend nicht erreichbar oder bricht eine Anfrage ab, zum Beispiel bei der Weiterleitung zum Login, entsteht dort ein zweiter Fehler, der den eigentlichen verdeckt. Das war schon vor PR #16 so. axios 1.20 ändert nur, dass auch der aktuelle Firefox solche Abbrüche als Fehler meldet statt als leere Antwort. Beim Seitenwechsel ist es unsichtbar, weil die Seite ohnehin verlassen wird. Zusammen mit dem Punkt darüber beheben.
 - [ ] Die Schaltfläche **„Anmeldungen zusammenfassen“** in der Auswertung erscheint auch für Ansichtsgruppe sowie Bundes- und Ringführung. Seit Qualität II 1b-2 lehnt das Backend das ab, die Oberfläche zeigt dann keine Meldung, sondern bricht still ab. Nur der Veranstaltungsleitung anzeigen, Fehler anzeigen.

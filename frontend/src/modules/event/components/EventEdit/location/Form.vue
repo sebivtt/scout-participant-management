@@ -88,7 +88,7 @@ function onSaveClicked() {
   if (isUpdate.value) {
     eventStore
       .updateLocation(returnObj)
-      .then((response) => goToRoute(response.data.id));
+      .then(() => goToEvent());
   } else {
     const eventId = route.params.id;
     eventStore
@@ -97,18 +97,27 @@ function onSaveClicked() {
         id: eventId,
         location: response_location.data.id
       }))
-      .then((response_event) => goToRoute(response_event.data.id));
+      .then(() => goToEvent());
   }
 }
 
-function goToRoute(id: number) {
+/**
+ * Zeigt nach dem Speichern wieder die Veranstaltung an.
+ *
+ * Ziel ist immer die Veranstaltung aus der Adresse dieser Seite
+ * (`/event-details/:id`). Früher wurde die Kennung aus der Antwort des
+ * Backends genommen, also die des gespeicherten Eintrags statt der
+ * Veranstaltung, und die Seite blieb leer (Issue #20).
+ */
+function goToEvent() {
   router.push({
     name: "EventDetail",
     params: {
-      id: id,
+      id: route.params.id,
     },
   });
-  //todo
+  // Lädt die Seite neu, damit die geänderten Daten erscheinen und der
+  // Bearbeitungsbereich schließt. So machen es alle Formulare der Veranstaltung.
   if (router.currentRoute.value.name === "EventDetail") {
     router.go(router.currentRoute.value);
   }
