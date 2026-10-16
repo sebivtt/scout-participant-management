@@ -88,27 +88,53 @@ function onSaveClicked() {
   if (isUpdate.value) {
     eventStore
       .updateLocation(returnObj)
-      .then((response) => goToRoute(response.data.id));
+      .then(onSaved);
   } else {
     const eventId = route.params.id;
     eventStore
       .createLocation(returnObj)
-      .then((response_location) => eventStore.eventPartialUpdate({
+      .then((response_location) => response_location && eventStore.eventPartialUpdate({
         id: eventId,
         location: response_location.data.id
       }))
-      .then((response_event) => goToRoute(response_event.data.id));
+      .then(onSaved);
   }
 }
 
-function goToRoute(id: number) {
+/**
+ * Nach dem Speichern: bei Erfolg zur Veranstaltung, sonst Fehler zeigen.
+ *
+ * Die Speicherfunktionen im Store fangen Fehler ab und liefern dann nichts
+ * zurück. Ohne diese Prüfung würde die Seite auch nach einem gescheiterten
+ * Speichern neu laden, und es sähe aus, als wäre gespeichert worden. So
+ * bleibt das Formular mit den Eingaben offen.
+ */
+function onSaved(response) {
+  if (response) {
+    goToEvent();
+    return;
+  }
+  isLoading.value = false;
+  commonStore.showError("Speichern fehlgeschlagen. Bitte Eingaben und Berechtigung prüfen.");
+}
+
+/**
+ * Zeigt nach dem Speichern wieder die Veranstaltung an.
+ *
+ * Ziel ist immer die Veranstaltung aus der Adresse dieser Seite
+ * (`/event-details/:id`). Früher wurde die Kennung aus der Antwort des
+ * Backends genommen, also die des gespeicherten Eintrags statt der
+ * Veranstaltung, und die Seite blieb leer (Issue #20).
+ */
+function goToEvent() {
   router.push({
     name: "EventDetail",
     params: {
-      id: id,
+      id: route.params.id,
     },
   });
-  //todo
+  // Lädt die Seite neu, damit die geänderten Daten erscheinen und der
+  // Bearbeitungsbereich schließt. So machen es alle Formulare der Veranstaltung.
   if (router.currentRoute.value.name === "EventDetail") {
     router.go(router.currentRoute.value);
   }
