@@ -6,6 +6,42 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-16 · Der Fahrplan ist die einzige Reihenfolge
+
+**Entscheidung:**
+- `docs/fahrplan.md` enthält eine einzige Liste, die festlegt, was als Nächstes kommt, was danach, was vor dem ersten Echtbetrieb, was irgendwann und was bewusst nicht. Jedes offene Issue steht darin an seiner Stelle.
+- Das Label `geklärt` heißt nur: fachlich fertig geklärt. Umgesetzt wird ein Issue erst, wenn es im Fahrplan an der Reihe ist **und** das Label trägt.
+- Die Fehlerlisten im alten Fahrplan sind aufgelöst: Was Nutzende sehen oder spüren, ist ein Issue (neu #43 bis #57). Technische Schritte ohne sichtbare Wirkung (Updates, eslint, Prüfregeln, Aufräumen) stehen als Schritte im Fahrplan. Die Punkte zu Datenschutz und Betrieb bleiben als Liste „Vor dem ersten Echtbetrieb“ und werden zu Issues, wenn sie nach vorne rücken. „Keine Bestätigung nach dem Speichern“ geht in #39 auf, „Weiterleitung nach dem Speichern einer Gruppe“ in #41, der Reiter „Module“ und die Buchungsoption in die Abstimmung der Abläufe. Gestrichen sind „Zu komplexe Funktionen aufteilen“ (regelt die Pfadfinderregel) und die Weiterleitung im eingefrorenen Kontaktformular.
+- Die offenen Fragen „Klicktest zu PR #11“ und „Person aus einer Anmeldung löschen“ sind gestrichen. Das prüfen künftig die Rauchtests und die Abstimmung. Fällt etwas fälschlich gesperrt auf, wird es ein Issue.
+
+**Begründung (Zusammenfassung der KI):** Nach mehreren parallelen Sitzungen gab es drei Stellen, die jeweils festlegten, was als Nächstes kommt (Fahrplan, Issues mit Label, Entscheidungen), und sie widersprachen sich. Die Pop-ups #38 bis #42 waren geklärt, sollten laut #35 aber erst nach den Rauchtests und Tailwind kommen. Eine neue Sitzung hätte nach `CLAUDE.md` trotzdem mit ihnen beginnen dürfen. GitHub kann eine Wartebedingung wie „nach den Rauchtests“ nicht abbilden, weil die Rauchtests kein Issue sind.
+**Umsetzung:** `docs/fahrplan.md` (neu aufgebaut), `docs/arbeitsumgebung.md` (Einrichtung der Cloud-Sitzung, ausgelagert), `CLAUDE.md` und `.claude/skills/grill-me/SKILL.md` (je ein Hinweis). Die älteren Einträge verweisen teils auf Abschnitte des alten Fahrplans („Übergabe“, „Reihenfolge der nächsten Schritte“, „Phase 3d“). Deren Inhalt steht jetzt unter „Reihenfolge“, „Vorgehen für künftige Updates“ und „Vorarbeit für die Rauchtests“.
+
+## 2026-10-16 · Reihenfolge nach der Aufräumrunde
+
+**Entscheidung:**
+- Es gibt keinen festen Termin für den ersten Echtbetrieb. Gründlichkeit geht vor Tempo. Datenschutz und Betrieb kommen vor dem ersten Einsatz mit echten Anmeldungen, aber nicht jetzt.
+- Die Abstimmung der Funktionen und Abläufe beginnt jetzt, parallel zur technischen Arbeit, zuerst mit „Anmelden“. Je Strang (Technik und Abstimmung) ist höchstens ein Pull Request gleichzeitig offen.
+- Strang Technik: Rauchtests → #37 → riskante Updates → eslint in die automatische Prüfung (mit #43) → Pop-ups #38 bis #42 → übrige Fehler und Anforderungen → Rest von Qualität II.
+- Nach den Updates kommen zuerst die Pop-ups, dann die übrigen Fehler und Anforderungen.
+- #37 („Mich selbst anmelden“ mittig) kommt nach den Rauchtests und vor den Updates, vorher mit `grill-me` geklärt.
+- Technisch (KI): Bei den riskanten Updates kommt `quill` zuerst, weil es die einzige verbliebene Sicherheitslücke in Code ist, der im Browser läuft. Tailwind kommt zuletzt und direkt vor den Pop-ups, weil beide das Aussehen ändern und Sebastian es so nur einmal prüfen muss. Innerhalb von Schritt 6 kommen Fehler vor Anforderungen „Wichtig“ vor „Wäre schön“. Die Reihenfolge innerhalb dieser Gruppen ist ein Vorschlag der KI, den Sebastian jederzeit ändern kann.
+
+**Begründung (Zusammenfassung der KI):** Die Abstimmung ist der Engpass: An ihr hängen T-Shirts und Lunch Pakete, die Buchungsoption, „bestätigt“ (#51), die offenen Fragen in #30 und Qualität II 4a/4b. Sie braucht vor allem Sebastians Zeit, kaum Programmierung, und stört die technische Arbeit deshalb nicht. Die Pop-ups sind geklärt und schließen ans Tailwind-Update an. In dieser Zeit klärt die Abstimmung die Regeln, die mehrere der übrigen Issues brauchen. Ohne Termin kostet diese Reihenfolge nichts. #37 ist klein und sofort sichtbar, und nach den Rauchtests ist das Fenster schon abgesichert, in dem #19 und #23 zweimal Fehler hatten.
+**Umsetzung:** `docs/fahrplan.md`, Abschnitt „Reihenfolge“
+
+## 2026-10-16 · Neue Fehler einsortieren
+
+**Entscheidung:** Ein neues Issue mit Auswirkung „Blockiert“ kommt direkt nach dem laufenden Schritt dran (nach `grill-me`). Alle anderen neuen Issues werden in Schritt 6 des Fahrplans nach Auswirkung bzw. Wichtigkeit einsortiert.
+**Begründung:** Ersetzt den Eintrag „Erst die Updates, dann gesammelte Fehler“ (16.10.2026) und die Regel, dass unter mehreren geklärten Issues die Wichtigkeit entscheidet (Eintrag „Issues erst klären, dann umsetzen“). Beide galten nebeneinander und ließen offen, was Vorrang hat. Fehler wie #19 (Anmelden unmöglich) sollen weiter sofort drankommen, alles andere wartet seinen Platz ab.
+**Umsetzung:** `docs/fahrplan.md`, Abschnitt „Regeln für die Reihenfolge“, Skill `grill-me` (Abschnitt „Danach“)
+
+## 2026-10-16 · Rauchtests: eigenes Rot vor der Übernahme beheben
+
+**Entscheidung:** Macht ein Pull Request einen vorher grünen Rauchtest rot, wird das vor der Übernahme behoben oder im Pull Request begründet. Was schon vorher rot war, wird ein Issue und blockiert nichts. GitHub sperrt die Übernahme nicht automatisch.
+**Begründung:** Beantwortet die offene Frage im Eintrag „Rauchtests und Umgang mit gefundenen Fehlern“ (16.10.2026), wie von der KI vorgeschlagen. Sonst wären die Rauchtests für die riskanten Updates wirkungslos, denn ein Update würde trotz Bruch übernommen.
+**Umsetzung:** `docs/fahrplan.md`, Abschnitt „Regeln für die Reihenfolge“
+
 ## 2026-10-16 · Issues erst klären, dann umsetzen
 
 **Entscheidung:**
