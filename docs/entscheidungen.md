@@ -6,6 +6,23 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-16 · Rauchtests und Umgang mit gefundenen Fehlern
+
+**Entscheidung:**
+- Der wichtigste Ablauf für die Rauchtests ist die Standard-Anmeldung über alle Schritte bis zum Absenden.
+- Rote Rauchtests blockieren keine Übernahme. Jeder gefundene Fehler wird als Issue auf GitHub angelegt und danach der Reihe nach abgearbeitet.
+- Für Livetests auf dem Mac steht Docker zur Verfügung.
+
+**Offen (Abgrenzung):** Gilt „blockiert nicht“ auch, wenn ein Pull Request die Rauchtests selbst rot macht, etwa ein Versionssprung? Die älteren Einträge „Modernisierung des Frontends: risikoarme Sprünge“ und „Erst die Updates, dann gesammelte Fehler“ sehen die Rauchtests als Sicherheitsnetz für die riskanten Sprünge. Vorschlag der KI: GitHub sperrt die Übernahme nicht automatisch, aber ein Rot, das der eigene Pull Request verursacht, wird vorher behoben oder im Pull Request begründet. Wartet auf Sebastians Antwort.
+**Begründung (Zusammenfassung der KI):** Fehler sollen sichtbar und nachvollziehbar gesammelt werden, ohne die Arbeit an anderen Stellen anzuhalten.
+**Umsetzung:** `docs/fahrplan.md`, Abschnitte „Übergabe“ und „Vorarbeit für die Rauchtests“
+
+## 2026-10-16 · T-Shirts und Lunch Pakete nicht in jeder Veranstaltung
+
+**Entscheidung:** Die Abfragen „T-Shirts“ und „Lunch Pakete“ sollen nicht standardmäßig in jeder neuen Veranstaltung auftauchen. Was Standard ist und was die Veranstaltungsleitung zusätzlich wählt, wird in der Abstimmung der Funktionen und Abläufe geklärt.
+**Begründung:** Seit PR #27 erscheinen beide Schritte im Anmeldeablauf, weil die Standardvorlage sie jeder neuen Veranstaltung mitgibt (`backend/data/main/3_event.json`, `other_required_modules`). Vorher waren sie zwar enthalten, aber nicht beantwortbar und blockierten den Ablauf (Issue #25).
+**Umsetzung:** offen, bis zur Abstimmung bleibt die Vorlage unverändert. Die Veranstaltungsleitung kann beide Schritte in der Veranstaltung entfernen.
+
 ## 2026-10-16 · Erst die Updates, dann gesammelte Fehler
 
 **Entscheidung:** Neu gemeldete Fehler werden gesammelt und nach den Versionssprüngen im Frontend behoben. Ausnahme: Ein Fehler liegt genau in dem Bereich, den das nächste Update betrifft, oder er könnte durch eine KI-Änderung entstanden sein. Dann kommt er zuerst.
