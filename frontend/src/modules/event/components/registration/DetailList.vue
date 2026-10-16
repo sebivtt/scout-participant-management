@@ -436,9 +436,12 @@ function getValueByAttribute(currentAttribute, attributes) {
 function getOverviewModules(registration: any) {
   try {
     const list = registration?.event?.eventmoduleSet;
-    const arrB = ["Custom", "Letter", "Travel", "TravelBack"];
+    // Alle Schritte mit Antworten, auch solche aus der Standardvorlage wie
+    // „Tshirts“ (Issue #25). Einführung, Teilnehmende und Zusammenfassung
+    // zeigt die Seite an anderer Stelle bzw. sie haben keine eigenen Antworten.
+    const notShownHere = ["Introduction", "Participants", "Summary"];
     const filteredArray = list.filter(
-      (itm: any) => arrB.indexOf(itm.name) > -1
+      (itm: any) => !notShownHere.includes(itm.name)
     );
     return filteredArray;
   } catch (e) {

@@ -118,6 +118,8 @@ import { useEventRegisterStore } from "@/modules/event/store/register.ts";
 const eventRegisterStore = useEventRegisterStore();
 
 import { useEventStore } from "@/modules/event/store";
+import { useCommonStore } from "@/modules/common/store/index";
+const commonStore = useCommonStore();
 const eventStore = useEventStore();
 
 const rules = {
@@ -192,10 +194,19 @@ const props = defineProps({
 function close() {
   props.callbackOnCancel();
 }
+/**
+ * Speichert die Reise, wenn alle Pflichtangaben stimmen, sonst Hinweis.
+ *
+ * Bis Issue #25 fehlte `commonStore`: Bei fehlenden Angaben stürzte der
+ * Dialog ab und blieb ohne Meldung offen. Das `return` ist neu: Ohne den
+ * Absturz wären unvollständige Angaben nach dem Hinweis trotzdem übernommen
+ * worden.
+ */
 function onButtonSaveClicked() {
   errors.value.$validate();
   if (errors.value.$error) {
     commonStore.showError("Bitte Felder überprüfen");
+    return;
   }
 
   props.callbackOnConfirm(state);
