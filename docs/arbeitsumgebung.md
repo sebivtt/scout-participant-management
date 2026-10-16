@@ -1,6 +1,6 @@
 # Arbeitsumgebung
 
-Eigenheiten der Cloud-Sitzung und Rezepte, die beim Arbeiten gebraucht werden. Ausgelagert aus `docs/fahrplan.md` am 16.10.2026, damit der Fahrplan nur noch die Reihenfolge enthält. Der Inhalt ist unverändert übernommen.
+Eigenheiten der Cloud-Sitzung und Rezepte, die beim Arbeiten gebraucht werden. Ausgelagert aus `docs/fahrplan.md` am 16.10.2026, damit der Fahrplan nur noch die Reihenfolge enthält. Der Inhalt ist sachlich unverändert übernommen, nur Verweise sind angepasst. Die Überlegung zu zwei Stufen der Rauchtests steht weiter im Fahrplan.
 
 Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z. B. `tests/test_abfragen.py` = `backend/tests/test_abfragen.py`.
 
@@ -27,7 +27,7 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 - **In der Cloud-Sitzung gibt es einen Browser** (Korrektur vom 16.10.2026). Chromium mit Playwright ist vorinstalliert (`/opt/pw-browsers`, Playwright unter `/opt/npm-tools/node_modules/playwright`, `PLAYWRIGHT_BROWSERS_PATH` ist gesetzt). Am 15.10. wurde nur an den Standardorten gesucht und fälschlich „kein Browser“ festgehalten. Keycloak bleibt gesperrt (Docker-Abbild, GitHub, Maven).
 - **Bei Issue #23 erprobt:** Das Frontend läuft mit `yarn dev`, Playwright beantwortet im Browser die Anfragen an Keycloak (Login mit Platzhalter-Token) und ans Backend (Testdaten) mit `page.route`. Am Tool selbst ändert sich dafür nichts, es gibt keinen Login-Ersatz im Code. Testdaten, die zum echten Backend passen, erzeugt das Backend selbst über die Testdaten aus `tests/conftest.py`. So ließ sich #23 nachstellen und die Behebung vorher und nachher prüfen. Grenze: Das Backend wird dabei nicht mitgeprüft.
 - **Nachstell-Skripte vom 16.10.2026 (nicht im Repository, nur als Rezept):** Ein Node-Skript startet Chromium über `require('/opt/npm-tools/node_modules/playwright')`, ruft das Frontend auf `http://localhost:8080` auf (`yarn dev` mit den Umgebungsvariablen aus `.github/workflows/ci.yml`) und beantwortet mit `page.route`:
-  - `http://localhost:8180/**` (Keycloak): `…/protocol/openid-connect/auth` mit einer Weiterleitung an `redirect_uri#state=…&code=c`, `…/token` mit einem unsignierten JWT, das den `nonce` aus der Anfrage enthält.
+  - `http://localhost:8180/**` (Keycloak): `…/protocol/openid-connect/auth` mit einer Weiterleitung an `redirect_uri#state=…&code=c`, `…/token` mit einem unsignierten JWT (dem Ausweis, den Keycloak nach dem Login ausstellt), das den `nonce` aus der Anfrage enthält.
   - `http://localhost:8000/**` (Backend): Antworten aus JSON-Dateien, die das echte Backend erzeugt. Dazu vorübergehend einen Test in `backend/tests/` anlegen, der mit den Fixtures aus `conftest.py` Daten anlegt und die Antworten (`/event/event-read/<id>/`, `/event/registration-read/<id>/`, `/auth/personal-data/`, `/basic/gender/`, `/event/travel-type-choices/`) in Dateien schreibt, danach löschen. Alle übrigen Anfragen mit `[]` beantworten.
   - Gemessen wurden je Seite Programmfehler (`pageerror`, `console.error`) und Vue-Warnungen, vorher und nachher.
   - Vorsicht in der Cloud-Shell: Prozesse nicht mit `pkill -f`/`pgrep -f` auf ein Muster beenden, das in der eigenen Befehlszeile vorkommt, das beendet die eigene Shell. PIDs über `ps aux | grep -E "[v]ite --port"` ermitteln.

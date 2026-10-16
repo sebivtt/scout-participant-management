@@ -8,7 +8,7 @@ Stand 16.10.2026, neu aufgebaut nach der Aufräumrunde (Entscheidungen vom 16.10
 2. `docs/entscheidungen.md` lesen. Was dort steht, ist entschieden und wird nicht still geändert.
 3. `docs/architektur.md`, `docs/glossar.md` (Fachbegriffe) und `docs/qualitaet.md` überfliegen.
 4. `docs/arbeitsumgebung.md` für Einrichtung, Eigenheiten der Cloud-Sitzung und das Nachstellen von Fehlern im Browser. `README.md` für die lokale Installation.
-5. In der Liste „Reihenfolge“ den Schritt mit **← als Nächstes** nehmen. Nach jedem erledigten Schritt abhaken und die Markierung weitersetzen.
+5. In der Liste „Reihenfolge“ gibt es zwei Stränge mit je einer Markierung **← als Nächstes**. Ohne andere Ansage von Sebastian mit Strang 1 weitermachen, für Strang 2 sagt er, wann er Zeit für eine Abstimmung hat. Nach jedem erledigten Schritt im selben Pull Request abhaken und die Markierung weitersetzen.
 6. Issues werden nur umgesetzt, wenn sie in der Reihenfolge dran sind **und** das Label `geklärt` tragen. Fehlt das Label, zuerst den Skill `grill-me` anbieten. Direkt vor dem Start die Abhängigkeiten auf GitHub prüfen.
 
 Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `main` von `sebivtt/scout-participant-management`.
@@ -23,9 +23,9 @@ Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `mai
 
 ## Regeln für die Reihenfolge
 
-- **Zwei Stränge laufen parallel:** Strang 1 (Technik, Issues) und Strang 2 (Abstimmung der Abläufe). Je Strang ist höchstens ein Pull Request gleichzeitig offen. Innerhalb eines Strangs beginnt der nächste Pull Request erst, wenn der vorige in `main` ist. Pull Requests werden nie aufeinander aufgebaut (PR #12 landete sonst im falschen Branch). Pull Requests aus Strang 2 ändern nur `docs/ablaeufe/` und `docs/entscheidungen.md`.
-- **Neue Issues:** Ein Fehler mit Auswirkung „Blockiert“ kommt direkt nach dem laufenden Schritt dran (nach `grill-me`). Alle anderen neuen Issues gehören in Schritt 6 und werden dort nach Auswirkung bzw. Wichtigkeit einsortiert. Das ersetzt die Regel „Erst die Updates, dann gesammelte Fehler“.
-- **Hängt ein Issue an einer fachlichen Frage aus der Abstimmung**, die noch offen ist, wird es übersprungen und kommt dran, sobald die Abstimmung sie beantwortet hat.
+- **Zwei Stränge laufen parallel:** Strang 1 (Technik, Issues) und Strang 2 (Abstimmung der Abläufe). Je Strang ist höchstens ein Pull Request gleichzeitig offen. Innerhalb eines Strangs beginnt der nächste Pull Request erst, wenn der vorige in `main` ist. Pull Requests werden nie aufeinander aufgebaut (PR #12 landete sonst im falschen Branch). Pull Requests aus Strang 2 ändern nur `docs/ablaeufe/`, `docs/entscheidungen.md` und in diesem Dokument ihren eigenen Haken unter „Strang 2“ sowie die Liste „Schon gesammelte Fragen“.
+- **Neue Fehler:** Ein Fehler kommt direkt nach dem laufenden Pull Request dran (nach `grill-me`), wenn er eine dieser Bedingungen erfüllt: Auswirkung „Blockiert“, er liegt im Bereich des nächsten Updates, oder er könnte durch eine KI-Änderung entstanden sein. Alle anderen neuen Issues gehören in Schritt 6 und werden dort nach Auswirkung bzw. Wichtigkeit einsortiert.
+- **Anforderungen warten auf die Abstimmung ihres Ablaufs** (Entscheidung „Abstimmung aller Funktionen und Abläufe vor Phase 4“ vom 15.10.2026, genauer gefasst am 16.10.2026). Bei jeder Anforderung in Schritt 6 steht, auf welchen Ablauf sie wartet. Ist er noch nicht abgestimmt, wird sie übersprungen und kommt dran, sobald er es ist. Fehler warten nicht, außer bei ihnen steht ausdrücklich, dass sie eine fachliche Frage aus der Abstimmung brauchen. Die Pop-ups (#38 bis #42) ändern nur die Darstellung, nicht Funktionen oder Inhalte, und warten deshalb nicht.
 - **Rauchtests:** Macht ein Pull Request einen vorher grünen Rauchtest rot, wird das vor der Übernahme behoben oder im Pull Request begründet. Rotes, das schon vorher rot war, wird ein Issue. GitHub sperrt die Übernahme nicht automatisch.
 - **Fehler und Anforderungen stehen nur als Issue auf GitHub,** nicht in diesem Dokument (Skill `issue-anlegen`). Technische Schritte ohne sichtbare Wirkung für Nutzende (Updates, Prüfregeln, Aufräumen) stehen hier. Die Liste „Vor dem ersten Echtbetrieb“ wird zu Issues, sobald sie nach vorne rückt.
 
@@ -33,32 +33,32 @@ Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `mai
 
 ### Strang 1: Technik und Issues
 
-1. **← als Nächstes: Rauchtests für das Frontend.** Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test. Erst den Plan (Werkzeug, Aufbau, was in der Cloud und was auf GitHub läuft) kurz mit Sebastian abstimmen, dann bauen. Drei Pull Requests:
+1. **← als Nächstes: Rauchtests für das Frontend.** Rauchtests sind automatische Klicktests in einem echten Browser: Jede Seite einmal öffnen und den wichtigsten Ablauf einmal durchklicken, um grobe Brüche sofort zu sehen. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test. Erst den Plan (Werkzeug, Aufbau, was in der Cloud und was auf GitHub läuft) kurz mit Sebastian abstimmen, dann bauen. Drei Pull Requests:
    - [ ] 1a. Beispieldaten und Anleitung „Tool lokal mit Beispieldaten starten“ (dieselben Beispieldaten nutzen die Rauchtests)
    - [ ] 1b. Jede Seite lädt ohne Programmfehler
    - [ ] 1c. Anmeldeablauf mit allen Pflichtpunkten (siehe „Vorarbeit für die Rauchtests“)
 2. [ ] **#37** „Mich selbst anmelden“ erscheint mittig. Vorher mit `grill-me` klären. Klein, und die Rauchtests sichern dieses Fenster dann schon ab.
-3. **Riskante Versionssprünge im Frontend**, einzeln, je ein Pull Request mit Rauchtests und Klickliste, in dieser Reihenfolge (siehe „Vorgehen für künftige Updates“):
-   - [ ] `quill` (über `@vueup/vue-quill`, ggf. Ersatz). Zuerst, weil es die einzige verbliebene Sicherheitslücke in Code ist, der im Browser läuft.
-   - [ ] Vite 2.9 → aktuell. Dabei das unbenutzte Paket `@vue-leaflet/vue-leaflet` entfernen (wird nirgends eingebunden, die Karten nutzen `leaflet` direkt).
-   - [ ] Pinia
-   - [ ] vue-router
-   - [ ] Tailwind. Zuletzt, weil es das Aussehen ändert: Sebastian prüft das Aussehen, und direkt danach folgen die Pop-ups, sodass er das neue Aussehen einmal statt zweimal anschauen muss.
-4. [ ] **eslint in die automatische Prüfung auf GitHub**, dazu:
+3. **Riskante Versionssprünge im Frontend** (Updates von Bausteinen, auf denen die Oberfläche aufbaut), einzeln, je ein Pull Request mit Rauchtests und Klickliste, in dieser Reihenfolge (siehe „Vorgehen für künftige Updates“):
+   - [ ] `quill`, der Texteditor in Formularen (über `@vueup/vue-quill`, ggf. Ersatz). Zuerst, weil es die einzige verbliebene Sicherheitslücke in Code ist, der im Browser läuft.
+   - [ ] Vite 2.9 → aktuell, das Werkzeug, das die Oberfläche baut und lokal startet. Dabei das unbenutzte Paket `@vue-leaflet/vue-leaflet` entfernen (wird nirgends eingebunden, die Karten nutzen `leaflet` direkt).
+   - [ ] Pinia, der Zwischenspeicher der Oberfläche für geladene Daten
+   - [ ] vue-router, die Navigation zwischen den Seiten
+   - [ ] Tailwind, die Gestaltungsregeln (Farben, Abstände, Schriften). Zuletzt, weil es das Aussehen ändert: Sebastian prüft das Aussehen, und direkt danach folgen die Pop-ups, sodass er das neue Aussehen einmal statt zweimal anschauen muss.
+4. [ ] **eslint in die automatische Prüfung auf GitHub** (eslint prüft den Code der Oberfläche auf typische Fehler, so wie ruff im Backend), dazu:
    - **#43** (drei Fenster stürzen ab), entdeckt mit der Regel `no-undef`. Die Regel für `.vue`-Dateien einschalten.
-   - Technisches Aufräumen ohne sichtbare Wirkung, je mit Klickprüfung:
+   - Technisches Aufräumen, je mit Klickprüfung. Die Einzelheiten sind für die umsetzende KI:
      - `views/newRegister/Container.vue`: `nextLink` liefert als Rückfall den ungültigen Seitennamen „Custom“, `console.log(routeObj)` läuft bei jeder Änderung.
      - `components/stepper/StepperNavSmall.vue`: `:key="step.name"` ist bei mehreren Zusatzschritten doppelt (alle heißen „Custom“), besser die Kennung des Schritts.
      - `components/stepper/StepFrame.vue`: `isLoading` ist zugleich Prop und eigener Wert `ref(false)`. Die Knöpfe zeigen deshalb nie den Ladezustand, obwohl neun Seiten ihn übergeben. Den eigenen Wert entfernen.
      - Tote Dateien löschen: `modules/event/views/newRegister/module/Person.vue`, `modules/help/store/index.ts`.
      - Ungenutzter Code mit fehlender Variable `eventData` in `event/components/statistic/payments/CashItem.vue`.
      - Im eingefrorenen Modul `message` fehlen vier Symbole (`views/tabs/AllMessages.vue`): nur so weit, dass die Prüfung läuft.
-   - Nach PR #26: 260 Fehler und 2.795 Warnungen (`yarn lint`, Aufschlüsselung in `docs/qualitaet.md`). Zuerst die Fehler, Warnungen schrittweise. Die vorübergehend gelockerten Stufen in `eslint.config.mjs` bewusst einzeln schärfer stellen. Dazu eine automatische Prüfung der Frontend-Pakete auf Sicherheitslücken wie `pip-audit` im Backend, `CONTRIBUTING.md` Abschnitt 5 dann ergänzen.
-5. **Pop-ups** (Sammel-Issue #35), der Reihe nach: [ ] #38 → [ ] #39 → [ ] #40 → [ ] #41 → [ ] #42. Alle geklärt. #41 und #42 warten zusätzlich auf #43.
+   - Nach PR #26: 260 Fehler und 2.795 Warnungen (`yarn lint`, Aufschlüsselung in `docs/qualitaet.md`). Zuerst die Fehler, Warnungen schrittweise. Die vorübergehend gelockerten Stufen in `eslint.config.mjs` bewusst einzeln schärfer stellen. Die Regel `comma-dangle` fällt mit eslint 11 weg. Dazu eine automatische Prüfung der Frontend-Pakete auf Sicherheitslücken wie `pip-audit` im Backend, `CONTRIBUTING.md` Abschnitt 5 dann ergänzen.
+5. **Pop-ups** (Sammel-Issue #35), der Reihe nach: [ ] #38 → [ ] #39 → [ ] #40 → [ ] #41 → [ ] #42. #41 und #42 warten zusätzlich auf #43. #41 braucht vorher eine kurze Nachklärung mit `grill-me`: Wohin kommt man nach dem Anlegen einer Gruppe? Die Frage stand im alten Fahrplan und wurde bei der Klärung von #35 nicht gestellt.
 6. **Fehler und Anforderungen aus den Issues.** Erst Fehler, dann Anforderungen „Wichtig“, dann „Wäre schön“. Innerhalb einer Gruppe in dieser Reihenfolge:
    - Fehler: [ ] #48 abgelaufener Login → [ ] #47 Knopf „zusammenfassen“ → [ ] #44 Fehler als Erfolgsmeldung → [ ] #45 Bausteinposition → [ ] #34 nur Zahlen in Mengenfeldern → [ ] #46 Zahlung ohne Betrag → [ ] #51 „bestätigt“ (wartet auf die Abstimmung „Anmelden“)
-   - Wichtig: [ ] #49 Absenden ganz oder gar nicht → [ ] #50 verständliche Fehlermeldungen (wartet auf #49) → [ ] #52 Fristen im Frontend → [ ] #53 Orientierung im Anmeldeablauf → [ ] #32 eindeutige technische Namen
-   - Wäre schön: [ ] #54 Texte als Fragen → [ ] #55 Stammauswahl → [ ] #56 Hinweis E-Mail-Feld → [ ] #57 Adressfelder → [ ] #30 Mengen begrenzen (wartet auf die Abstimmung „Anmelden“) → [ ] #33 Namen für Datentypen (wartet auf die Abstimmung „Veranstaltung anlegen“)
+   - Wichtig: [ ] #49 Absenden ganz oder gar nicht (wartet auf „Anmelden“) → [ ] #50 verständliche Fehlermeldungen (wartet auf „Anmelden“ und #49) → [ ] #53 Orientierung im Anmeldeablauf (wartet auf „Anmelden“) → [ ] #52 Fristen im Frontend (wartet auf „Veranstaltung anlegen“) → [ ] #32 eindeutige technische Namen (wartet auf „Veranstaltung anlegen“)
+   - Wäre schön: [ ] #54 Texte als Fragen (wartet auf „Anmelden“) → [ ] #55 Stammauswahl (wartet auf „Anmelden“) → [ ] #57 Adressfelder (wartet auf „Anmelden“) → [ ] #30 Mengen begrenzen (wartet auf „Anmelden“) → [ ] #33 Namen für Datentypen (wartet auf „Veranstaltung anlegen“) → [ ] #56 Hinweis E-Mail-Feld (wartet auf „Konto und persönliche Daten“)
 7. **Qualität II, Rest** (siehe Abschnitt „Qualität II“): [ ] 2b Feldnamen → [ ] 1c Prüfregeln → [ ] 3 Keycloak-Abgleich → [ ] 4a/4b (nach der Abstimmung) → [ ] N+1 auf sechs Seiten → [ ] 5 Abschluss.
 
 ### Strang 2: Abstimmung der Funktionen und Abläufe
@@ -84,7 +84,7 @@ Datenschutz:
 - Löschfristen für Anmeldungen nach Veranstaltungsende (fachliche Entscheidung nötig).
 
 Betrieb:
-- Hosting: vorerst günstiger eigener Server, später ggf. beim Verband (Projektverantwortlicher).
+- Hosting: vorerst günstiger eigener Server, später ggf. AWS beim Verband (Projektverantwortlicher).
 - Dockerfile für den Echtbetrieb. Das alte Setup in `backend/` (Dockerfile, docker-compose.yml, start.sh) ist ungeprüft. `manage.py check --deploy` verlangt dort `SECURE_SSL_REDIRECT=True`, falls der vorgeschaltete Webserver nicht auf HTTPS umleitet.
 - Begrenzung der Anfragen pro Minute für die öffentlichen Adressen: Registrierung, Kontaktformular, Prüfung von Benutzername und E-Mail (verraten, ob eine Adresse registriert ist).
 - `anonymise_data` überschreibt ohne Rückfrage alle Personendaten. Sicherung gegen versehentlichen Aufruf im Echtbetrieb.
@@ -103,7 +103,7 @@ Betrieb:
 ### Bewusst nicht
 
 - „Zu komplexe Funktionen aufteilen“ als eigener Schritt: Das regelt schon die Pfadfinderregel (`CONTRIBUTING.md` Abschnitt 7).
-- Weiterleitung nach dem Speichern im eingefrorenen Kontaktformular-Modul: Funde in eingefrorenen Modulen werden nur in `docs/qualitaet.md` festgehalten (Entscheidung vom 15.10.2026).
+- Weiterleitung nach dem Speichern im eingefrorenen Kontaktformular-Modul (steht in `docs/qualitaet.md`): Funde in eingefrorenen Modulen werden nur dort festgehalten, nicht behoben (Entscheidung vom 15.10.2026).
 - Die offenen Fragen „Klicktest zu PR #11“ und „Person aus einer Anmeldung löschen“: gestrichen am 16.10.2026. Das prüfen künftig die Rauchtests und die Abstimmung. Fällt etwas fälschlich gesperrt auf, wird es ein Issue.
 
 ## Vorarbeit für die Rauchtests
@@ -183,7 +183,7 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 - [ ] 2b. Feldnamen abgleichen: Liest das Frontend Felder, die das Backend nicht liefert? Achtung: Das Backend wandelt Feldnamen automatisch um (`first_name` ↔ `firstName`, Paket `djangorestframework-camel-case`). Nach den Rauchtests, weil diese viele Feldfehler direkt zeigen.
 - [ ] 3. Genutzte python-keycloak-Methoden mit der installierten Version (7.1.1) abgleichen, mit Livetest gegen Keycloak 26.7.
 - [ ] 4a. Randfälle und Fehlerbehandlung beim Anmelden und Ändern mit Tests absichern. Erst nach der Abstimmung „Anmelden“ und „Anmeldung ändern“.
-- [ ] 4b. Dasselbe für Rechte und Gruppen, dazu doppelte Logik an mehreren Stellen. Erst nach der Abstimmung „Gruppen verwalten“.
+- [ ] 4b. Dasselbe für Rechte und Gruppen, dazu doppelte Logik an mehreren Stellen. Erst nach der Abstimmung aller Abläufe, weil Rechte in jedem Ablauf vorkommen.
 - [ ] N+1-Abfragen auf sechs Seiten beheben: Auswertung, Meine Anmeldungen, Kassenliste, Gruppenliste, Veranstaltungsübersicht, Meine Einladungen. Ist eine Seite behoben, meldet `tests/test_abfragen.py` das, und die `xfail`-Markierung wird entfernt.
 - [ ] 5. Abschluss: Tabelle oben vollständig beantworten, Ergebnisabschnitt in `docs/qualitaet.md`, neue Review-Regeln in `CONTRIBUTING.md`. Dabei die Docstring-Quote in `docs/qualitaet.md` angleichen: Die Kurzfassung nennt 8 %, die Tabelle 13 %.
 
