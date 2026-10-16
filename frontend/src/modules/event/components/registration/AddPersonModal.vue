@@ -453,11 +453,19 @@ function getZipCodeString(zipCodeData) {
   return zipCodeData;
 }
 
+/**
+ * Liefert die Buchungsoption einer Person als Objekt für die Auswahl im Dialog.
+ *
+ * Personen aus einer abgeschickten Anmeldung bringen die Buchungsoption als
+ * Objekt mit, Personen im Anmeldeablauf nur ihre Kennung (Zahl). Bis Issue #23
+ * verwies der Fall „Kennung“ auf eine Variable, die es seit Mai 2024 nicht mehr
+ * gab: Das Öffnen des Dialogs brach ab, „ändern“ zeigte nichts.
+ */
 function getBookingObj(bookingOptionId) {
   if (bookingOptionId?.id) {
     return bookingOptionId;
-  } else if(Number.isInteger(bookingOptionId)){
-    return bookingOptions.value.find((a) => a["id"] === tempId);
+  } else if (Number.isInteger(bookingOptionId)) {
+    return bookingOptions.value.find((a) => a["id"] === bookingOptionId) ?? bookingOptions.value[0];
   }
   return bookingOptions.value[0];
 }
