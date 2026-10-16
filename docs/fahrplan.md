@@ -22,7 +22,7 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 - Fachliche Fragen (wer darf was, welche Fristen gelten) entscheidet er. Technische Fragen entscheidet die KI und begründet sie.
 - Pull Requests werden nicht aufeinander aufgebaut. Der nächste beginnt erst, wenn der vorige in `main` ist. (PR #12 landete sonst im falschen Branch und musste mit PR #13 nachgeholt werden.)
 
-## Übergabe (Stand 16.10.2026, nach PR #27)
+## Übergabe (Stand 16.10.2026, nach PR #28)
 
 ### Was erledigt ist
 
@@ -50,18 +50,25 @@ Tests: 253 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). E
 
 ### Nächster Schritt: Rauchtests für das Frontend (Schritt 4)
 
-Die risikoarmen Sprünge sind erledigt (TypeScript, eslint, `uuid`, Vue 3.5). Vor den riskanten Sprüngen (Vite, Pinia, vue-router, `quill`, Tailwind) kommen die Rauchtests. Planung siehe „Vorarbeit für die Rauchtests“ darunter. Die dort offenen Fragen an Sebastian zuerst klären.
+Die risikoarmen Sprünge sind erledigt (TypeScript, eslint, `uuid`, Vue 3.5). Vor den riskanten Sprüngen (Vite, Pinia, vue-router, `quill`, Tailwind) kommen die Rauchtests. Planung siehe „Vorarbeit für die Rauchtests“ darunter. Die Fragen dazu hat Sebastian am 16.10.2026 beantwortet (`docs/entscheidungen.md`): Docker Desktop ist vorhanden, wichtigster Ablauf ist die Standard-Anmeldung bis zum Absenden, rote Rauchtests blockieren nichts, gefundene Fehler werden Issues.
 
-**Gesammelte Fehler** (Entscheidung Sebastians vom 16.10.2026: erst die Updates, dann die Fehler, außer sie betreffen genau den Bereich eines anstehenden Updates): die Funde aus PR #17 und PR #24 in Phase 4. Issue #25 wurde vor den Rauchtests behoben (PR #27), weil es genau den Anmeldeablauf betraf, den die Rauchtests prüfen. Sebastian hatte die Frage offen gelassen, die KI ist ihrer Empfehlung gefolgt.
+Vorgehen für den ersten Pull Request der Rauchtests: den Plan (Werkzeug, Aufbau, was in der Cloud und was auf GitHub läuft) zuerst kurz mit Sebastian abstimmen, dann bauen.
 
-**Offene fachliche Frage an Sebastian (aus Issue #25):** Die Standardvorlage gibt jeder neuen Veranstaltung die Schritte „T-Shirts“ (sechs Größen) und „Lunch Pakete“ mit. Seit PR #27 erscheinen sie im Anmeldeablauf. Sollen sie Standard bleiben, oder nur dazukommen, wenn die Veranstaltungsleitung sie auswählt? Die Veranstaltungsleitung kann Schritte heute schon entfernen. Die Vorlage steht in `backend/data/main/3_event.json` (`other_required_modules`) und in der Verwaltung unter `/admin/`.
+**Gesammelte Fehler** (Entscheidungen Sebastians vom 16.10.2026: erst die Updates, dann die Fehler, außer sie betreffen genau den Bereich eines anstehenden Updates; jeder gefundene Fehler wird ein Issue und der Reihe nach abgearbeitet): die Funde aus PR #17 und PR #24 in Phase 4. Für neue Funde ab jetzt ein Issue anlegen (`gh api repos/sebivtt/scout-participant-management/issues -f title=… -F body=@datei.md`). Issue #25 wurde vor den Rauchtests behoben (PR #27), weil es genau den Anmeldeablauf betraf, den die Rauchtests prüfen. Sebastian hatte die Frage offen gelassen, die KI ist ihrer Empfehlung gefolgt.
+
+**T-Shirts und Lunch Pakete** (Entscheidung vom 16.10.2026): sollen nicht in jeder Veranstaltung auftauchen. Was Standard ist, klärt die Abstimmung der Abläufe. Bis dahin bleibt die Vorlage unverändert.
 
 ### Vorarbeit für die Rauchtests (Schritt 4)
 
 - **Korrektur vom 16.10.2026: In der Cloud-Sitzung gibt es einen Browser.** Chromium mit Playwright ist vorinstalliert (`/opt/pw-browsers`, Playwright unter `/opt/npm-tools/node_modules/playwright`, `PLAYWRIGHT_BROWSERS_PATH` ist gesetzt). Am 15.10. wurde nur an den Standardorten gesucht und fälschlich „kein Browser“ festgehalten. Keycloak bleibt gesperrt (Docker-Abbild, GitHub, Maven).
 - **Bei Issue #23 erprobt:** Das Frontend läuft mit `yarn dev`, Playwright beantwortet im Browser die Anfragen an Keycloak (Login mit Platzhalter-Token) und ans Backend (Testdaten) mit `page.route`. Am Tool selbst ändert sich dafür nichts, es gibt keinen Login-Ersatz im Code. Testdaten, die zum echten Backend passen, erzeugt das Backend selbst über die Testdaten aus `tests/conftest.py`. So ließ sich #23 nachstellen und die Behebung vorher und nachher prüfen. Grenze: Das Backend wird dabei nicht mitgeprüft. Für die Rauchtests deshalb zwei Stufen erwägen: Frontend mit Platzhalter-Backend (schnell, auch in der Cloud) und ein Durchlauf mit echtem Backend und Keycloak (GitHub, Mac).
-- **Vorschlag, mit Sebastian besprochen, noch nicht entschieden:** Die Rauchtests laufen mit einem echten Keycloak 26.7 automatisch auf GitHub und auf Sebastians Mac. `dev/keycloak-setup.sh` legt schon drei Testkonten an (`leitung`, `stammesleitung`, `teilnehmer`). Als Erstes prüfen, ob GitHub das Keycloak-Abbild laden darf. Aufteilung in drei Pull Requests: Beispieldaten und Anleitung „lokal starten“, dann „jede Seite lädt“, dann „Anmeldeablauf“.
-- **Offene Fragen an Sebastian dazu:** Hat er Docker Desktop auf dem Mac? Welcher Anmeldeablauf ist der wichtigste (Vorschlag: Stammesleitung meldet ihren Stamm mit zwei Personen an, die Veranstaltungsleitung sieht die Anmeldung in der Auswertung)? Sollen rote Rauchtests eine Übernahme blockieren (Vorschlag: ja, sobald sie stabil laufen)?
+- **Vorschlag vom 15.10.2026, Rahmen seit 16.10. entschieden (siehe oben), Werkzeug und Aufbau noch abzustimmen:** Die Rauchtests laufen mit einem echten Keycloak 26.7 automatisch auf GitHub und auf Sebastians Mac. `dev/keycloak-setup.sh` legt schon drei Testkonten an (`leitung`, `stammesleitung`, `teilnehmer`). Als Erstes prüfen, ob GitHub das Keycloak-Abbild laden darf. Aufteilung in drei Pull Requests: Beispieldaten und Anleitung „lokal starten“, dann „jede Seite lädt“, dann „Anmeldeablauf“.
+- **Antworten Sebastians vom 16.10.2026:** Docker Desktop ist auf dem Mac vorhanden. Wichtigster Ablauf: Standard-Anmeldung über alle Schritte bis zum Absenden. Rote Rauchtests blockieren keine Übernahme, gefundene Fehler werden Issues.
+- **Nachstell-Skripte vom 16.10.2026 (nicht im Repository, nur als Rezept):** Ein Node-Skript startet Chromium über `require('/opt/npm-tools/node_modules/playwright')`, ruft das Frontend auf `http://localhost:8080` auf (`yarn dev` mit den Umgebungsvariablen aus `.github/workflows/ci.yml`) und beantwortet mit `page.route`:
+  - `http://localhost:8180/**` (Keycloak): `…/protocol/openid-connect/auth` mit einer Weiterleitung an `redirect_uri#state=…&code=c`, `…/token` mit einem unsignierten JWT, das den `nonce` aus der Anfrage enthält.
+  - `http://localhost:8000/**` (Backend): Antworten aus JSON-Dateien, die das echte Backend erzeugt. Dazu vorübergehend einen Test in `backend/tests/` anlegen, der mit den Fixtures aus `conftest.py` Daten anlegt und die Antworten (`/event/event-read/<id>/`, `/event/registration-read/<id>/`, `/auth/personal-data/`, `/basic/gender/`, `/event/travel-type-choices/`) in Dateien schreibt, danach löschen. Alle übrigen Anfragen mit `[]` beantworten.
+  - Gemessen wurden je Seite Programmfehler (`pageerror`, `console.error`) und Vue-Warnungen, vorher und nachher.
+  - Vorsicht in der Cloud-Shell: Prozesse nicht mit `pkill -f`/`pgrep -f` auf ein Muster beenden, das in der eigenen Befehlszeile vorkommt, das beendet die eigene Shell. PIDs über `ps aux | grep -E "[v]ite --port"` ermitteln.
 - **Pflichtpunkte für die Rauchtests** aus Fehlern, die nur durch Klicken auffielen: neue Anmeldung mit „Mich selbst anmelden“ und einem Stammesmitglied (Issue #19), eine schon angemeldete Person wird sofort gemeldet, eine gespeicherte Person bearbeiten ohne Dublettenmeldung, Lagerbeitrag anlegen und ändern sowie Ort ändern, danach auf der Veranstaltung bleiben, dazu ein Fehlerfall: Ort ändern, der auch von einer fremden Veranstaltung genutzt wird, zeigt eine Fehlermeldung und lädt nicht neu (Issue #20). Im Anmeldeablauf zwei Personen hinzufügen, jede über „ändern“ öffnen (der Dialog zeigt die richtige Person), eine umbenennen (sie steht danach einmal mit neuem Namen da), beide löschen, eine neue hinzufügen (sie erscheint sofort) (Issue #23). Mit einer Veranstaltung aus der Standardvorlage den ganzen Anmeldeablauf durchklicken, über Anreise, Rückreise, T-Shirts, Anmerkungen und Lunch Pakete bis zur Zusammenfassung, dazu der Reise-Dialog mit fehlender Angabe (zeigt „Bitte Felder überprüfen“, übernimmt nichts) (Issue #25). Dazu: über die Schrittanzeige von „Lunch Pakete“ zurück zu „T-Shirts“ springen, die Antworten sind noch da und werden alle abgeschickt. Testdaten wie eine echt angelegte Veranstaltung: Vorlage aus `data/main/3_event.json` und `4_attributes.json` laden und `add_event_module` aus `anmelde_tool/event/views.py` nutzen.
 - Werkzeug voraussichtlich Playwright, weil es einen echten Browser steuert und nicht von der Vite-Version abhängt. Neues Paket, also mit Begründung (`CONTRIBUTING.md` Abschnitt 5). Liste der Seiten und ihrer Anfragen: `docs/schnittstellen.md`.
 
@@ -210,6 +217,7 @@ Vereinbart am 15.10.2026. Ziel: Für jeden Ablauf ist abgestimmt, wer was darf u
 - Wer darf in der geplanten zentralen Ortsverwaltung Orte verwalten?
 - Darf die Ansichtsgruppe Excel-Listen erzeugen? Heute ja, weil das eine Form der Auswertung ist.
 - Was passiert mit Orten, die angelegt, aber keiner Veranstaltung zugeordnet wurden?
+- Welche Schritte und Abfragen bekommt jede neue Veranstaltung standardmäßig, welche wählt die Veranstaltungsleitung zusätzlich? Heute gibt die Standardvorlage „T-Shirts“ und „Lunch Pakete“ immer mit, das soll nicht so bleiben (Entscheidung vom 16.10.2026).
 - Sollen beim Zusammenlegen zweier Anmeldungen auch deren Bewertungen (und Workshops, falls das Modul wieder eingebunden wird) übernommen werden? Heute gehen sie mit der gelöschten Anmeldung verloren.
 
 ## Phase 4: Frontend und Anmeldeablauf
@@ -226,7 +234,7 @@ Vereinbart am 15.10.2026. Ziel: Für jeden Ablauf ist abgestimmt, wer was darf u
 
 Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit ihm klären, was genau gemeint war.
 
-- [ ] Der Anmeldeablauf hat keinen **Zurück-Knopf**.
+- [ ] Der Anmeldeablauf hat keinen **Zurück-Knopf**. (Am 16.10.2026 bestätigt. Im Browsertest ließen sich die Punkte der Schrittanzeige oben anklicken und führten zu früheren Schritten; ob das bei Sebastian sichtbar ist bzw. reicht, beim Umsetzen klären.)
 - [ ] Die **Schritte** im Ablauf sind **nicht beschriftet**. Man weiß nicht, wo man ist und was noch kommt.
 - [ ] Texte sollen **als Fragen formuliert** sein („Wer kommt mit?“ statt „Teilnehmende“).
 - [ ] Der Reiter **„Module“** beim Anlegen einer Veranstaltung ist unverständlich und soll grundlegend überarbeitet werden.
