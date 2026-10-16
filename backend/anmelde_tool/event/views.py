@@ -34,6 +34,11 @@ def add_event_attribute(attribute_module: AttributeModule, event_module: EventMo
 
 
 def add_event_module(module: EventModule, event: Event) -> EventModule:
+    """Kopiert einen Baustein der Vorlage samt seiner Abfragen in die Veranstaltung.
+
+    Die Kopie gehört nur dieser Veranstaltung, damit Änderungen der
+    Veranstaltungsleitung die Vorlage und andere Veranstaltungen nicht berühren.
+    """
     new_module: EventModule = deepcopy(module)
     new_module.pk = None
     new_module.standard = False
@@ -42,6 +47,29 @@ def add_event_module(module: EventModule, event: Event) -> EventModule:
     for attribute_module in module.attributemodule_set.all():
         add_event_attribute(attribute_module, new_module)
     return new_module
+
+
+def set_up_new_event(event: Event, template: StandardEventTemplate, price: str | float | None) -> None:
+    """Stattet eine neu angelegte Veranstaltung aus: Buchungsoption „Standard“ und Bausteine der Vorlage.
+
+    Wird beim Anlegen über die Oberfläche und von den Beispieldaten
+    (`load_sample_data`) genutzt, damit beide Wege dieselbe Veranstaltung ergeben.
+    Ohne Preis entsteht keine Buchungsoption.
+    """
+    if price:
+        event_models.BookingOption.objects.create(
+            name='Standard',
+            price=float(str(price).replace(",", ".")),
+            event=event,
+        )
+
+    add_event_module(template.introduction, event)
+    add_event_module(template.participants, event)
+    add_event_module(template.letter, event)
+    add_event_module(template.summary, event)
+
+    for mapper in template.other_required_modules.all():
+        add_event_module(mapper, event)
 
 
 class EventLocationViewSet(viewsets.ModelViewSet):
@@ -217,26 +245,12 @@ class EventViewSet(EventDateValidationMixin, viewsets.ModelViewSet):
         event: Event = serializer.save()
         event.responsible_persons.add(request.user)
 
-        if price:
-            event_models.BookingOption.objects.create(
-                name='Standard',
-                price=float(str(price).replace(",", ".")),
-                event=event,
-            )
-
         standard_event: StandardEventTemplate = event_helper.custom_get_or_404(
             event_api_exceptions.SomethingNotFound('Standard Event 1'),
             event_models.StandardEventTemplate,
             pk=1
         )
-
-        add_event_module(standard_event.introduction, event)
-        add_event_module(standard_event.participants, event)
-        add_event_module(standard_event.letter, event)
-        add_event_module(standard_event.summary, event)
-
-        for mapper in standard_event.other_required_modules.all():
-            add_event_module(mapper, event)
+        set_up_new_event(event, standard_event, price)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 

@@ -7,7 +7,7 @@ Stand 16.10.2026, neu aufgebaut nach der Aufräumrunde (Entscheidungen vom 16.10
 1. `CLAUDE.md` und `CONTRIBUTING.md` lesen. Sie sind verbindlich.
 2. `docs/entscheidungen.md` lesen. Was dort steht, ist entschieden und wird nicht still geändert.
 3. `docs/architektur.md`, `docs/glossar.md` (Fachbegriffe) und `docs/qualitaet.md` überfliegen.
-4. `docs/arbeitsumgebung.md` für Einrichtung, Eigenheiten der Cloud-Sitzung und das Nachstellen von Fehlern im Browser. `README.md` für die lokale Installation.
+4. `docs/arbeitsumgebung.md` für Einrichtung, Eigenheiten der Cloud-Sitzung und das Nachstellen von Fehlern im Browser. `README.md` für die lokale Installation, `docs/lokal-starten.md` für Start mit Beispieldaten und das Ausprobieren offener Pull Requests.
 5. In der Liste „Reihenfolge“ gibt es zwei Stränge mit je einer Markierung **← als Nächstes**. Ohne andere Ansage von Sebastian mit Strang 1 weitermachen, für Strang 2 sagt er, wann er Zeit für eine Abstimmung hat. Nach jedem erledigten Schritt im selben Pull Request abhaken und die Markierung weitersetzen.
 6. Issues werden nur umgesetzt, wenn sie in der Reihenfolge dran sind **und** das Label `geklärt` tragen. Fehlt das Label, zuerst den Skill `grill-me` anbieten. Direkt vor dem Start die Abhängigkeiten auf GitHub prüfen.
 
@@ -33,9 +33,9 @@ Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `mai
 
 ### Strang 1: Technik und Issues
 
-1. **← als Nächstes: Rauchtests für das Frontend.** Rauchtests sind automatische Klicktests in einem echten Browser: Jede Seite einmal öffnen und den wichtigsten Ablauf einmal durchklicken, um grobe Brüche sofort zu sehen. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test. Erst den Plan (Werkzeug, Aufbau, was in der Cloud und was auf GitHub läuft) kurz mit Sebastian abstimmen, dann bauen. Drei Pull Requests:
-   - [ ] 1a. Beispieldaten und Anleitung „Tool lokal mit Beispieldaten starten“ (dieselben Beispieldaten nutzen die Rauchtests)
-   - [ ] 1b. Jede Seite lädt ohne Programmfehler
+1. **Rauchtests für das Frontend.** Rauchtests sind automatische Klicktests in einem echten Browser: Jede Seite einmal öffnen und den wichtigsten Ablauf einmal durchklicken, um grobe Brüche sofort zu sehen. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test. Werkzeug und Aufbau sind abgestimmt (Entscheidung „Rauchtests: Werkzeug und Aufbau“ vom 16.10.2026). Drei Pull Requests:
+   - [x] 1a. Beispieldaten und Anleitung „Tool lokal mit Beispieldaten starten“ (dieselben Beispieldaten nutzen die Rauchtests) (PR #59)
+   - [ ] 1b. **← als Nächstes:** Jede Seite lädt ohne Programmfehler, dazu die Prüfung auf GitHub
    - [ ] 1c. Anmeldeablauf mit allen Pflichtpunkten (siehe „Vorarbeit für die Rauchtests“)
 2. [ ] **#37** „Mich selbst anmelden“ erscheint mittig. Vorher mit `grill-me` klären. Klein, und die Rauchtests sichern dieses Fenster dann schon ab.
 3. **Riskante Versionssprünge im Frontend** (Updates von Bausteinen, auf denen die Oberfläche aufbaut), einzeln, je ein Pull Request mit Rauchtests und Klickliste, in dieser Reihenfolge (siehe „Vorgehen für künftige Updates“):
@@ -109,15 +109,15 @@ Betrieb:
 ## Vorarbeit für die Rauchtests
 
 - **Rahmen (entschieden am 16.10.2026):** Docker ist auf Sebastians Mac vorhanden. Wichtigster Ablauf ist die Standard-Anmeldung über alle Schritte bis zum Absenden. Rote Rauchtests sperren die Übernahme nicht automatisch, siehe „Regeln für die Reihenfolge“.
-- **Werkzeug voraussichtlich Playwright,** weil es einen echten Browser steuert und nicht von der Vite-Version abhängt. Neues Paket, also mit Begründung (`CONTRIBUTING.md` Abschnitt 5). Liste der Seiten und ihrer Anfragen: `docs/schnittstellen.md`.
-- **Zwei mögliche Stufen, noch abzustimmen:** Frontend mit Platzhalter-Backend im Browser (schnell, auch in der Cloud, Rezept in `docs/arbeitsumgebung.md`) und ein Durchlauf mit echtem Backend und Keycloak 26.7 (GitHub, Mac). `dev/keycloak-setup.sh` legt schon drei Testkonten an (`leitung`, `stammesleitung`, `teilnehmer`). Als Erstes prüfen, ob GitHub das Keycloak-Abbild laden darf.
+- **Werkzeug Playwright, eine Stufe mit echtem Backend und Keycloak 26.7,** in der Cloud und auf GitHub (Entscheidung „Rauchtests: Werkzeug und Aufbau“ vom 16.10.2026). Playwright ist ein neues Paket, also mit Begründung (`CONTRIBUTING.md` Abschnitt 5). Die Version an die in der Cloud installierte anpassen (1.56, Browser unter `/opt/pw-browsers`). Liste der Seiten und ihrer Anfragen: `docs/schnittstellen.md`. Ganzes Tool in der Cloud starten: `docs/arbeitsumgebung.md`.
+- **Für 1b:** Als Erstes prüfen, ob GitHub das Keycloak-Abbild laden darf. Falls nicht, lädt GitHub dasselbe Programmpaket wie die Cloud.
 - **Pflichtpunkte** aus Fehlern, die nur durch Klicken auffielen:
   - Neue Anmeldung mit „Mich selbst anmelden“ und einem Stammesmitglied (Issue #19), eine schon angemeldete Person wird sofort gemeldet, eine gespeicherte Person bearbeiten ohne Dublettenmeldung.
   - Lagerbeitrag anlegen und ändern sowie Ort ändern, danach auf der Veranstaltung bleiben. Fehlerfall: Ort ändern, der auch von einer fremden Veranstaltung genutzt wird, zeigt eine Fehlermeldung und lädt nicht neu (Issue #20).
   - Im Anmeldeablauf zwei Personen hinzufügen, jede über „ändern“ öffnen (der Dialog zeigt die richtige Person), eine umbenennen (sie steht danach einmal mit neuem Namen da), beide löschen, eine neue hinzufügen (sie erscheint sofort) (Issue #23).
   - Mit einer Veranstaltung aus der Standardvorlage den ganzen Anmeldeablauf durchklicken, über Anreise, Rückreise, T-Shirts, Anmerkungen und Lunch Pakete bis zur Zusammenfassung, dazu der Reise-Dialog mit fehlender Angabe (zeigt „Bitte Felder überprüfen“, übernimmt nichts) (Issue #25).
   - Über die Schrittanzeige von „Lunch Pakete“ zurück zu „T-Shirts“ springen, die Antworten sind noch da und werden alle abgeschickt. Das gilt, solange die Standardvorlage beide Schritte enthält, sonst mit einer Veranstaltung, die sie zusätzlich wählt.
-  - Testdaten wie eine echt angelegte Veranstaltung: Vorlage aus `data/main/3_event.json` und `4_attributes.json` laden und `add_event_module` aus `anmelde_tool/event/views.py` nutzen.
+  - Testdaten wie eine echt angelegte Veranstaltung: erledigt mit `python manage.py load_sample_data` (PR #59, Rollen der Testkonten in `docs/lokal-starten.md`). Was 1c zusätzlich braucht (z. B. ein Ort, den eine fremde Veranstaltung mitnutzt, für #20), ergänzt 1c im selben Befehl.
 
 ## Vorgehen für künftige Updates
 
@@ -205,6 +205,7 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 | Frontend: Sicherheitsupdates innerhalb der Hauptversionen, TypeScript 6 und eslint 10, `uuid` 14, Vue 3.5 | #16, #17, #18, #26 |
 | Fehler aus Issues: #19, #20, #23, #25 | #21, #22, #24, #27 |
 | Arbeitsweise: Vorlagen für Issues, Skills `issue-anlegen` und `grill-me` | #31, #36 |
+| Rauchtests 1a: Beispieldaten, Anleitung „lokal starten“, Keycloak in der Cloud | #59 |
 | Doku und Übergaben | #8, #15, #28 |
 
 Einzelheiten stehen in den Beschreibungen der Pull Requests und in `docs/qualitaet.md`.

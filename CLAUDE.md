@@ -34,7 +34,7 @@ Lies und befolge `CONTRIBUTING.md`. Kurzfassung:
   ```bash
   ruff check . && pytest
   ```
-- Änderungen an Keycloak-Anbindung oder Rechten zusätzlich gegen ein echtes Keycloak 26.7 testen (siehe `dev/`), nicht nur gegen den Test-Ersatz.
+- Änderungen an Keycloak-Anbindung oder Rechten zusätzlich gegen ein echtes Keycloak 26.7 testen (siehe `dev/`, in der Cloud-Sitzung `docs/arbeitsumgebung.md`), nicht nur gegen den Test-Ersatz.
 - **Unabhängige Prüfung vor jedem Pull Request:** Eine zweite KI-Instanz ohne Kenntnis des bisherigen Gesprächs prüft den Diff gegen `CONTRIBUTING.md` und auf Fehler. Ihre Befunde werden behoben oder im Pull Request begründet.
 - Pull-Request-Beschreibung nach `CONTRIBUTING.md` Abschnitt 6, für Nicht-Programmierer verständlich.
 - Neue Entscheidungen des Projektverantwortlichen in `docs/entscheidungen.md` eintragen, mit Datum.
@@ -50,7 +50,7 @@ Diese Fehler sind tatsächlich passiert. Sie wiederholen sich leicht.
 - **Die unabhängige Prüfung findet fast immer etwas.** Ihren Auftrag eng fassen (nur den Diff, konkrete Prüfpunkte), Befunde selbst nachprüfen, dann beheben. Bricht sie ab (z. B. Nutzungslimit), sie fortsetzen statt neu zu starten.
 - **Zahlen in der Doku nachrechnen,** bevor sie im Pull Request stehen: `backend/tools/qualitaet_messen.py` und eigene Zählungen. Falsche Zahlen fielen mehrfach erst in der Prüfung auf.
 - **Eine Adresse, mehrere Aufrufer, verschiedene Kennungen:** Dieselbe Komponente steckt oft in mehreren Seiten, und `route.params.id` bedeutet dort Verschiedenes, z. B. im Dialog „Person hinzufügen“ einmal die Veranstaltung (neue Anmeldung), einmal die Anmeldung (bestehende). PR #3 zog die Rechte der Personenprüfung auf „Anmeldung“ enger, ohne alle Aufrufer zu verfolgen, und machte damit jede neue Anmeldung unmöglich (Issue #19). Vor jeder Änderung an Rechten oder Kennungen einer Adresse alle Seiten verfolgen, die sie aufrufen, und klären, welche Kennung dort in der Adresse steht.
-- **Erst gründlich nachsehen, dann „geht nicht“ festhalten:** Am 15.10. stand im Fahrplan, in der Cloud-Sitzung gebe es keinen Browser. Gesucht wurde nur mit `which` und im üblichen Zwischenspeicher, dabei liegt Chromium unter `/opt/pw-browsers` (Umgebungsvariable `PLAYWRIGHT_BROWSERS_PATH`). Die falsche Annahme hätte fast die Planung der Rauchtests bestimmt. Fehler im Frontend lassen sich so im Browser nachstellen, statt sie aus dem Code zu erraten (Issue #23).
+- **Erst gründlich nachsehen, dann „geht nicht“ festhalten:** Am 15.10. stand im Fahrplan, in der Cloud-Sitzung gebe es keinen Browser. Gesucht wurde nur mit `which` und im üblichen Zwischenspeicher, dabei liegt Chromium unter `/opt/pw-browsers` (Umgebungsvariable `PLAYWRIGHT_BROWSERS_PATH`). Die falsche Annahme hätte fast die Planung der Rauchtests bestimmt. Fehler im Frontend lassen sich so im Browser nachstellen, statt sie aus dem Code zu erraten (Issue #23). Am 16.10. dasselbe noch einmal: „Keycloak in der Cloud gesperrt“ galt nur für die Docker-Abbilder, das Programmpaket von GitHub läuft (`docs/arbeitsumgebung.md`). Eine Sperre also für jeden Bezugsweg einzeln prüfen, bevor sie festgehalten wird.
 - **Pull Requests nicht aufeinander aufbauen.** Ein auf einen anderen PR aufgebauter PR landete nach der Übernahme im falschen Branch.
 
 ## Was du nicht tun sollst

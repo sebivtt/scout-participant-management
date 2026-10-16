@@ -6,6 +6,19 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-16 · Rauchtests: Werkzeug und Aufbau
+
+**Entscheidung:**
+- Werkzeug ist Playwright (technisch, KI). Die alten, nie benutzten Testwerkzeuge im Frontend (Cypress 9.5, Vitest 0.9) werden nicht verwendet und später beim Aufräumen (Fahrplan, Schritt 4) entfernt.
+- Es gibt nur eine Stufe (technisch, KI): Die Rauchtests laufen immer gegen das echte Backend mit echtem Keycloak 26.7, nicht gegen ein Platzhalter-Backend im Browser.
+- Die Rauchtests laufen in der Cloud-Sitzung vor jedem Pull Request und auf GitHub bei jeder Änderung, als eigene Prüfung, die die Übernahme nicht sperrt. Livetests auf Sebastians Mac sind für die Rauchtests nicht nötig.
+- Drei Pull Requests: 1a Beispieldaten und Anleitung, 1b jede Seite lädt ohne Programmfehler (mit der Prüfung auf GitHub), 1c Anmeldeablauf mit den Pflichtpunkten.
+- Beispieldaten: Der Befehl `load_sample_data` legt die Veranstaltung „Beispiellager“ so an wie die Oberfläche und dazu eine Anmeldung mit zwei erfundenen Personen. Die Testkonten haben feste Rollen: `leitung` leitet, `stammesleitung` hat angemeldet, `teilnehmer` hat keine Rolle. Der Befehl verändert keine vorhandenen Daten und verweigert im Echtbetrieb.
+- Pull Request 1a wird erst übernommen, wenn Sebastian die neuen Schritte der Anleitung auf seinem Mac ausprobiert hat (Sebastian).
+
+**Begründung (Zusammenfassung der KI):** Keycloak läuft entgegen der bisherigen Annahme auch in der Cloud (Programmpaket von GitHub statt Docker-Abbild). Damit kann das ganze Tool dort und auf GitHub starten. Eine Stufe mit echtem Backend braucht nur einen Satz Beispieldaten, prüft zugleich, ob Oberfläche und Backend zusammenpassen, und hat keine gespielten Antworten, die veralten. Der Preis sind einige Minuten Laufzeit statt Sekunden. Playwright steuert einen echten Browser, hängt nicht von der Vite-Version ab und ist in der Cloud schon installiert. Cypress 9.5 bräuchte selbst erst ein riskantes Update. Die Anleitung kann die KI nicht auf einem Mac prüfen. Weil Sebastians Umgebung schon läuft, genügt es, nur die neuen Schritte zu prüfen (etwa 10 bis 15 Minuten).
+**Umsetzung:** `backend/basic/management/commands/load_sample_data.py`, `tests/test_beispieldaten.py`, `docs/lokal-starten.md`, `docs/arbeitsumgebung.md` (PR 1a); Rauchtests in 1b und 1c. Ersetzt im Fahrplan „Zwei mögliche Stufen, noch abzustimmen“.
+
 ## 2026-10-16 · Der Fahrplan ist die einzige Reihenfolge
 
 **Entscheidung:**

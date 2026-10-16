@@ -4,9 +4,12 @@ Keycloak wird durch FakeKeycloak ersetzt. Jeder Aufruf, den die Fälschung nicht
 kennt, lässt den Test scheitern. So fällt sofort auf, wenn Code unerwartet mit
 Keycloak spricht.
 """
+import json
 from datetime import timedelta
+from pathlib import Path
 
 import pytest
+from django.core.management import call_command
 from django.utils import timezone
 from rest_framework.test import APIClient
 
@@ -118,6 +121,19 @@ def lager(stamm_level, veranstaltungsleitung):
     )
     event.responsible_persons.add(veranstaltungsleitung)
     return event
+
+
+@pytest.fixture
+def standardvorlage(db, tmp_path):
+    """Lädt die Standardvorlage für neue Veranstaltungen samt Bausteinen aus den Stammdaten.
+
+    Die Orte in derselben Datei verweisen auf Postleitzahlen, die im Test fehlen,
+    und werden deshalb weggelassen.
+    """
+    stammdaten = json.loads(Path('data/main/3_event.json').read_text())
+    ohne_orte = tmp_path / 'vorlage.json'
+    ohne_orte.write_text(json.dumps([o for o in stammdaten if o['model'] != 'event.eventlocation']))
+    call_command('loaddata', str(ohne_orte), 'data/main/4_attributes.json', verbosity=0)
 
 
 def make_registration(event, stamm, leitung) -> Registration:
