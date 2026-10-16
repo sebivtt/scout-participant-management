@@ -7,7 +7,11 @@
       >
         <component :is="components[compNo]" :steps="steps" />
       </nav>
+      <!-- key: Mehrere Zusatzschritte nutzen dieselbe Seite (Custom). Ohne
+           Neuaufbau bei jedem Schritt zeigte sie nach einem Sprung zwischen
+           ihnen leere Felder und überschrieb die Antworten (Issue #25). -->
       <router-view
+        :key="route.fullPath"
         :step="
           steps.find((step) => {
             return step.current;
@@ -39,6 +43,19 @@ const compNo = computed(() => {
   return window.innerWidth < 1200 ? 0 : 1;
 });
 
+// Schritte mit eigener Seite im Anmeldeablauf (siehe router/index.ts). Alle
+// anderen, z. B. „Tshirts“ und „LunchMeals“ aus der Standardvorlage, zeigt die
+// allgemeine Seite für Zusatzfelder (Custom) anhand ihrer Kennung. Bis Issue #25
+// lief „weiter“ bei solchen Schritten ins Leere, weil es keine Seite
+// „RegistrationTshirts“ gibt.
+const STEPS_WITH_OWN_PAGE = ["Introduction", "Participants", "Travel", "TravelBack", "Letter", "Custom", "Summary"];
+
+/** Name der Seite, die einen Schritt im Anmeldeablauf anzeigt. */
+function stepLink(eventModule: any): string {
+  const name = STEPS_WITH_OWN_PAGE.includes(eventModule.name) ? eventModule.name : "Custom";
+  return `Registration${name}`;
+}
+
 function nextLink(eventModule: any) {
   try {
     return getCompLeftList(eventModule.id)[0].link;
@@ -58,7 +75,7 @@ function nextId(eventModule) {
 const steps = computed(() => {
   const eventObj: any = [];
   eventModuleList.value.forEach((eventModule: any) => {
-    const compName = `Registration${eventModule.name}`;
+    const compName = stepLink(eventModule);
     const routeObj = {
       id: eventModule.id,
       name: eventModule.name,
@@ -92,13 +109,18 @@ function getStatus(eventModule, eventModules) {
   return status;
 }
 
+/**
+ * Ist dieser Schritt gerade geöffnet?
+ *
+ * Die Seite für Zusatzfelder zeigt mehrere Schritte, deshalb zählt dort
+ * zusätzlich die Kennung in der Adresse.
+ */
 function getCurrent(eventModule: any, index: any) {
-  const isCustom = eventModule.name === "Custom";
-  const compName = `Registration${eventModule.name}`;
+  const compName = stepLink(eventModule);
   return (
     router.currentRoute.value.name == compName &&
     (router.currentRoute.value.params.module == index ||
-      eventModule.name !== "Custom")
+      compName !== "RegistrationCustom")
   );
 }
 
@@ -124,7 +146,7 @@ function getCompLeftList(id) {
   const moduleList = eventModuleList.value;
   const compList = moduleList.map((module: any) => {
     return {
-      link: `Registration${module.name}`,
+      link: stepLink(module),
       id: module.id,
     };
   });
