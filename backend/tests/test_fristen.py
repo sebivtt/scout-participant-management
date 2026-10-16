@@ -217,19 +217,6 @@ class TestDatumsreihenfolge:
         daten.update(aenderungen)
         return daten
 
-    @pytest.fixture
-    def standardvorlage(self, db, tmp_path):
-        # Anlegen einer Veranstaltung braucht die Standardvorlage und ihre Bausteine
-        # aus den Stammdaten. Die Orte darin verweisen auf Postleitzahlen und
-        # werden für den Test weggelassen.
-        import json
-        from pathlib import Path
-        from django.core.management import call_command
-        stammdaten = json.loads(Path('data/main/3_event.json').read_text())
-        ohne_orte = tmp_path / 'vorlage.json'
-        ohne_orte.write_text(json.dumps([o for o in stammdaten if o['model'] != 'event.eventlocation']))
-        call_command('loaddata', str(ohne_orte), 'data/main/4_attributes.json', verbosity=0)
-
     def test_anlegen_mit_ende_vor_beginn_abgelehnt(self, api, veranstaltungsleitung, lager, standardvorlage):
         daten = self.neue_veranstaltung(lager, endDate=(lager.start_date - TAG).isoformat())
         assert api(veranstaltungsleitung).post('/event/event/', daten, format='json').status_code == 400

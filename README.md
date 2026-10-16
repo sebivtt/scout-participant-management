@@ -18,6 +18,7 @@ Neben dem Anmeldetool enthält das Backend weitere Module (Essensplanung, Inspi,
 | --- | --- |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Regeln für die Entwicklung |
 | [`docs/fahrplan.md`](docs/fahrplan.md) | **Einstieg:** Reihenfolge der nächsten Schritte (verbindlich), Stand |
+| [`docs/lokal-starten.md`](docs/lokal-starten.md) | Tool lokal mit Beispieldaten starten, offenen Pull Request ausprobieren (Schritt für Schritt) |
 | [`docs/arbeitsumgebung.md`](docs/arbeitsumgebung.md) | Einrichtung der Cloud-Sitzung, Fehler im Browser nachstellen |
 | [`docs/architektur.md`](docs/architektur.md) | Aufbau des Systems, Ablauf einer Anmeldung, wo was liegt |
 | [`docs/entscheidungen.md`](docs/entscheidungen.md) | Fachliche und technische Entscheidungen mit Begründung |
@@ -25,6 +26,8 @@ Neben dem Anmeldetool enthält das Backend weitere Module (Essensplanung, Inspi,
 | [`docs/qualitaet.md`](docs/qualitaet.md) | Messwerte, bekannte Schwächen, Prioritäten |
 
 ## Lokal starten
+
+Schritt-für-Schritt-Anleitung mit Beispieldaten: [`docs/lokal-starten.md`](docs/lokal-starten.md). Hier die Kurzfassung.
 
 Voraussetzungen: Docker, Python 3.11 bis 3.13, Node.js 20.19 oder neuer bzw. 22.13 oder neuer (verlangt eslint 10), Yarn.
 
@@ -37,7 +40,7 @@ docker compose up -d
 ./keycloak-setup.sh
 ```
 
-Das Skript legt den Realm `dpv`, die Clients und zwei Testkonten an:
+Das Skript legt den Realm `dpv`, die Clients und drei Testkonten an:
 
 | Benutzer | Passwort | Rolle |
 | --- | --- | --- |
@@ -62,6 +65,7 @@ cp ../dev/backend.env.example backend/.env
 python manage.py migrate
 python manage.py loaddata data/main/*.json   # Stammdaten: Bünde, Stämme, PLZ, Vorlagen
 python manage.py sync_keycloak_groups        # Gruppen aus Keycloak übernehmen
+python manage.py load_sample_data            # Beispieldaten: Veranstaltung „Beispiellager“ mit einer Anmeldung
 python manage.py runserver
 ```
 
@@ -139,7 +143,7 @@ pytest         # Tests
 
 ## Bekannte Einschränkungen
 
-- Die Docker-Variante der Hilfsdienste ist noch nicht auf einem echten Rechner erprobt. Der gleiche Aufbau ohne Docker (Postgres 16, Redis, Keycloak 26.7.5) wurde am 14.10.2026 vollständig getestet.
+- Die Docker-Variante der Hilfsdienste ist auf dem Mac des Projektverantwortlichen in Gebrauch. Der gleiche Aufbau ohne Docker (Postgres 16, Redis, Keycloak 26.7.5) läuft auch in der Cloud-Sitzung (`docs/arbeitsumgebung.md`).
 
 ## Lizenz
 
