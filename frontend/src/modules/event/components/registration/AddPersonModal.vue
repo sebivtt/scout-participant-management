@@ -459,13 +459,16 @@ function getZipCodeString(zipCodeData) {
  * Personen aus einer abgeschickten Anmeldung bringen die Buchungsoption als
  * Objekt mit, Personen im Anmeldeablauf nur ihre Kennung (Zahl). Bis Issue #23
  * verwies der Fall „Kennung“ auf eine Variable, die es seit Mai 2024 nicht mehr
- * gab: Das Öffnen des Dialogs brach ab, „ändern“ zeigte nichts.
+ * gab: Das Öffnen des Dialogs brach ab, „ändern“ zeigte nichts. Ohne Angabe
+ * wird die erste Option vorgeschlagen, wie beim Anlegen.
  */
 function getBookingObj(bookingOptionId) {
   if (bookingOptionId?.id) {
     return bookingOptionId;
   } else if (Number.isInteger(bookingOptionId)) {
-    return bookingOptions.value.find((a) => a["id"] === bookingOptionId) ?? bookingOptions.value[0];
+    // Kein Treffer: leer lassen, damit die Pflichtprüfung eine bewusste Wahl
+    // verlangt, statt still die erste Option zu setzen.
+    return bookingOptions.value.find((a) => a["id"] === bookingOptionId);
   }
   return bookingOptions.value[0];
 }
@@ -481,10 +484,14 @@ function getEatHabits(eatHabits) {
   return [];
 }
 
+// Neu befüllen, wenn sich der Dialog öffnet oder die Seite eine andere Person
+// übergibt. Ohne den zweiten Auslöser blieb nach einem Fehler beim Öffnen der
+// alte Inhalt samt Kennung stehen, und eine danach angelegte Person ersetzte
+// die zuvor geöffnete (Issue #23).
 watch(
-    () => props.open,
-    (newValue) => {
-      if (newValue) {
+    [() => props.open, () => props.person],
+    ([open]) => {
+      if (open) {
         resetData();
         initData();
       }
