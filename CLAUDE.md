@@ -25,9 +25,10 @@ Lies und befolge `CONTRIBUTING.md`. Kurzfassung:
 
 - **Issues erst klären, dann umsetzen** (Entscheidung vom 16.10.2026):
   - Neue Issues mit dem Skill `issue-anlegen` (`.claude/skills/issue-anlegen/`) anlegen. Er prüft auch die Abhängigkeiten zu offenen Issues.
+  - Was als Nächstes kommt, bestimmt allein die Reihenfolge in `docs/fahrplan.md` (Entscheidung vom 16.10.2026). Ein Issue mit Label `geklärt` ist fertig geklärt, aber erst dran, wenn es dort an der Reihe ist.
   - Umgesetzt wird nur ein Issue mit dem Label `geklärt`. Das Label setzt der Skill `grill-me` (`.claude/skills/grill-me/`), nachdem Sebastian Frage für Frage ausgefragt wurde und zugestimmt hat. Fehlt es, zuerst `grill-me` anbieten.
   - Direkt vor dem Start die Abhängigkeiten erneut prüfen. Ist ein blockierendes Issue noch offen, nicht anfangen.
-  - Ein Issue = ein Pull Request mit eigenem Test, der Reihe nach. Taucht beim Umsetzen eine fachliche Frage auf, anhalten, fragen und die Antwort ins Issue übernehmen.
+  - Ein Issue = ein Pull Request mit eigenem Test, der Reihe nach (je Strang, siehe `docs/fahrplan.md`). Taucht beim Umsetzen eine fachliche Frage auf, anhalten, fragen und die Antwort ins Issue übernehmen.
 - **Erst einen Test schreiben, der das Problem zeigt**, dann beheben.
 - Lokale Prüfung vor jedem Commit, im Ordner `backend/`:
   ```bash

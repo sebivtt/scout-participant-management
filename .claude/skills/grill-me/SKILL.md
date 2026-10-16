@@ -108,10 +108,10 @@ gh api repos/sebivtt/scout-participant-management/issues/<nummer>/labels -f 'lab
 ## Danach: Umsetzung
 
 Diese Regeln stehen auch in `CLAUDE.md`:
-- Umgesetzt wird nur ein Issue mit dem Label `geklärt`.
+- Umgesetzt wird nur ein Issue mit dem Label `geklärt`, und erst, wenn es in der Reihenfolge in `docs/fahrplan.md` an der Reihe ist. Das Label heißt nur „fertig geklärt“, nicht „jetzt dran“.
 - Direkt vor dem Start die Abhängigkeiten erneut prüfen. Ist ein blockierendes Issue noch offen, nicht anfangen, sondern Sebastian fragen.
 - Ein Issue = ein Pull Request mit eigenem Test. Die Beschreibung des Pull Requests nennt „Closes #<nummer>“, dann schließt GitHub das Issue bei der Übernahme.
-- Der Reihe nach: Der nächste Pull Request beginnt erst, wenn der vorige in `main` ist. Unter mehreren geklärten Issues ohne Abhängigkeit entscheidet „Wichtigkeit“ bzw. „Auswirkung“, im Zweifel fragt die KI Sebastian.
+- Der Reihe nach: Der nächste Pull Request beginnt erst, wenn der vorige desselben Strangs in `main` ist (Technik und Abstimmung der Abläufe laufen parallel). Die Reihenfolge der Issues steht in `docs/fahrplan.md` (Abschnitte „Regeln für die Reihenfolge“ und „Reihenfolge“). Ein neu geklärtes Issue ohne Platz dort wird nach diesen Regeln einsortiert, im Zweifel fragt die KI Sebastian.
 - Ein Sammel-Issue wird geschlossen, wenn sein letztes Unter-Issue erledigt ist.
 - Kommt zu einem geklärten Issue neuer Inhalt dazu (neue Anforderung, ergänzte Dublette, neue fachliche Frage), das Label `geklärt` entfernen und `grill-me` nur für den neuen Teil durchlaufen.
 - Taucht während der Umsetzung eine fachliche Frage auf, die das Issue nicht beantwortet, anhalten und Sebastian fragen, die Antwort ins Issue übernehmen. Nicht still selbst entscheiden.

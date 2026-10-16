@@ -1,18 +1,17 @@
 # Fahrplan
 
-Stand 16.10.2026. Dieses Dokument ist der Einstieg für jede neue Arbeitssitzung, auch für eine neue KI-Instanz ohne Kenntnis früherer Gespräche. Es sammelt, was erledigt ist, was als Nächstes kommt und welche Anforderungen schon bekannt sind. Erledigte Punkte werden abgehakt. Neue Fehler und Anforderungen kommen nicht mehr hierher, sondern als Issue auf GitHub (Entscheidung vom 16.10.2026, Vorlagen in `.github/ISSUE_TEMPLATE/`).
+Stand 16.10.2026, neu aufgebaut nach der Aufräumrunde (Entscheidungen vom 16.10.2026 in `docs/entscheidungen.md`). **Dieses Dokument ist die einzige verbindliche Reihenfolge.** Was als Nächstes umgesetzt wird, steht hier und nirgends sonst. Das Label `geklärt` an einem Issue heißt nur: fachlich fertig geklärt. Dran ist ein Issue erst, wenn es in der Liste unten an der Reihe ist.
 
 ## Einstieg für eine neue Sitzung
 
 1. `CLAUDE.md` und `CONTRIBUTING.md` lesen. Sie sind verbindlich.
 2. `docs/entscheidungen.md` lesen. Was dort steht, ist entschieden und wird nicht still geändert.
 3. `docs/architektur.md`, `docs/glossar.md` (Fachbegriffe) und `docs/qualitaet.md` überfliegen.
-4. `README.md` für die lokale Installation. Entwicklungswerkzeuge mit `pip install -r backend/requirements-dev.txt`, Prüfung vor jedem Commit im Ordner `backend/` mit `ruff check . && pytest`. Ein echtes Keycloak 26.7 für Livetests startet über `dev/`.
-5. Den Abschnitt „Übergabe“ unten lesen: Er beschreibt den nächsten Schritt konkret und die Eigenheiten der Arbeitsumgebung.
-6. Mit dem Schritt weitermachen, der in der „Reihenfolge der nächsten Schritte“ mit „← als Nächstes“ markiert ist. Nach jedem erledigten Schritt die Markierung weitersetzen.
-7. Fehler und Anforderungen aus den Issues werden erst nach Klärung umgesetzt: nur mit Label `geklärt`, vorher Skill `grill-me` (`CLAUDE.md`, Abschnitt „Arbeitsweise“).
+4. `docs/arbeitsumgebung.md` für Einrichtung, Eigenheiten der Cloud-Sitzung und das Nachstellen von Fehlern im Browser. `README.md` für die lokale Installation.
+5. In der Liste „Reihenfolge“ gibt es zwei Stränge mit je einer Markierung **← als Nächstes**. Ohne andere Ansage von Sebastian mit Strang 1 weitermachen, für Strang 2 sagt er, wann er Zeit für eine Abstimmung hat. Nach jedem erledigten Schritt im selben Pull Request abhaken und die Markierung weitersetzen.
+6. Issues werden nur umgesetzt, wenn sie in der Reihenfolge dran sind **und** das Label `geklärt` tragen. Fehlt das Label, zuerst den Skill `grill-me` anbieten. Direkt vor dem Start die Abhängigkeiten auf GitHub prüfen.
 
-Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z. B. `tests/test_abfragen.py` = `backend/tests/test_abfragen.py`. Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `main` von `sebivtt/scout-participant-management`.
+Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `main` von `sebivtt/scout-participant-management`.
 
 ### Zusammenarbeit mit dem Projektverantwortlichen
 
@@ -20,124 +19,145 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 - Terminal-Anleitungen gehen Schritt für Schritt: genau ein Befehl pro Schritt, dazu, was danach zu sehen sein sollte. Er arbeitet auf einem Mac, das Projekt liegt unter `~/Projekte/scout-participant-management`.
 - Er prüft und übernimmt Pull Requests auf GitHub, den Code selbst liest er nicht. Die Beschreibung eines Pull Requests ist deshalb sein wichtigstes Werkzeug (siehe `CONTRIBUTING.md` Abschnitt 6).
 - Er möchte ehrlich hören, was nicht funktioniert und welche Fehler die KI selbst gemacht hat.
-- Fachliche Fragen (wer darf was, welche Fristen gelten) entscheidet er. Technische Fragen entscheidet die KI und begründet sie.
-- Pull Requests werden nicht aufeinander aufgebaut. Der nächste beginnt erst, wenn der vorige in `main` ist. (PR #12 landete sonst im falschen Branch und musste mit PR #13 nachgeholt werden.)
+- Fachliche Fragen und Prioritäten entscheidet er. Technische Fragen entscheidet die KI und begründet sie.
 
-## Übergabe (Stand 16.10.2026, nach PR #28)
+## Regeln für die Reihenfolge
 
-### Was erledigt ist
+- **Zwei Stränge laufen parallel:** Strang 1 (Technik, Issues) und Strang 2 (Abstimmung der Abläufe). Je Strang ist höchstens ein Pull Request gleichzeitig offen. Innerhalb eines Strangs beginnt der nächste Pull Request erst, wenn der vorige in `main` ist. Pull Requests werden nie aufeinander aufgebaut (PR #12 landete sonst im falschen Branch). Pull Requests aus Strang 2 ändern nur `docs/ablaeufe/`, `docs/entscheidungen.md` und in diesem Dokument ihren eigenen Haken unter „Strang 2“ sowie die Liste „Schon gesammelte Fragen“.
+- **Neue Fehler:** Ein Fehler kommt direkt nach dem laufenden Pull Request dran (nach `grill-me`), wenn er eine dieser Bedingungen erfüllt: Auswirkung „Blockiert“, er liegt im Bereich des nächsten Updates, oder er könnte durch eine KI-Änderung entstanden sein. Alle anderen neuen Issues gehören in Schritt 6 und werden dort nach Auswirkung bzw. Wichtigkeit einsortiert.
+- **Anforderungen warten auf die Abstimmung ihres Ablaufs** (Entscheidung „Abstimmung aller Funktionen und Abläufe vor Phase 4“ vom 15.10.2026, genauer gefasst am 16.10.2026). Bei jeder Anforderung in Schritt 6 steht, auf welchen Ablauf sie wartet. Ist er noch nicht abgestimmt, wird sie übersprungen und kommt dran, sobald er es ist. Fehler warten nicht, außer bei ihnen steht ausdrücklich, dass sie eine fachliche Frage aus der Abstimmung brauchen. Die Pop-ups (#38 bis #42) ändern nur die Darstellung, nicht Funktionen oder Inhalte, und warten deshalb nicht.
+- **Rauchtests:** Macht ein Pull Request einen vorher grünen Rauchtest rot, wird das vor der Übernahme behoben oder im Pull Request begründet. Rotes, das schon vorher rot war, wird ein Issue. GitHub sperrt die Übernahme nicht automatisch.
+- **Fehler und Anforderungen stehen nur als Issue auf GitHub,** nicht in diesem Dokument (Skill `issue-anlegen`). Technische Schritte ohne sichtbare Wirkung für Nutzende (Updates, Prüfregeln, Aufräumen) stehen hier. Die Liste „Vor dem ersten Echtbetrieb“ wird zu Issues, sobald sie nach vorne rückt.
 
-Qualität II, KI-Fehlerprüfung, bisher:
-- **PR #9:** pauschale Ausnahmen aufgeräumt
-- **PR #10:** Sicherheitsregeln an, Admin-Konto mit festem Passwort entfernt
-- **PR #11:** 20 Lücken im Zugriffsschutz geschlossen
-- **PR #12/#13:** Essensplanung und Programmideen abgeschaltet
-- **PR #14:** automatischer Abgleich zwischen Frontend und Backend, dazu die Karte `docs/schnittstellen.md`
+## Reihenfolge
 
-Phase 3d:
-- **PR #16:** Sicherheitsupdates im Frontend innerhalb der Hauptversionen. Bekannte Lücken in den Programmpaketen von 63 auf 4, übrig sind nur die bewusst offenen (`uuid`, `quill`, `@vue/server-renderer`).
-- **PR #17:** TypeScript 4.6 → 6.0 und eslint 8 → 10, neue eslint-Einstellung `frontend/eslint.config.mjs`, Aufruf `yarn lint`. Dabei zwei echte Fehler und eine tote Datei im Frontend gefunden (Fahrplan, Phase 4).
-- **PR #18:** `uuid` 9 → 14. Schließt eine Lücke, uuid bringt jetzt eigene Typbeschreibungen mit.
-- **PR #26:** Vue 3.3 → 3.5, nur noch eine Vue-Fassung (vorher zwei, eine über das unbenutzte Kartenpaket `@vue-leaflet/vue-leaflet`). Die Zwangsvorgaben (`resolutions`) aus PR #16 sind entfernt, weil sie Vue 3.5 eine zu alte `postcss`-Fassung aufgezwungen hätten. In den Programmpaketen bleibt nur noch `quill` als bekannte Lücke. Im Browser vorher und nachher geprüft: 14 Seiten und die Abläufe aus Issue #23 unverändert.
-- Reihenfolge geändert (Entscheidung vom 15.10.2026, Weg C): erst die risikoarmen Sprünge, dann Rauchtests, dann die riskanten.
+### Strang 1: Technik und Issues
 
-Fehlerbehebungen:
-- **PR #21 (Issue #19):** Neue Anmeldungen mit Personen waren seit PR #3 unmöglich. Die Dublettenprüfung hat jetzt eine eigene Adresse für neue Anmeldungen, meldet Dubletten sofort, auch bei Stammesmitgliedern, und hält bearbeitete Personen nicht mehr für ihre eigene Dublette (Entscheidung vom 15.10.2026). Dabei behoben: Wer in einer neuen Anmeldung eine Person bearbeitete, hatte sie danach doppelt in der Liste (Altcode).
-- **PR #22 (Issue #20):** Nach dem Speichern eines Lagerbeitrags und nach dem Ändern eines Orts blieb die Veranstaltungsseite leer, weil die Weiterleitung die Kennung des gespeicherten Eintrags statt der Veranstaltung nahm (Altcode). Ziel ist jetzt die Veranstaltung aus der Adresse der Seite.
-- **PR #24 (Issue #23):** Im Anmeldeablauf öffnete „ändern“ bei einer Person nichts. Ursache: Eine Variable (`tempId`) in `AddPersonModal.vue` gab es seit einem Umbau der ursprünglichen Entwickler im Mai 2024 nicht mehr. Der Absturz brachte die Seite durcheinander: Bis PR #21 erschien eine danach hinzugefügte Person erst nach dem Neuladen. Seit PR #21 (KI-Fehler: der Dialog merkt sich seither die Kennung der bearbeiteten Person) ersetzte sie still die zuvor geöffnete Person, nur in lokalen Tests vom 16.10. Der Dialog befüllt sich jetzt auch neu, wenn die Seite eine andere Person übergibt. Nachgestellt und geprüft im Browser (siehe „Vorarbeit für die Rauchtests“).
-- **PR #27 (Issue #25):** Nach der Rückreise tat „weiter“ nichts. Ursache: Die Standardvorlage für neue Veranstaltungen fügt die Schritte „Tshirts“ und „LunchMeals“ hinzu, für die das Frontend keine eigene Seite hat. Solche Schritte zeigt jetzt die allgemeine Seite für Zusatzfelder (`Container.vue`, `stepLink`), und die Übersicht einer abgeschickten Anmeldung zeigt ihre Antworten. Außerdem stürzte der Reise-Dialog bei fehlenden Angaben ab (`commonStore` fehlte) und blieb ohne Meldung offen. Jetzt erscheint „Bitte Felder überprüfen“, und unvollständige Angaben werden nicht übernommen. Dabei behoben (von der unabhängigen Prüfung gefunden): Sprang man über die Schrittanzeige zwischen zwei Zusatzschritten zurück, zeigte die Seite leere Felder und überschrieb beim Weiterklicken die Antworten des anderen Schritts. Der Fehler steckte schon in `Custom.vue`, erreichbar wurde er für jede Standard-Veranstaltung erst durch die neue Weiterleitung. Jetzt wird die Seite je Schritt neu aufgebaut (`key` an `router-view`) und speichert eine Kopie der Antworten.
+1. **← als Nächstes: Rauchtests für das Frontend.** Rauchtests sind automatische Klicktests in einem echten Browser: Jede Seite einmal öffnen und den wichtigsten Ablauf einmal durchklicken, um grobe Brüche sofort zu sehen. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test. Erst den Plan (Werkzeug, Aufbau, was in der Cloud und was auf GitHub läuft) kurz mit Sebastian abstimmen, dann bauen. Drei Pull Requests:
+   - [ ] 1a. Beispieldaten und Anleitung „Tool lokal mit Beispieldaten starten“ (dieselben Beispieldaten nutzen die Rauchtests)
+   - [ ] 1b. Jede Seite lädt ohne Programmfehler
+   - [ ] 1c. Anmeldeablauf mit allen Pflichtpunkten (siehe „Vorarbeit für die Rauchtests“)
+2. [ ] **#37** „Mich selbst anmelden“ erscheint mittig. Vorher mit `grill-me` klären. Klein, und die Rauchtests sichern dieses Fenster dann schon ab.
+3. **Riskante Versionssprünge im Frontend** (Updates von Bausteinen, auf denen die Oberfläche aufbaut), einzeln, je ein Pull Request mit Rauchtests und Klickliste, in dieser Reihenfolge (siehe „Vorgehen für künftige Updates“):
+   - [ ] `quill`, der Texteditor in Formularen (über `@vueup/vue-quill`, ggf. Ersatz). Zuerst, weil es die einzige verbliebene Sicherheitslücke in Code ist, der im Browser läuft.
+   - [ ] Vite 2.9 → aktuell, das Werkzeug, das die Oberfläche baut und lokal startet. Dabei das unbenutzte Paket `@vue-leaflet/vue-leaflet` entfernen (wird nirgends eingebunden, die Karten nutzen `leaflet` direkt).
+   - [ ] Pinia, der Zwischenspeicher der Oberfläche für geladene Daten
+   - [ ] vue-router, die Navigation zwischen den Seiten
+   - [ ] Tailwind, die Gestaltungsregeln (Farben, Abstände, Schriften). Zuletzt, weil es das Aussehen ändert: Sebastian prüft das Aussehen, und direkt danach folgen die Pop-ups, sodass er das neue Aussehen einmal statt zweimal anschauen muss.
+4. [ ] **eslint in die automatische Prüfung auf GitHub** (eslint prüft den Code der Oberfläche auf typische Fehler, so wie ruff im Backend), dazu:
+   - **#43** (drei Fenster stürzen ab), entdeckt mit der Regel `no-undef`. Die Regel für `.vue`-Dateien einschalten.
+   - Technisches Aufräumen, je mit Klickprüfung. Die Einzelheiten sind für die umsetzende KI:
+     - `views/newRegister/Container.vue`: `nextLink` liefert als Rückfall den ungültigen Seitennamen „Custom“, `console.log(routeObj)` läuft bei jeder Änderung.
+     - `components/stepper/StepperNavSmall.vue`: `:key="step.name"` ist bei mehreren Zusatzschritten doppelt (alle heißen „Custom“), besser die Kennung des Schritts.
+     - `components/stepper/StepFrame.vue`: `isLoading` ist zugleich Prop und eigener Wert `ref(false)`. Die Knöpfe zeigen deshalb nie den Ladezustand, obwohl neun Seiten ihn übergeben. Den eigenen Wert entfernen.
+     - Tote Dateien löschen: `modules/event/views/newRegister/module/Person.vue`, `modules/help/store/index.ts`.
+     - Ungenutzter Code mit fehlender Variable `eventData` in `event/components/statistic/payments/CashItem.vue`.
+     - Im eingefrorenen Modul `message` fehlen vier Symbole (`views/tabs/AllMessages.vue`): nur so weit, dass die Prüfung läuft.
+   - Nach PR #26: 260 Fehler und 2.795 Warnungen (`yarn lint`, Aufschlüsselung in `docs/qualitaet.md`). Zuerst die Fehler, Warnungen schrittweise. Die vorübergehend gelockerten Stufen in `eslint.config.mjs` bewusst einzeln schärfer stellen. Die Regel `comma-dangle` fällt mit eslint 11 weg. Dazu eine automatische Prüfung der Frontend-Pakete auf Sicherheitslücken wie `pip-audit` im Backend, `CONTRIBUTING.md` Abschnitt 5 dann ergänzen.
+5. **Pop-ups** (Sammel-Issue #35), der Reihe nach: [ ] #38 → [ ] #39 → [ ] #40 → [ ] #41 → [ ] #42. #41 und #42 warten zusätzlich auf #43. #41 braucht vorher eine kurze Nachklärung mit `grill-me`: Wohin kommt man nach dem Anlegen einer Gruppe? Die Frage stand im alten Fahrplan und wurde bei der Klärung von #35 nicht gestellt.
+6. **Fehler und Anforderungen aus den Issues.** Erst Fehler, dann Anforderungen „Wichtig“, dann „Wäre schön“. Innerhalb einer Gruppe in dieser Reihenfolge:
+   - Fehler: [ ] #48 abgelaufener Login → [ ] #47 Knopf „zusammenfassen“ → [ ] #44 Fehler als Erfolgsmeldung → [ ] #45 Bausteinposition → [ ] #34 nur Zahlen in Mengenfeldern → [ ] #46 Zahlung ohne Betrag → [ ] #51 „bestätigt“ (wartet auf die Abstimmung „Anmelden“)
+   - Wichtig: [ ] #49 Absenden ganz oder gar nicht (wartet auf „Anmelden“) → [ ] #50 verständliche Fehlermeldungen (wartet auf „Anmelden“ und #49) → [ ] #53 Orientierung im Anmeldeablauf (wartet auf „Anmelden“) → [ ] #52 Fristen im Frontend (wartet auf „Veranstaltung anlegen“) → [ ] #32 eindeutige technische Namen (wartet auf „Veranstaltung anlegen“)
+   - Wäre schön: [ ] #54 Texte als Fragen (wartet auf „Anmelden“) → [ ] #55 Stammauswahl (wartet auf „Anmelden“) → [ ] #57 Adressfelder (wartet auf „Anmelden“) → [ ] #30 Mengen begrenzen (wartet auf „Anmelden“) → [ ] #33 Namen für Datentypen (wartet auf „Veranstaltung anlegen“) → [ ] #56 Hinweis E-Mail-Feld (wartet auf „Konto und persönliche Daten“)
+7. **Qualität II, Rest** (siehe Abschnitt „Qualität II“): [ ] 2b Feldnamen → [ ] 1c Prüfregeln → [ ] 3 Keycloak-Abgleich → [ ] 4a/4b (nach der Abstimmung) → [ ] N+1 auf sechs Seiten → [ ] 5 Abschluss.
 
-Doku:
-- **PR #28:** Entscheidungen vom 16.10.2026 (Rauchtests, T-Shirts und Lunch Pakete) und diese Übergabe.
+### Strang 2: Abstimmung der Funktionen und Abläufe
 
-Tests: 253 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). Ergebnisse in `docs/qualitaet.md`, Entscheidungen in `docs/entscheidungen.md`.
+Beginnt jetzt, parallel zu Strang 1 (Entscheidung vom 16.10.2026). Ein Ablauf pro Sitzung, je Ablauf ein Pull Request. Vorgehen im Abschnitt „Abstimmung der Funktionen und Abläufe“.
 
-### Nächster Schritt: Rauchtests für das Frontend (Schritt 4)
+1. [ ] **← als Nächstes: Anmelden** (inkl. T-Shirts und Lunch Pakete als Standard, Buchungsoption, „bestätigt“ für #51, offene Fragen aus #30)
+2. [ ] Veranstaltung anlegen (inkl. Reiter „Module“ und #33)
+3. [ ] Anmeldung ändern
+4. [ ] Kasse und Auswertung
+5. [ ] Gruppen verwalten
+6. [ ] Konto und persönliche Daten
 
-Die risikoarmen Sprünge sind erledigt (TypeScript, eslint, `uuid`, Vue 3.5). Vor den riskanten Sprüngen (Vite, Pinia, vue-router, `quill`, Tailwind) kommen die Rauchtests. Planung siehe „Vorarbeit für die Rauchtests“ darunter. Die Fragen dazu hat Sebastian am 16.10.2026 beantwortet (`docs/entscheidungen.md`): Docker ist vorhanden, wichtigster Ablauf ist die Standard-Anmeldung bis zum Absenden, rote Rauchtests blockieren nichts, gefundene Fehler werden Issues. **Offen:** ob das auch gilt, wenn ein Pull Request die Rauchtests selbst rot macht (siehe `docs/entscheidungen.md`). Als Erstes Sebastian dazu fragen.
+### Vor dem ersten Echtbetrieb
 
-Vorgehen für den ersten Pull Request der Rauchtests: den Plan (Werkzeug, Aufbau, was in der Cloud und was auf GitHub läuft) zuerst kurz mit Sebastian abstimmen, dann bauen.
+Es gibt keinen festen Termin (Entscheidung vom 16.10.2026). Diese Punkte kommen vor dem ersten Einsatz mit echten Anmeldungen und werden dann zu Issues.
 
-**Gesammelte Fehler** (Entscheidungen Sebastians vom 16.10.2026: erst die Updates, dann die Fehler, außer sie betreffen genau den Bereich eines anstehenden Updates; jeder gefundene Fehler wird ein Issue und der Reihe nach abgearbeitet): die Funde aus PR #17 und PR #24 in Phase 4. Für neue Funde ab jetzt ein Issue mit dem Skill `issue-anlegen` anlegen (`.claude/skills/issue-anlegen/`, Entscheidungen vom 16.10.2026). Issue #25 wurde vor den Rauchtests behoben (PR #27), weil es genau den Anmeldeablauf betraf, den die Rauchtests prüfen. Sebastian hatte die Frage offen gelassen, die KI ist ihrer Empfehlung gefolgt. Seit der Entscheidung „Issues erst klären, dann umsetzen“ (16.10.2026) gilt das nicht mehr: Issues werden erst nach `grill-me` und mit Label `geklärt` umgesetzt.
+Datenschutz:
+- Namensansicht für Teilnehmende: Sie sehen von ihrer Gruppenanmeldung nur die Namen (Entscheidung „Wer sieht welche Anmeldungen“).
+- Zusatzfelder pro Veranstaltung, z. B. die Ausweisnummer, statt fester Felder (Entscheidung „Zusatzfelder pro Veranstaltung“).
+- Browserspeicher: Die Eingaben der Anmeldung, auch Daten von Kindern, liegen bis zum Absenden dauerhaft im Browser (`frontend/src/modules/event/store/register.ts` mit `persist: true`). Nach dem Absenden oder Abmelden löschen oder gar nicht dauerhaft speichern.
+- API-Logger: Er speichert jede Anfrage samt Inhalt dauerhaft in der Datenbank. Inhalte nicht speichern oder nach kurzer Frist löschen.
+- Löschfristen für Anmeldungen nach Veranstaltungsende (fachliche Entscheidung nötig).
 
-**T-Shirts und Lunch Pakete** (Entscheidung vom 16.10.2026): sollen nicht in jeder Veranstaltung auftauchen. Was Standard ist, klärt die Abstimmung der Abläufe. Bis dahin bleibt die Vorlage unverändert.
+Betrieb:
+- Hosting: vorerst günstiger eigener Server, später ggf. AWS beim Verband (Projektverantwortlicher).
+- Dockerfile für den Echtbetrieb. Das alte Setup in `backend/` (Dockerfile, docker-compose.yml, start.sh) ist ungeprüft. `manage.py check --deploy` verlangt dort `SECURE_SSL_REDIRECT=True`, falls der vorgeschaltete Webserver nicht auf HTTPS umleitet.
+- Begrenzung der Anfragen pro Minute für die öffentlichen Adressen: Registrierung, Kontaktformular, Prüfung von Benutzername und E-Mail (verraten, ob eine Adresse registriert ist).
+- `anonymise_data` überschreibt ohne Rückfrage alle Personendaten. Sicherung gegen versehentlichen Aufruf im Echtbetrieb.
+- Kleinste nötige Rollen für das Keycloak-Dienstkonto (getestet nur mit `realm-admin`), mit dem Verbands-Admin.
+- Lizenz des Projekts, mit den ursprünglichen Entwicklern.
 
-### Vorarbeit für die Rauchtests (Schritt 4)
+### Irgendwann, ohne festen Platz
 
-- **Korrektur vom 16.10.2026: In der Cloud-Sitzung gibt es einen Browser.** Chromium mit Playwright ist vorinstalliert (`/opt/pw-browsers`, Playwright unter `/opt/npm-tools/node_modules/playwright`, `PLAYWRIGHT_BROWSERS_PATH` ist gesetzt). Am 15.10. wurde nur an den Standardorten gesucht und fälschlich „kein Browser“ festgehalten. Keycloak bleibt gesperrt (Docker-Abbild, GitHub, Maven).
-- **Bei Issue #23 erprobt:** Das Frontend läuft mit `yarn dev`, Playwright beantwortet im Browser die Anfragen an Keycloak (Login mit Platzhalter-Token) und ans Backend (Testdaten) mit `page.route`. Am Tool selbst ändert sich dafür nichts, es gibt keinen Login-Ersatz im Code. Testdaten, die zum echten Backend passen, erzeugt das Backend selbst über die Testdaten aus `tests/conftest.py`. So ließ sich #23 nachstellen und die Behebung vorher und nachher prüfen. Grenze: Das Backend wird dabei nicht mitgeprüft. Für die Rauchtests deshalb zwei Stufen erwägen: Frontend mit Platzhalter-Backend (schnell, auch in der Cloud) und ein Durchlauf mit echtem Backend und Keycloak (GitHub, Mac).
-- **Vorschlag vom 15.10.2026, Rahmen seit 16.10. entschieden (siehe oben), Werkzeug und Aufbau noch abzustimmen:** Die Rauchtests laufen mit einem echten Keycloak 26.7 automatisch auf GitHub und auf Sebastians Mac. `dev/keycloak-setup.sh` legt schon drei Testkonten an (`leitung`, `stammesleitung`, `teilnehmer`). Als Erstes prüfen, ob GitHub das Keycloak-Abbild laden darf. Aufteilung in drei Pull Requests: Beispieldaten und Anleitung „lokal starten“, dann „jede Seite lädt“, dann „Anmeldeablauf“.
-- **Antworten Sebastians vom 16.10.2026:** Docker ist auf dem Mac vorhanden. Wichtigster Ablauf: Standard-Anmeldung über alle Schritte bis zum Absenden. Rote Rauchtests blockieren keine Übernahme, gefundene Fehler werden Issues.
-- **Nachstell-Skripte vom 16.10.2026 (nicht im Repository, nur als Rezept):** Ein Node-Skript startet Chromium über `require('/opt/npm-tools/node_modules/playwright')`, ruft das Frontend auf `http://localhost:8080` auf (`yarn dev` mit den Umgebungsvariablen aus `.github/workflows/ci.yml`) und beantwortet mit `page.route`:
-  - `http://localhost:8180/**` (Keycloak): `…/protocol/openid-connect/auth` mit einer Weiterleitung an `redirect_uri#state=…&code=c`, `…/token` mit einem unsignierten JWT, das den `nonce` aus der Anfrage enthält.
-  - `http://localhost:8000/**` (Backend): Antworten aus JSON-Dateien, die das echte Backend erzeugt. Dazu vorübergehend einen Test in `backend/tests/` anlegen, der mit den Fixtures aus `conftest.py` Daten anlegt und die Antworten (`/event/event-read/<id>/`, `/event/registration-read/<id>/`, `/auth/personal-data/`, `/basic/gender/`, `/event/travel-type-choices/`) in Dateien schreibt, danach löschen. Alle übrigen Anfragen mit `[]` beantworten.
-  - Gemessen wurden je Seite Programmfehler (`pageerror`, `console.error`) und Vue-Warnungen, vorher und nachher.
-  - Vorsicht in der Cloud-Shell: Prozesse nicht mit `pkill -f`/`pgrep -f` auf ein Muster beenden, das in der eigenen Befehlszeile vorkommt, das beendet die eigene Shell. PIDs über `ps aux | grep -E "[v]ite --port"` ermitteln.
-- **Pflichtpunkte für die Rauchtests** aus Fehlern, die nur durch Klicken auffielen: neue Anmeldung mit „Mich selbst anmelden“ und einem Stammesmitglied (Issue #19), eine schon angemeldete Person wird sofort gemeldet, eine gespeicherte Person bearbeiten ohne Dublettenmeldung, Lagerbeitrag anlegen und ändern sowie Ort ändern, danach auf der Veranstaltung bleiben, dazu ein Fehlerfall: Ort ändern, der auch von einer fremden Veranstaltung genutzt wird, zeigt eine Fehlermeldung und lädt nicht neu (Issue #20). Im Anmeldeablauf zwei Personen hinzufügen, jede über „ändern“ öffnen (der Dialog zeigt die richtige Person), eine umbenennen (sie steht danach einmal mit neuem Namen da), beide löschen, eine neue hinzufügen (sie erscheint sofort) (Issue #23). Mit einer Veranstaltung aus der Standardvorlage den ganzen Anmeldeablauf durchklicken, über Anreise, Rückreise, T-Shirts, Anmerkungen und Lunch Pakete bis zur Zusammenfassung, dazu der Reise-Dialog mit fehlender Angabe (zeigt „Bitte Felder überprüfen“, übernimmt nichts) (Issue #25). Dazu: über die Schrittanzeige von „Lunch Pakete“ zurück zu „T-Shirts“ springen, die Antworten sind noch da und werden alle abgeschickt. Das gilt, solange die Standardvorlage beide Schritte enthält, sonst mit einer Veranstaltung, die sie zusätzlich wählt. Testdaten wie eine echt angelegte Veranstaltung: Vorlage aus `data/main/3_event.json` und `4_attributes.json` laden und `add_event_module` aus `anmelde_tool/event/views.py` nutzen.
-- Werkzeug voraussichtlich Playwright, weil es einen echten Browser steuert und nicht von der Vite-Version abhängt. Neues Paket, also mit Begründung (`CONTRIBUTING.md` Abschnitt 5). Liste der Seiten und ihrer Anfragen: `docs/schnittstellen.md`.
+- Die Hauptdatei des Frontends (1,2 MB) aufteilen, sodass Seiten erst bei Bedarf geladen werden.
+- TypeScript 7: erst, wenn `typescript-eslint` es unterstützt (Stand 15.10.2026: nur bis 6.0). `moduleResolution: bundler` in `tsconfig.json` ist vorbereitet.
+- `django-stdimage` ist veraltet, Nachfolger `django-pictures`.
+- Fachliche Fragen für die Abstimmung, die keinem Ablauf zugeordnet sind: Beim Anmelden kann man jeden Stamm wählen, nicht nur den eigenen (PR #3). Feinabstimmung der Rechte des Anmeldeteams, Staff hat heute überall Admin (PR #2). Zentrale Verwaltung der Veranstaltungsorte (Entscheidung „Veranstaltungsorte“).
+- Eingefrorene Module: `food` und `inspi` sind abgeschaltet, `messaging` und `notifications` bleiben vorerst. Ob sie abgesichert zurückkommen, klärt die Abstimmung (Projektverantwortlicher).
+- Phase 6: eigene Ideen des Projektverantwortlichen. Phase 7: andere im Verband nach ihrem Bedarf fragen.
 
-### Offene Fragen an Sebastian
+### Bewusst nicht
 
-- **Klicktest zu PR #11:** Die Rechte wurden spürbar enger. Klickliste siehe PR #11, Abschnitt 3. Ist er erfolgt, und ist etwas fälschlich gesperrt?
-- **Person aus einer Anmeldung löschen** schlug lokal wegen eines fehlenden Schrägstrichs fehl (behoben in PR #14). Ist das beim Testen aufgefallen?
+- „Zu komplexe Funktionen aufteilen“ als eigener Schritt: Das regelt schon die Pfadfinderregel (`CONTRIBUTING.md` Abschnitt 7).
+- Weiterleitung nach dem Speichern im eingefrorenen Kontaktformular-Modul (steht in `docs/qualitaet.md`): Funde in eingefrorenen Modulen werden nur dort festgehalten, nicht behoben (Entscheidung vom 15.10.2026).
+- Die offenen Fragen „Klicktest zu PR #11“ und „Person aus einer Anmeldung löschen“: gestrichen am 16.10.2026. Das prüfen künftig die Rauchtests und die Abstimmung. Fällt etwas fälschlich gesperrt auf, wird es ein Issue.
 
-### Eigenheiten der Arbeitsumgebung (Cloud-Sitzung)
+## Vorarbeit für die Rauchtests
 
-- **Backend einrichten:**
-  ```
-  cd backend
-  python3 -m venv .venv
-  .venv/bin/pip install -r requirements-dev.txt
-  ```
-  Tests laufen mit `DJANGO_SETTINGS_MODULE=backend.settings_test`. Das steht auch in `pytest.ini`. Immer die Werkzeuge aus `.venv` aufrufen (`.venv/bin/ruff`, `.venv/bin/pytest`). In der Cloud liegen sonst andere Versionen bereit.
-- **Frontend:**
-  - Installieren mit `CYPRESS_INSTALL_BINARY=0 yarn install --frozen-lockfile`.
-  - `yarn build` braucht die Umgebungsvariablen `VITE_APP_API`, `VITE_APP_URL`, `VITE_APP_KEYCLOAK_URL`, `VITE_APP_KEYCLOAK_REALM` und `VITE_APP_KEYCLOAK_CLIENT_ID` (Werte wie in `.github/workflows/ci.yml`).
-  - Der Build ändert `frontend/components.d.ts` (eine Zeile `StepperNav`). Diese Änderung ist älter und gehört nicht in fremde Pull Requests: mit `git checkout frontend/components.d.ts` zurücksetzen.
-- **Livetest gegen Keycloak ist in der Cloud nicht möglich.** Docker lässt sich mit `dockerd &` starten, aber das Abbild `quay.io/keycloak/keycloak` ist gesperrt. Ein Browser ist dagegen vorhanden (Chromium mit Playwright, siehe „Vorarbeit für die Rauchtests“). Livetests macht deshalb Sebastian auf seinem Mac, mit einer Schritt-für-Schritt-Anleitung (ein Befehl pro Schritt).
-- **GitHub:** `gh pr …` geht nicht (GraphQL gesperrt). Stattdessen die REST-Schnittstelle, z. B. `gh api repos/sebivtt/scout-participant-management/pulls -f title=… -f head=… -f base=main -F body=@datei.md`. Den Stand der automatischen Prüfungen zeigt `gh api repos/…/commits/<sha>/check-runs`.
-- **Branches:** Die Kopie des Repositorys ist flach und kennt nur `main`. Neue Branches mit `git push -u origin <branch>` hochladen. Meldet ein Hinweis „unpushed commits“, obwohl gepusht wurde, mit `git ls-remote origin <branch>` prüfen.
-- **Nach dem Ändern von Adressen oder Rechten** die Karte neu erzeugen: `.venv/bin/python tools/schnittstellen_karte.py` im Ordner `backend/`. Sonst schlägt ein Test an.
+- **Rahmen (entschieden am 16.10.2026):** Docker ist auf Sebastians Mac vorhanden. Wichtigster Ablauf ist die Standard-Anmeldung über alle Schritte bis zum Absenden. Rote Rauchtests sperren die Übernahme nicht automatisch, siehe „Regeln für die Reihenfolge“.
+- **Werkzeug voraussichtlich Playwright,** weil es einen echten Browser steuert und nicht von der Vite-Version abhängt. Neues Paket, also mit Begründung (`CONTRIBUTING.md` Abschnitt 5). Liste der Seiten und ihrer Anfragen: `docs/schnittstellen.md`.
+- **Zwei mögliche Stufen, noch abzustimmen:** Frontend mit Platzhalter-Backend im Browser (schnell, auch in der Cloud, Rezept in `docs/arbeitsumgebung.md`) und ein Durchlauf mit echtem Backend und Keycloak 26.7 (GitHub, Mac). `dev/keycloak-setup.sh` legt schon drei Testkonten an (`leitung`, `stammesleitung`, `teilnehmer`). Als Erstes prüfen, ob GitHub das Keycloak-Abbild laden darf.
+- **Pflichtpunkte** aus Fehlern, die nur durch Klicken auffielen:
+  - Neue Anmeldung mit „Mich selbst anmelden“ und einem Stammesmitglied (Issue #19), eine schon angemeldete Person wird sofort gemeldet, eine gespeicherte Person bearbeiten ohne Dublettenmeldung.
+  - Lagerbeitrag anlegen und ändern sowie Ort ändern, danach auf der Veranstaltung bleiben. Fehlerfall: Ort ändern, der auch von einer fremden Veranstaltung genutzt wird, zeigt eine Fehlermeldung und lädt nicht neu (Issue #20).
+  - Im Anmeldeablauf zwei Personen hinzufügen, jede über „ändern“ öffnen (der Dialog zeigt die richtige Person), eine umbenennen (sie steht danach einmal mit neuem Namen da), beide löschen, eine neue hinzufügen (sie erscheint sofort) (Issue #23).
+  - Mit einer Veranstaltung aus der Standardvorlage den ganzen Anmeldeablauf durchklicken, über Anreise, Rückreise, T-Shirts, Anmerkungen und Lunch Pakete bis zur Zusammenfassung, dazu der Reise-Dialog mit fehlender Angabe (zeigt „Bitte Felder überprüfen“, übernimmt nichts) (Issue #25).
+  - Über die Schrittanzeige von „Lunch Pakete“ zurück zu „T-Shirts“ springen, die Antworten sind noch da und werden alle abgeschickt. Das gilt, solange die Standardvorlage beide Schritte enthält, sonst mit einer Veranstaltung, die sie zusätzlich wählt.
+  - Testdaten wie eine echt angelegte Veranstaltung: Vorlage aus `data/main/3_event.json` und `4_attributes.json` laden und `add_event_module` aus `anmelde_tool/event/views.py` nutzen.
 
-## Phasen
+## Vorgehen für künftige Updates
 
-| Phase | Inhalt | Stand |
-| --- | --- | --- |
-| 1 Fundament | Gemeinsames Repository und lokale Installation (direkte Commits), Backend ohne Keycloak startfähig, Testgerüst | ✅ Vorarbeit + PR #1 |
-| 2 Rechte | Gruppenrechte im Tool statt in Keycloak, Sicherheitslücken geschlossen | ✅ PR #2 |
-| 3a Sicherheit und Fehler | Login-Pflicht als Standard, Fehler bei frischer Installation | ✅ PR #3 |
-| Fehlerbehebung | Speichern persönlicher Daten löschte E-Mail und Namen in Keycloak | ✅ PR #4 |
-| 3b Fristen | Anmelde- und Änderungsfristen, manuelle Sperren | ✅ PR #5 |
-| 3c Modernisierung Backend | Django 5.2, aktuelle Pakete, pip-audit | ✅ PR #6 |
-| Qualität | Regeln, ruff, Dokumentation, Messung | ✅ PR #7 |
-| **Qualität II: KI-Fehlerprüfung** | siehe unten | **in Arbeit** (PR #9 bis #14), Rest siehe Reihenfolge |
-| 3d Modernisierung Frontend | siehe unten | offen |
-| **Abstimmung der Funktionen und Abläufe** | siehe unten | offen, kann parallel zu 3d beginnen |
-| 4 Frontend und Anmeldeablauf | siehe unten | offen |
-| 5 Datenschutz | siehe unten | offen |
-| 6 Eigene Ideen | Ideen des Projektverantwortlichen umsetzen | offen |
-| 7 Anforderungsanalyse | Andere im Verband nach Bedarf fragen | offen |
-| Betrieb | Hosting, Dockerfile, Lizenz | offen, wartet auf Entscheidung |
+Für alle Versionssprünge im Frontend (Entscheidungen vom 15.10.2026):
 
-### Reihenfolge der nächsten Schritte (Bestandsaufnahme vom 15.10.2026)
+- Direkte Pakete gezielt einzeln (`yarn upgrade axios@1.20.0`), nie pauschal `yarn upgrade`, nie `npm audit fix --force`, kein Wechsel auf npm.
+- Mitgelieferte Pakete über `resolutions` in `package.json`, jeweils auf die niedrigste behobene Version innerhalb der Hauptversion. Vorher prüfen, ob das übergeordnete Paket die behobene Version schon selbst verlangt: Dann ist keine Vorgabe nötig.
+- Was ein aktualisiertes Paket zwingend mitbringt, darf seine Hauptversion verlassen. Neue Hauptversionen und neue Pakete werden im Pull Request genannt und begründet.
+- Zwangsvorgaben (`resolutions`) bei jedem Update der übergeordneten Pakete prüfen, sonst verletzen sie deren Anforderungen still. (Die Vorgaben aus PR #16 sind mit PR #26 entfernt, weil sie Vue 3.5 eine zu alte `postcss`-Fassung aufgezwungen hätten.)
+- Prüfen: `yarn build`, eslint und `npx tsc --noEmit` vorher und nachher vergleichen, Backend-Tests, `yarn audit --groups dependencies --summary`, Änderungsprotokoll des Pakets gegen unsere Aufrufe lesen.
+- Im Browser vorher und nachher vergleichen: Seitenrundgang mit Programmfehlern und Vue-Warnungen je Seite, dazu die betroffenen Abläufe. Nach den Rauchtests: Rauchtests vorher und nachher.
 
-1. ✅ **Qualität II, Schritt 2a: Frontend und Backend abgleichen**, mit automatischer Prüfung (PR #14). Das erste Sicherheitsnetz für alle weiteren Änderungen, dazu die Karte `docs/schnittstellen.md`. Der Feldnamen-Abgleich (2b) ist nach hinten verschoben, siehe Punkt 4a.
-2. ✅ **Sicherheitsupdates im Frontend innerhalb der Hauptversionen** (PR #16). Bekannte Lücken in den Programmpaketen von 63 auf 4.
-3. **Risikoarme Versionssprünge im Frontend** (Entscheidung vom 15.10.2026, Weg C), je ein Pull Request mit Klickliste, in dieser Reihenfolge:
-   - ✅ **TypeScript 4.6 → 6.0 und eslint 8 → 10** (PR #17), gemeinsam, weil das neue eslint mindestens TypeScript 4.8 verlangt. TypeScript 7 lässt sich noch nicht nutzen, siehe Phase 3d.
-   - ✅ **`uuid` 9 → 14** (PR #18)
-   - Dazwischen vorgezogen, weil sie das Anmelden bzw. Bearbeiten blockieren: ✅ Issue #19 (PR #21), ✅ Issue #20 (PR #22), ✅ Issue #23 (PR #24, vor Vue 3.5, weil Vue genau Dialoge und Listen steuert)
-   - ✅ **Vue 3.3 → 3.5** (PR #26). Der alte Vite-Baustein `@vitejs/plugin-vue` 2.3.4 kommt damit zurecht, ein Schalter in `vite.config.ts` ersetzt, was neuere Fassungen selbst setzen.
-4. **← als Nächstes: Rauchtests für das Frontend**, Details im Abschnitt „Übergabe“: jede Seite einmal öffnen, dazu ein Durchlauf des Anmeldeablaufs. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test.
-4a. **Qualität II, Schritt 2b: Feldnamen abgleichen.** Nach den Rauchtests, weil diese viele Feldfehler direkt zeigen (eine Seite bleibt leer oder meldet Fehler).
-4b. **Phase 3d, riskante Versionssprünge**: Vite, Pinia, vue-router, `quill`, Tailwind, einzeln, je mit Rauchtests und Klicktest, bei Tailwind zusätzlich Prüfung des Aussehens. Vor Phase 4, damit der neue Anmeldeablauf nicht auf dem alten Fundament entsteht.
-5. **Qualität II, Schritt 3: Keycloak-Abgleich**, zusammen mit dem Keycloak-Baustein im Frontend.
-6. **Qualität II, Schritt 1c**: die restlichen Prüfregeln, klein und unabhängig, auch zwischendurch möglich.
-7. **Abstimmung der Funktionen und Abläufe**, danach Qualität II 4a/4b und Phase 4. Die Abstimmung kann beginnen, sobald die Karte aus Schritt 1 steht, parallel zur technischen Arbeit.
+Stand der Versionen am 16.10.2026: Vite 2.9 (aktuell 8), Vue 3.5 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 6.0 (7), eslint 10 (10). Bekannte Sicherheitslücken nach PR #26: 169, davon 1 in den Programmpaketen (`quill`), der Rest in Entwicklungswerkzeugen (Verlauf in `docs/qualitaet.md`).
+
+## Abstimmung der Funktionen und Abläufe
+
+Vereinbart am 15.10.2026. Ziel: Für jeden Ablauf ist abgestimmt, wer was darf und wann. Ohne diese Grundlage muss die KI bei Rechten und Fristen raten oder einzeln nachfragen.
+
+**Vorgehen:**
+1. Die KI erstellt den Ist-Stand aus dem Code, ein Dokument pro Ablauf in `docs/ablaeufe/`. Jedes Dokument enthält:
+   - ein Ablaufdiagramm,
+   - eine Tabelle „wer darf was in welcher Phase“, also vor dem Anmeldestart, während der Anmeldung, nach dem Anmeldeschluss und nach der Änderungsfrist,
+   - eine Liste der Stellen, die vermutlich nicht so gewollt sind.
+2. Sebastian geht die Abläufe einzeln durch und entscheidet pro Zeile: so lassen oder ändern. Das Ergebnis steht als Soll im Dokument und in `docs/entscheidungen.md`.
+3. Jede abgestimmte Regel bekommt einen Test, sobald sie umgesetzt wird. Weicht das Soll vom Ist ab, wird daraus ein Issue.
+
+**Schon gesammelte Fragen:**
+- Anmelden: Welche Schritte und Abfragen bekommt jede neue Veranstaltung standardmäßig, welche wählt die Veranstaltungsleitung zusätzlich? Heute gibt die Standardvorlage „T-Shirts“ und „Lunch Pakete“ immer mit, das soll nicht so bleiben (Entscheidung vom 16.10.2026).
+- Anmelden: Wann soll die Buchungsoption gesperrt sein? Heute ist die Sperre im Anmeldeablauf immer aus (`views/newRegister/module/Participants.vue`, `blockBookingOption.value && …` im Template), und Stammesmitglieder landen ohne Buchungsoption in der Liste.
+- Anmelden: Wann gilt eine Anmeldung als bestätigt (#51)?
+- Anmelden: offene Fragen aus #30 (welche Personen zählen, Verhalten beim nachträglichen Entfernen).
+- Veranstaltung anlegen: Der Reiter „Module“ ist unverständlich und soll grundlegend überarbeitet werden (Rückmeldung vom 14.10.2026), zusammen mit #33.
+- Wer darf welche Veranstaltung sehen? Heute liefert `/event/event-read/` jeder eingeloggten Person jede Veranstaltung.
+- Wer darf in der geplanten zentralen Ortsverwaltung Orte verwalten? Was passiert mit Orten, die angelegt, aber keiner Veranstaltung zugeordnet wurden?
+- Darf die Ansichtsgruppe Excel-Listen erzeugen? Heute ja, weil das eine Form der Auswertung ist.
+- Sollen beim Zusammenlegen zweier Anmeldungen auch deren Bewertungen (und Workshops, falls das Modul wieder eingebunden wird) übernommen werden? Heute gehen sie mit der gelöschten Anmeldung verloren.
 
 ## Qualität II: Prüfung auf typische KI-Fehler
 
-**Auftrag:** Den gesamten Code, den übernommenen und den von KI geänderten, auf typische Fehler von KI-generiertem Code prüfen. Grundlage ist der Artikel <https://scand.de/unternehmen/blog/why-ai-generated-code-doesnt-work-and-how-to-fix-it/>. Gefundene Probleme werden als Tests oder als automatische Prüfung festgehalten. Noch offene Fehler werden als `xfail(strict=True, raises=…)` mit genau der erwarteten Fehlerart markiert, damit nicht jeder beliebige Fehler als „bekannt“ durchgeht (Vorbild: `tests/test_abfragen.py`). Was sich nicht automatisch prüfen lässt, kommt als Regel in `CONTRIBUTING.md`. Ein Ergebnisabschnitt kommt in `docs/qualitaet.md`.
+**Auftrag:** Den gesamten Code, den übernommenen und den von KI geänderten, auf typische Fehler von KI-generiertem Code prüfen. Grundlage ist der Artikel <https://scand.de/unternehmen/blog/why-ai-generated-code-doesnt-work-and-how-to-fix-it/>. Gefundene Probleme werden als Tests oder als automatische Prüfung festgehalten. Noch offene Fehler werden als `xfail(strict=True, raises=…)` mit genau der erwarteten Fehlerart markiert (Vorbild: `tests/test_abfragen.py`). Was sich nicht automatisch prüfen lässt, kommt als Regel in `CONTRIBUTING.md`. Ein Ergebnisabschnitt kommt in `docs/qualitaet.md`.
 
 Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und übersetzt sie auf dieses Projekt. Der Artikel muss nicht erneut gelesen werden.
 
@@ -146,149 +166,45 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 | Nur der Normalfall ist bedacht | Leere Listen, fehlende Felder, doppelte Anfragen, gleichzeitige Änderungen, Keycloak oder Mail nicht erreichbar, Fristen genau auf der Grenze | teilweise (Fristen-Grenzen, Keycloak-Ausfall bei Rechten) |
 | Fehlende Fehlerbehandlung, stille Fehler | `except: pass`, verschluckte Fehler, Rückgabe `None` statt Fehlermeldung, Frontend-Meldungen, die den echten Fehler verdecken | teilweise (ruff E722; 7 Altlasten mit `# noqa: E722` sind ein konkreter Startpunkt) |
 | Fehlende Eingabeprüfung | Serializer ohne Prüfung, Datei-Uploads (Excel-Import), Längen und Formate, Rechte nur im Frontend | teilweise (Datumsreihenfolge, Rechte-Tests) |
-| Sicherheitslücken | SQL über `raw()` oder `extra()`, Zugangsdaten im Code oder in `.env.example`, offene Endpunkte (`AllowAny`), Massenzuweisung über `fields = '__all__'`, fehlende Begrenzung öffentlicher Endpunkte | teilweise (pip-audit, Login-Pflicht als Standard). `fields = '__all__'` kommt oft vor, z. B. in `anmelde_tool/event/serializers.py`: jede Fundstelle einzeln bewerten |
+| Sicherheitslücken | SQL über `raw()` oder `extra()`, Zugangsdaten im Code oder in `.env.example`, offene Endpunkte (`AllowAny`), Massenzuweisung über `fields = '__all__'`, fehlende Begrenzung öffentlicher Endpunkte | teilweise (pip-audit, Login-Pflicht als Standard, alle `fields = '__all__'` bewertet in 1b-2) |
 | Erfundene Funktionen oder falsche Versionen | Aufrufe von Bibliotheksfunktionen, die es in der installierten Version nicht gibt (v. a. python-keycloak, DRF), Frontend-Pakete | nein (nur indirekt über Tests) |
 | Falsche Annahmen über Datenstrukturen | Antworten von Keycloak (Felder optional?), Frontend erwartet andere Feldnamen als das Backend liefert, `None` vs. leere Liste | nein |
 | Lokal richtig, passt nicht ins Ganze | Doppelte Logik an mehreren Stellen (z. B. Rechteprüfung, Datumsprüfung), Regeln aus `docs/entscheidungen.md` nicht überall umgesetzt | teilweise (zwei Fälle in PR #7 gefunden) |
 | Zu einfach oder zu kompliziert | Übersprungene Details, unnötige Abstraktionen, tote oder doppelte Funktionen | teilweise (ruff C901) |
-| Schwer nachvollziehbar | Annahmen nicht dokumentiert, keine Docstrings | teilweise (Docstring-Quote 8 %) |
+| Schwer nachvollziehbar | Annahmen nicht dokumentiert, keine Docstrings | teilweise (Docstring-Quote siehe `docs/qualitaet.md`) |
 
-**Vorgehen in dieser Reihenfolge**, jeweils ein eigener Pull Request (am 15.10.2026 mit dem Projektverantwortlichen abgestimmt; Prüftiefe und Abgrenzung zu Phase 4 siehe `docs/entscheidungen.md`):
-- [x] 1a. Pauschale `# noqa` ohne Regelnummer aufräumen, damit sie neue Regeln nicht verstecken. ruff verbietet sie künftig (PR #9).
-- [x] 1b-1. Sicherheitsregeln (ruff `S`) einschalten und die Funde beheben: Administratorkonto mit festem Passwort beim Serverstart, abgeschaltete Zertifikatsprüfung (PR #10).
-- [x] 1b-2. Alle 70 Fundstellen von `fields = '__all__'`, alle schreibenden Schnittstellen und alle öffentlichen Adressen bewertet. 20 Lücken im Zugriffsschutz behoben, darunter die Schreibrechte der Ansichtsgruppe (Entscheidung vom 15.10.2026), automatische Prüfung für schreibende Schnittstellen (PR #11, Ergebnis in `docs/qualitaet.md`).
-- [x] 1d. Essensplanung (`food`) und Programmideen (`inspi`) abgeschaltet: Adressen und Menüpunkte entfernt, Code und Datenbanktabellen bleiben (Entscheidung vom 15.10.2026, PR #12).
-- [ ] Noch aus 1b: `add_state` bricht bei einem unbekannten Bundesland mit einem unverständlichen Fehler ab.
-- [ ] 1c. Weitere Regelgruppen (`DJ`, `PERF`, `RET`, `W605`, pauschales `except Exception`) mit Zählung und Bewertung, dazu die 7 Altlasten mit `except:`. Bekannte Treffer: `authentication/views.py` Passwortprüfung (`W605`, ungültige Escape-Sequenz, funktioniert heute noch); `anmelde_tool/registration/signals.py` besteht nur aus auskommentiertem Code (klären, ob die Mail „Anmeldung angelegt“ fehlt oder anderswo verschickt wird).
-- [x] 2a. Frontend-Aufrufe mit den Backend-Adressen und Anfragearten abgleichen, automatisch bei jeder Änderung (`tests/test_frontend_abgleich.py`), dazu die Karte `docs/schnittstellen.md` (PR #14). Frontend-Pakete: Die automatische Prüfung installiert sie bei jedem Lauf aus der festen Paketliste, erfundene Pakete würden dort scheitern.
-- [ ] 2b. Feldnamen abgleichen: Liest das Frontend Felder, die das Backend nicht liefert? Achtung: Das Backend wandelt Feldnamen automatisch um (`first_name` ↔ `firstName`, Paket `djangorestframework-camel-case`).
+**Schritte**, jeweils ein eigener Pull Request (Prüftiefe und Abgrenzung siehe `docs/entscheidungen.md`, 15.10.2026):
+- [x] 1a. Pauschale `# noqa` aufgeräumt (PR #9).
+- [x] 1b-1. Sicherheitsregeln (ruff `S`) eingeschaltet, Funde behoben (PR #10).
+- [x] 1b-2. Alle `fields = '__all__'`, schreibenden Schnittstellen und öffentlichen Adressen bewertet, 20 Lücken geschlossen (PR #11).
+- [x] 1d. Essensplanung und Programmideen abgeschaltet (PR #12/#13).
+- [x] 2a. Frontend-Aufrufe mit Backend-Adressen abgleichen, automatisch (PR #14).
+- [ ] 1c. Weitere Regelgruppen (`DJ`, `PERF`, `RET`, `W605`, pauschales `except Exception`) mit Zählung und Bewertung, dazu die 7 Altlasten mit `except:`. Bekannte Treffer: `authentication/views.py` Passwortprüfung (`W605`, ungültige Escape-Sequenz, funktioniert heute noch); `anmelde_tool/registration/signals.py` besteht nur aus auskommentiertem Code (klären, ob die Mail „Anmeldung angelegt“ fehlt oder anderswo verschickt wird). Noch aus 1b: `add_state` bricht bei einem unbekannten Bundesland mit einem unverständlichen Fehler ab.
+- [ ] 2b. Feldnamen abgleichen: Liest das Frontend Felder, die das Backend nicht liefert? Achtung: Das Backend wandelt Feldnamen automatisch um (`first_name` ↔ `firstName`, Paket `djangorestframework-camel-case`). Nach den Rauchtests, weil diese viele Feldfehler direkt zeigen.
 - [ ] 3. Genutzte python-keycloak-Methoden mit der installierten Version (7.1.1) abgleichen, mit Livetest gegen Keycloak 26.7.
-- [ ] 4a. Randfälle und Fehlerbehandlung beim Anmelden und Ändern mit Tests absichern. **Erst nach der Abstimmung der Funktionen und Abläufe**, damit die Tests die abgestimmten Regeln prüfen.
-- [ ] 4b. Dasselbe für Rechte und Gruppen, dazu doppelte Logik an mehreren Stellen (Tabellenzeile „Lokal richtig, passt nicht ins Ganze“). Ebenfalls erst nach der Abstimmung.
-- [ ] 5. Abschluss: Tabelle oben vollständig beantworten, Ergebnisabschnitt in `docs/qualitaet.md`, neue Review-Regeln in `CONTRIBUTING.md`. Dabei auch die Docstring-Quote in `docs/qualitaet.md` angleichen: Die Kurzfassung nennt 8 %, die Tabelle 13 %.
+- [ ] 4a. Randfälle und Fehlerbehandlung beim Anmelden und Ändern mit Tests absichern. Erst nach der Abstimmung „Anmelden“ und „Anmeldung ändern“.
+- [ ] 4b. Dasselbe für Rechte und Gruppen, dazu doppelte Logik an mehreren Stellen. Erst nach der Abstimmung aller Abläufe, weil Rechte in jedem Ablauf vorkommen.
+- [ ] N+1-Abfragen auf sechs Seiten beheben: Auswertung, Meine Anmeldungen, Kassenliste, Gruppenliste, Veranstaltungsübersicht, Meine Einladungen. Ist eine Seite behoben, meldet `tests/test_abfragen.py` das, und die `xfail`-Markierung wird entfernt.
+- [ ] 5. Abschluss: Tabelle oben vollständig beantworten, Ergebnisabschnitt in `docs/qualitaet.md`, neue Review-Regeln in `CONTRIBUTING.md`. Dabei die Docstring-Quote in `docs/qualitaet.md` angleichen: Die Kurzfassung nennt 8 %, die Tabelle 13 %.
 
 **Fertig ist die Phase**, wenn jede Zeile der Tabelle mit „abgedeckt“ oder „bewusst nicht, weil …“ beantwortet ist und `docs/qualitaet.md` einen Ergebnisabschnitt hat.
 
-**Hinweise:**
-- Vorgehen wie im Artikel empfohlen: erst reproduzieren, dann isolieren und Annahmen prüfen, erst danach ändern.
-- Mögliche Werkzeuge, jeweils nur mit Begründung (`CONTRIBUTING.md` Abschnitt 5):
-  - weitere ruff-Regelgruppen wie `S` (Sicherheit, entspricht bandit), `DJ` (Django), `PERF` und `RET`,
-  - ein Abgleich der Frontend-Aufrufe mit den Backend-Endpunkten,
-  - ein Abgleich der genutzten python-keycloak-Methoden mit der installierten Version.
-- Kleine, thematische Pull Requests. Die Prüfung darf sich in mehrere aufteilen.
-- Vor jedem Pull Request eine unabhängige Prüfung durch eine zweite KI-Instanz (siehe `CLAUDE.md`).
+**Hinweise:** Erst reproduzieren, dann isolieren und Annahmen prüfen, erst danach ändern. Neue Werkzeuge nur mit Begründung (`CONTRIBUTING.md` Abschnitt 5). Kleine, thematische Pull Requests.
 
-## Phase 3d: Modernisierung Frontend
+## Erledigt
 
-Stand 16.10.2026: Vite 2.9 (aktuell 8), Vue 3.5 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 6.0 (7, siehe unten), eslint 10 (10). Bekannte Sicherheitslücken nach PR #26: 169, davon 1 in den Programmpaketen (`quill`), der Rest in Entwicklungswerkzeugen. Nach PR #18 waren es 171, nach PR #17 172, nach PR #16 242, davor 329 bzw. 63. Die 63 waren nicht alle Code, der im Browser läuft, siehe `docs/qualitaet.md`.
+| Phase oder Schritt | Pull Requests |
+| --- | --- |
+| Fundament: gemeinsames Repository, Backend ohne Keycloak startfähig, Testgerüst | Vorarbeit, #1 |
+| Rechte: Gruppenrechte im Tool statt in Keycloak | #2 |
+| Sicherheit und Fehler: Login-Pflicht als Standard | #3, #4 |
+| Fristen und Sperren (nur Backend, Bedienelemente fehlen: #52) | #5 |
+| Modernisierung Backend: Django 5.2, pip-audit | #6 |
+| Qualität: Regeln, ruff, Dokumentation, Messung | #7 |
+| Qualität II, Schritte 1a, 1b-1, 1b-2, 1d, 2a | #9 bis #14 |
+| Frontend: Sicherheitsupdates innerhalb der Hauptversionen, TypeScript 6 und eslint 10, `uuid` 14, Vue 3.5 | #16, #17, #18, #26 |
+| Fehler aus Issues: #19, #20, #23, #25 | #21, #22, #24, #27 |
+| Arbeitsweise: Vorlagen für Issues, Skills `issue-anlegen` und `grill-me` | #31, #36 |
+| Doku und Übergaben | #8, #15, #28 |
 
-**TypeScript 7** ist neu geschrieben und hat noch keine feste Schnittstelle für andere Werkzeuge. `typescript-eslint` unterstützt deshalb nur TypeScript bis 6.0 (Stand 15.10.2026, `typescript-eslint` 8.71). Erst aktualisieren, wenn `typescript-eslint` TypeScript 7 unterstützt. Die Einstellung `moduleResolution: bundler` in `tsconfig.json` ist dafür schon vorbereitet.
-
-- [x] Sicherheitsupdates innerhalb der Hauptversionen (PR #16). Vorgehen für künftige Updates:
-  - Direkte Pakete gezielt einzeln (`yarn upgrade axios@1.20.0`), nie pauschal `yarn upgrade`, nie `npm audit fix --force`, kein Wechsel auf npm.
-  - Mitgelieferte Pakete über `resolutions` in `package.json`, jeweils auf die niedrigste behobene Version innerhalb der Hauptversion. Vorher prüfen, ob das übergeordnete Paket die behobene Version schon selbst verlangt: Dann ist keine Vorgabe nötig (so bei `form-data` und `follow-redirects`, die axios 1.20.0 mitbringt).
-  - Was ein aktualisiertes Paket zwingend mitbringt, darf seine Hauptversion verlassen. Neue Hauptversionen und neue Pakete werden im Pull Request genannt und begründet (Entscheidung vom 15.10.2026).
-  - Für Frontend-Pakete gibt es noch keine automatische Prüfung auf Sicherheitslücken wie `pip-audit` im Backend. Mit eslint in die automatischen Prüfungen aufnehmen und `CONTRIBUTING.md` Abschnitt 5 dann ergänzen.
-  - Prüfen: `yarn build`, eslint und `npx tsc --noEmit` vorher und nachher vergleichen, Backend-Tests, `yarn audit --groups dependencies --summary`, Änderungsprotokoll des Pakets gegen unsere Aufrufe lesen.
-  - Die `resolutions` aus PR #16 sind mit PR #26 entfernt: Vue 3.5 verlangt selbst behobene Fassungen, und die Vorgabe hätte ihm eine zu alte `postcss`-Fassung aufgezwungen. Lehre: Zwangsvorgaben bei jedem Update der übergeordneten Pakete prüfen, sonst verletzen sie deren Anforderungen still.
-  - Im Browser vorher und nachher vergleichen (seit PR #24 möglich): Seitenrundgang mit Programmfehlern und Vue-Warnungen je Seite, dazu die betroffenen Abläufe. Vorgehen siehe „Vorarbeit für die Rauchtests“.
-- [x] TypeScript 4.6 → 6.0 und eslint 8 → 10 (PR #17). eslint nutzt jetzt `frontend/eslint.config.mjs` statt `.eslintrc.js`, Aufruf mit `yarn lint`. Die Regeln entsprechen weitgehend den bisherigen. Unterschiede und Zahlen stehen in `docs/qualitaet.md`. Die Regel `comma-dangle` fällt mit eslint 11 weg. Drei unbenutzte eslint-Zusatzbausteine (`eslint-plugin-import`, `-node`, `-promise`) sind entfernt.
-- [x] `uuid` 9 → 14 (PR #18). Gewählt wurde die neueste Version statt der niedrigsten behobenen (11.1.1): Sie verlangt TypeScript ab 5.4 (vorhanden). Im Browser braucht sie wie schon uuid 9 die eingebaute Zufallsfunktion `crypto.getRandomValues`, die auch `keycloak-js` voraussetzt. Genutzt wird nur `v4()` in `register.ts`, das unverändert über die Zufallsfunktion des Browsers arbeitet.
-- [x] Vue 3.3 → 3.5 (PR #26). Schließt die Lücke in `@vue/server-renderer`, nur noch eine Vue-Fassung, `resolutions` entfernt.
-- [ ] Riskant, nach den Rauchtests, einzeln je ein Pull Request mit Rauchtests und Klicktest: Vite, Pinia, vue-router, `quill` (über `@vueup/vue-quill`, ggf. Ersatz), Tailwind (zusätzlich Aussehen prüfen).
-- [ ] Rauchtests: jede Seite lädt ohne Fehler, Anmeldeablauf läuft durch. Werkzeug voraussichtlich Playwright (steuert einen echten Browser, unabhängig von der Vite-Version); als neues Paket mit Begründung.
-- [ ] Anleitung, das Tool lokal mit Beispieldaten zu starten (dieselben Beispieldaten nutzen die Rauchtests).
-- [ ] **Nicht definierte Variablen** (gefunden bei Issue #23): `.vue`-Dateien ohne `lang="ts"` prüft weder TypeScript noch eslint auf Namen, die es nicht gibt (Regel `no-undef` ist aus). Eine Probe mit eingeschalteter Regel fand am 16.10.2026 weitere Stellen in genutzten Seiten. Bei einer unvollständigen Eingabe stürzen diese Formulare ab, statt „Bitte Felder überprüfen“ zu zeigen, weil `commonStore` fehlt: `event/components/registration/AddMemberModal.vue` und `group/components/AddMemberModal.vue` (Mitglied hinzufügen), `group/components/KickMemberModal.vue` (`AddTravelModal.vue` ist mit PR #27 behoben; dort zeigte sich, dass nach dem Hinzufügen der fehlenden Funktion auch ein fehlendes `return` ergänzt werden muss, sonst werden unvollständige Angaben trotz Hinweis übernommen, also jede Stelle einzeln prüfen). Außerdem ungenutzter Code mit fehlender Variable `eventData` in `event/components/statistic/payments/CashItem.vue` (die Funktionen werden nirgends aufgerufen; Datei mit `lang="ts"`, trotzdem nicht gemeldet, weil die Typprüfung `.vue`-Dateien nicht prüft). Im eingefrorenen Modul `message` fehlen vier Symbole (`views/tabs/AllMessages.vue`). Beheben und `no-undef` für `.vue`-Dateien einschalten, im Browser nachprüfen.
-- [ ] **Altlasten im Anmeldeablauf** (gefunden bei Issue #25): In `views/newRegister/Container.vue` liefert `nextLink` als Rückfall den ungültigen Seitennamen „Custom“, und `console.log(routeObj)` steht in einer Berechnung, die bei jeder Änderung läuft. In `components/stepper/StepperNavSmall.vue` ist `:key="step.name"` bei mehreren Zusatzschritten (alle heißen „Custom“) doppelt; besser die Kennung des Schritts.
-- [ ] **Unbenutztes Paket `@vue-leaflet/vue-leaflet`** (gefunden bei PR #26): wird nirgends im Code eingebunden (die Karten nutzen `leaflet` direkt). Es brachte bis PR #26 eine zweite Vue-Fassung mit. Entfernen, mit Begründung im Pull Request.
-- [ ] **Weitere Funde im Anmeldeablauf** (Issue #23, nicht behoben): In `views/newRegister/module/Participants.vue` ist die Sperre der Buchungsoption (`blockBookingOption.value && …` im Template) immer aus, weil Vue im Template schon den Wert liefert. Die Buchungsoption ist im Anmeldeablauf deshalb immer änderbar. Stammesmitglieder landen ohne Buchungsoption in der Liste. In `components/registration/DetailList.vue` schließt `onNewPersonFromMemberConfirmClicked` den falschen Dialog. Fachlich klären, wann die Buchungsoption gesperrt sein soll.
-- [ ] eslint in die automatischen Prüfungen auf GitHub. Nach PR #26: 260 Fehler und 2.795 Warnungen (`yarn lint`, Aufschlüsselung in `docs/qualitaet.md`): zuerst die Fehler, Warnungen schrittweise. Die vorübergehend gelockerten Stufen in `eslint.config.mjs` dabei bewusst einzeln schärfer stellen.
-
-## Abstimmung der Funktionen und Abläufe
-
-Vereinbart am 15.10.2026. Ziel: Für jeden Ablauf ist abgestimmt, wer was darf und wann. Ohne diese Grundlage muss die KI bei Rechten und Fristen raten oder einzeln nachfragen, und der Projektverantwortliche kann nur schwer einschätzen, was wann gilt, solange er nicht nebenbei testen kann.
-
-**Vorgehen:**
-1. Die KI erstellt den Ist-Stand aus dem Code, ein Dokument pro Ablauf in `docs/ablaeufe/`. Beispiele: Veranstaltung anlegen, Anmelden, Anmeldung ändern, Kasse, Auswertung, Gruppen verwalten, Konto und persönliche Daten. Jedes Dokument enthält:
-   - ein Ablaufdiagramm,
-   - eine Tabelle „wer darf was in welcher Phase“, also vor dem Anmeldestart, während der Anmeldung, nach dem Anmeldeschluss und nach der Änderungsfrist,
-   - eine Liste der Stellen, die vermutlich nicht so gewollt sind.
-2. Der Projektverantwortliche geht die Abläufe einzeln durch und entscheidet pro Zeile: so lassen oder ändern. Das Ergebnis steht als Soll im Dokument und in `docs/entscheidungen.md`.
-3. Jede abgestimmte Regel bekommt einen Test. Danach folgen Qualität II 4a/4b und Phase 4.
-
-**Schon gesammelte Fragen:**
-- Wer darf welche Veranstaltung sehen? Heute liefert `/event/event-read/` jeder eingeloggten Person jede Veranstaltung.
-- Wer darf in der geplanten zentralen Ortsverwaltung Orte verwalten?
-- Darf die Ansichtsgruppe Excel-Listen erzeugen? Heute ja, weil das eine Form der Auswertung ist.
-- Was passiert mit Orten, die angelegt, aber keiner Veranstaltung zugeordnet wurden?
-- Welche Schritte und Abfragen bekommt jede neue Veranstaltung standardmäßig, welche wählt die Veranstaltungsleitung zusätzlich? Heute gibt die Standardvorlage „T-Shirts“ und „Lunch Pakete“ immer mit, das soll nicht so bleiben (Entscheidung vom 16.10.2026).
-- Sollen beim Zusammenlegen zweier Anmeldungen auch deren Bewertungen (und Workshops, falls das Modul wieder eingebunden wird) übernommen werden? Heute gehen sie mit der gelöschten Anmeldung verloren.
-
-## Phase 4: Frontend und Anmeldeablauf
-
-### Backend, aus der Qualitätsmessung (`docs/qualitaet.md`)
-
-- [ ] **N+1-Abfragen** (die Seite fragt die Datenbank für jeden Listeneintrag einzeln ab) auf sechs Seiten beheben: Auswertung, Meine Anmeldungen, Kassenliste, Gruppenliste, Veranstaltungsübersicht, Meine Einladungen. Ist eine Seite behoben, meldet `tests/test_abfragen.py` das, und die `xfail`-Markierung wird entfernt.
-- [ ] **Absenden als „ganz oder gar nicht“:** Das Frontend schickt heute viele Einzelanfragen. Scheitert eine, bleibt eine halbe Anmeldung übrig. Ziel: ein Endpunkt, der alles in einem Schritt anlegt, der entweder vollständig gelingt oder gar nichts verändert (Datenbank-Transaktion).
-- [ ] **Fehlermeldungen:** Die festen Texte („Ein Pflichtfeld fehlt“, „Stamm nicht gefunden“) durch die echte Meldung des Backends ersetzen, verständlich formuliert.
-- [ ] **`is_confirmed` setzen:** Das Feld wird nie gesetzt, deshalb erreichen Rundmails an „bestätigte Anmeldungen“ niemanden. Test dazu.
-- [ ] Zu komplexe Funktionen aufteilen, wenn sie ohnehin angefasst werden (Liste in `docs/qualitaet.md`).
-
-### Rückmeldungen aus dem lokalen Test des Projektverantwortlichen (14.10.2026)
-
-Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit ihm klären, was genau gemeint war.
-
-- [ ] Der Anmeldeablauf hat keinen **Zurück-Knopf**. (Am 16.10.2026 bestätigt. Im Browsertest ließen sich die Punkte der Schrittanzeige oben anklicken und führten zu früheren Schritten; ob das bei Sebastian sichtbar ist bzw. reicht, beim Umsetzen klären.)
-- [ ] Die **Schritte** im Ablauf sind **nicht beschriftet**. Man weiß nicht, wo man ist und was noch kommt.
-- [ ] Texte sollen **als Fragen formuliert** sein („Wer kommt mit?“ statt „Teilnehmende“).
-- [ ] Der Reiter **„Module“** beim Anlegen einer Veranstaltung ist unverständlich und soll grundlegend überarbeitet werden.
-- [ ] Die **Stammauswahl** ist eine lange flache Liste, die sich schlecht scrollen lässt. Gewünscht ist eine hierarchische Auswahl (Bund → Ring/Gau → Stamm).
-- [ ] Das **E-Mail-Feld** in den persönlichen Daten ist gesperrt, ohne Erklärung. Es kommt aus Keycloak. Ein erklärender Hinweis fehlt.
-- [ ] **Adressfelder** sollen aufgeteilt werden (Straße, PLZ, Ort) und um ein **Bundesland** ergänzt werden.
-- [x] Nach dem **Speichern** führt die Weiterleitung auf die nächste Seite (`router.push`) ins Leere oder scheitert. Geklärt am 15.10.2026: Lagerbeitrag und Ort, behoben mit PR #22 (Issue #20).
-- [ ] **Keine Bestätigung nach dem Speichern:** Kein Formular einer Veranstaltung (Namen, Daten, Rechte, Lagerbeiträge, Eigenes, Ort) zeigt „Gespeichert“ an. Es wäre ohnehin wirkungslos, weil alle nach dem Speichern die ganze Seite neu laden (`router.go`). Scheitert das Speichern, zeigen seit PR #22 Lagerbeitrag und Ort eine Fehlermeldung. Bei Namen, Daten, Rechten und Eigenem passiert weiter nichts Sichtbares, der Bearbeitungsbereich bleibt einfach offen. Gewünscht laut Issue #20: Speichern bestätigen und den Bearbeitungsbereich schließen. Lösung: Bereich schließen, Veranstaltung neu laden statt der ganzen Seite, Bestätigung bzw. Fehlermeldung zeigen. Ursache dahinter: Die Speicherfunktionen im Store (`modules/event/store/index.ts`, `edit.ts`) fangen Fehler ab und geben dann nichts zurück.
-- [ ] Gruppen: `group/components/addGroup/Form.vue` und `editGroup/Form.vue` leiten mit der Kennung der neuen bzw. geänderten Gruppe weiter, laden aber per `router.go` sofort die bisherige Seite neu. Klären, wohin man nach dem Speichern einer Gruppe kommen soll.
-- [ ] Ein **abgelaufener Login** führt zu stillen 401-Fehlern. Stattdessen soll man eine klare Meldung sehen oder neu angemeldet werden.
-- [ ] Die zentrale Fehlerbehandlung für Antworten (`frontend/src/plugin/auth.ts`) liest `error.response.status`, ohne zu prüfen, ob es eine Antwort gibt. Ist das Backend nicht erreichbar oder bricht eine Anfrage ab, zum Beispiel bei der Weiterleitung zum Login, entsteht dort ein zweiter Fehler, der den eigentlichen verdeckt. Das war schon vor PR #16 so. axios 1.20 ändert nur, dass auch der aktuelle Firefox solche Abbrüche als Fehler meldet statt als leere Antwort. Beim Seitenwechsel ist es unsichtbar, weil die Seite ohnehin verlassen wird. Zusammen mit dem Punkt darüber beheben.
-- [ ] Die Schaltfläche **„Anmeldungen zusammenfassen“** in der Auswertung erscheint auch für Ansichtsgruppe sowie Bundes- und Ringführung. Seit Qualität II 1b-2 lehnt das Backend das ab, die Oberfläche zeigt dann keine Meldung, sondern bricht still ab. Nur der Veranstaltungsleitung anzeigen, Fehler anzeigen.
-- [ ] Die **Schalter für Fristen und Sperren** aus Phase 3b sind im Backend fertig, haben aber keine Bedienelemente im Frontend.
-
-- [ ] **Funde von eslint 10** (PR #17), je mit Test oder Klickprüfung beheben:
-  - `frontend/src/modules/event/components/eventModule/Form.vue` (Zeile 148): Die Position eines neuen Bausteins wird berechnet und verworfen, die Funktion liefert immer 1. Das Backend sortiert nach Position, neue Bausteine landen also vorn. Hat die Veranstaltung genau einen Baustein, greift der Ausdruck auf `modules[-1]` zu, und das Speichern bricht mit einem Fehler ab. Beim Beheben `length - 2` nicht übernehmen: gemeint ist vermutlich die Position des letzten Bausteins plus 1.
-  - `frontend/src/components/stepper/StepFrame.vue`: `isLoading` ist zugleich Eigenschaft von außen (Prop) und eigener Wert `ref(false)`. Das Formular nutzt die Prop, die Knöpfe „weiter“ und „speichern“ den eigenen Wert, der immer `false` ist. Die Knöpfe zeigen deshalb nie den Ladezustand, obwohl neun Seiten ihn übergeben. Behebung: den eigenen Wert entfernen.
-  - `frontend/src/modules/event/views/newRegister/module/Person.vue`: tote Datei, nirgends eingebunden (gefunden bei Issue #19). Löschen.
-  - `frontend/src/modules/help/store/index.ts`: tote Datei. Eine Kopie von `modules/task/store` mit derselben Kennung, nirgends importiert. Die Abfragen `task` und `isLoading` geben nie etwas zurück, das wirkt aber nirgends. Behebung: Datei löschen.
-
-### Technische Grundlage Frontend
-
-- [ ] Die Hauptdatei (1,2 MB) aufteilen, sodass Seiten erst bei Bedarf geladen werden.
-
-eslint in den automatischen Prüfungen und die ersten Frontend-Tests sind in Phase 3d vorgezogen.
-
-## Phase 5: Datenschutz
-
-- [ ] **Namensansicht für Teilnehmende:** Sie sehen von ihrer Gruppenanmeldung nur die Namen (siehe `docs/entscheidungen.md`).
-- [ ] **Zusatzfelder pro Veranstaltung**, z. B. die Ausweisnummer, statt fester Felder.
-- [ ] **Browserspeicher:** Die Eingaben der Anmeldung, auch Daten von Kindern, liegen bis zum Absenden dauerhaft im Browser (Zwischenspeicher `frontend/src/modules/event/store/register.ts` mit `persist: true`). Nach dem Absenden oder Abmelden löschen oder gar nicht dauerhaft speichern.
-- [ ] **API-Logger:** Er speichert jede Anfrage samt Inhalt dauerhaft in der Datenbank. Inhalte nicht speichern oder nach kurzer Frist löschen.
-- [ ] Löschfristen für Anmeldungen nach Veranstaltungsende festlegen (fachliche Entscheidung nötig).
-
-## Offene Punkte für später
-
-| Punkt | Herkunft | Wer entscheidet |
-| --- | --- | --- |
-| Beim Anmelden kann man jeden Stamm wählen, nicht nur den eigenen | PR #3 | Projektverantwortlicher |
-| Feinabstimmung der Rechte des Anmeldeteams (Staff hat heute überall Admin) | PR #2 | Projektverantwortlicher |
-| Begrenzung der Anfragen pro Minute für die öffentlichen Adressen: Registrierung, Kontaktformular, Prüfung von Benutzername und E-Mail (verraten, ob eine Adresse registriert ist) | PR #3, Qualität II 1b-2 | technisch |
-| Zentrale Verwaltung der Veranstaltungsorte (neue Funktion, Entscheidung vom 15.10.2026). Offen: Welche „Leitungen“ dürfen dort Orte verwalten? | Qualität II 1b-2 | Projektverantwortlicher, in der Abstimmung der Abläufe |
-| Kleinste nötige Rollen für das Keycloak-Dienstkonto (getestet nur mit `realm-admin`) | PR #2 | technisch, mit Verbands-Admin |
-| `django-stdimage` ist veraltet, Nachfolger `django-pictures` | PR #6 | technisch |
-| Dockerfile für den Echtbetrieb. Das alte Setup in `backend/` (Dockerfile, docker-compose.yml, start.sh) ist ungeprüft. Djangos Prüfung für den Echtbetrieb (`manage.py check --deploy`) verlangt dort `SECURE_SSL_REDIRECT=True`, falls der vorgeschaltete Webserver nicht auf HTTPS umleitet | PR #6, Qualität II 1b-1 | mit der Hosting-Entscheidung |
-| `anonymise_data` überschreibt ohne Rückfrage alle Personendaten der Datenbank. Eine Sicherung gegen versehentlichen Aufruf im Echtbetrieb fehlt | Qualität II 1b-1 | technisch |
-| Hosting: vorerst günstiger eigener Server, später ggf. AWS beim Verband | Gespräch | Projektverantwortlicher |
-| Lizenz des Projekts | `docs/entscheidungen.md` | mit den ursprünglichen Entwicklern |
-| Eingefrorene Module: `food` und `inspi` werden abgeschaltet (Qualität II 1d), ob sie später abgesichert zurückkommen, klärt die Abstimmung der Anforderungen. `messaging` und `notifications` bleiben vorerst | Phase 1, Qualität II 1b-2 | Projektverantwortlicher |
-
-## Ideen (Phase 6)
-
-Noch keine eigenen Ideen festgehalten. Hierarchische Stammauswahl, Adressfelder mit Bundesland und die Neugestaltung der Module sind in Phase 4 vorgezogen. Weitere Ideen sammelt der Projektverantwortliche, bevor die Anforderungsanalyse im Verband beginnt (Phase 7).
+Einzelheiten stehen in den Beschreibungen der Pull Requests und in `docs/qualitaet.md`.
