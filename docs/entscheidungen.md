@@ -6,6 +6,12 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-16 · Erst die Updates, dann gesammelte Fehler
+
+**Entscheidung:** Neu gemeldete Fehler werden gesammelt und nach den Versionssprüngen im Frontend behoben. Ausnahme: Ein Fehler liegt genau in dem Bereich, den das nächste Update betrifft, oder er könnte durch eine KI-Änderung entstanden sein. Dann kommt er zuerst.
+**Begründung:** Das Tool ist noch nicht im Echtbetrieb, die Modernisierung soll vorankommen. Ein bekannter Fehler im Bereich eines Updates macht aber unklar, ob ein Problem danach alt ist oder vom Update kommt (so bei Issue #23 vor Vue 3.5).
+**Umsetzung:** `docs/fahrplan.md`, Abschnitt „Übergabe“ (gesammelte Fehler)
+
 ## 2026-10-15 · Dublettenprüfung beim Anmelden
 
 **Entscheidung:**

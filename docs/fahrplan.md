@@ -22,7 +22,7 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 - Fachliche Fragen (wer darf was, welche Fristen gelten) entscheidet er. Technische Fragen entscheidet die KI und begründet sie.
 - Pull Requests werden nicht aufeinander aufgebaut. Der nächste beginnt erst, wenn der vorige in `main` ist. (PR #12 landete sonst im falschen Branch und musste mit PR #13 nachgeholt werden.)
 
-## Übergabe (Stand 16.10.2026, nach PR #24)
+## Übergabe (Stand 16.10.2026, nach PR #26)
 
 ### Was erledigt ist
 
@@ -37,6 +37,7 @@ Phase 3d:
 - **PR #16:** Sicherheitsupdates im Frontend innerhalb der Hauptversionen. Bekannte Lücken in den Programmpaketen von 63 auf 4, übrig sind nur die bewusst offenen (`uuid`, `quill`, `@vue/server-renderer`).
 - **PR #17:** TypeScript 4.6 → 6.0 und eslint 8 → 10, neue eslint-Einstellung `frontend/eslint.config.mjs`, Aufruf `yarn lint`. Dabei zwei echte Fehler und eine tote Datei im Frontend gefunden (Fahrplan, Phase 4).
 - **PR #18:** `uuid` 9 → 14. Schließt eine Lücke, uuid bringt jetzt eigene Typbeschreibungen mit.
+- **PR #26:** Vue 3.3 → 3.5, nur noch eine Vue-Fassung (vorher zwei, eine über das unbenutzte Kartenpaket `@vue-leaflet/vue-leaflet`). Die Zwangsvorgaben (`resolutions`) aus PR #16 sind entfernt, weil sie Vue 3.5 eine zu alte `postcss`-Fassung aufgezwungen hätten. In den Programmpaketen bleibt nur noch `quill` als bekannte Lücke. Im Browser vorher und nachher geprüft: 14 Seiten und die Abläufe aus Issue #23 unverändert.
 - Reihenfolge geändert (Entscheidung vom 15.10.2026, Weg C): erst die risikoarmen Sprünge, dann Rauchtests, dann die riskanten.
 
 Fehlerbehebungen:
@@ -46,13 +47,13 @@ Fehlerbehebungen:
 
 Tests: 253 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). Ergebnisse in `docs/qualitaet.md`, Entscheidungen in `docs/entscheidungen.md`.
 
-### Nächster Schritt: Vue 3.3 → 3.5
+### Nächster Schritt: Rauchtests für das Frontend (Schritt 4)
 
-- Schließt die letzten hohen Lücken in den Programmpaketen (`@vue/server-renderer`, zweimal gezählt). Danach bleibt nur `quill`.
-- `yarn.lock` enthält zwei Vue-Fassungen: 3.3.4 direkt und 3.4.15 über `@vue-leaflet/vue-leaflet` (verlangt `^3.2.25`). Ziel ist eine einzige Fassung 3.5.x.
-- `@vitejs/plugin-vue` 2.3.4 erlaubt laut Angabe `vue ^3.2.25`, also auch 3.5. Ob der alte Baustein mit dem Übersetzer von Vue 3.5 tatsächlich zurechtkommt, zeigt erst der Build. Verlangt Vue 3.5 einen neueren `@vitejs/plugin-vue` (der Vite 5+ braucht), wandert der Schritt zu den riskanten Sprüngen nach den Rauchtests (Entscheidung vom 15.10.2026).
-- Die `resolutions` aus PR #16 (`postcss`, `nanoid`, `source-map-js`) dabei neu bewerten: Verlangt Vue 3.5 die behobenen Versionen selbst, entfallen sie.
-- Prüfen wie bei `uuid`: `yarn build`, `yarn lint`, `npx tsc --noEmit` vorher und nachher, Backend-Tests, `yarn audit`. Dazu das Änderungsprotokoll von Vue 3.4 und 3.5 gegen unseren Code lesen. Klickliste mit mehreren Seiten, weil Vue alles im Browser betrifft.
+Die risikoarmen Sprünge sind erledigt (TypeScript, eslint, `uuid`, Vue 3.5). Vor den riskanten Sprüngen (Vite, Pinia, vue-router, `quill`, Tailwind) kommen die Rauchtests. Planung siehe „Vorarbeit für die Rauchtests“ darunter. Die dort offenen Fragen an Sebastian zuerst klären.
+
+**Gesammelte Fehler** (Entscheidung Sebastians vom 16.10.2026: erst die Updates, dann die Fehler, außer sie betreffen genau den Bereich eines anstehenden Updates): Issue #25 („Weiter“ nach der Rückreise tut nichts), vermutlich derselbe Fund wie `AddTravelModal.vue` ohne `commonStore` (Phase 4, „Nicht definierte Variablen“). Dazu die übrigen Funde aus PR #17 und PR #24 in Phase 4.
+
+**Offene Frage an Sebastian zu #25:** Der Rauchtest „Anmeldeablauf läuft durch“ scheitert, solange #25 offen ist, falls die Testveranstaltung den Schritt Rückreise hat. Zwei Wege: #25 vor den Rauchtests beheben (klein, betrifft genau den Bereich, den die Rauchtests prüfen) oder den Rauchtest zunächst ohne Rückreise bauen und den Fall als bekannten Fehler markieren. Empfehlung: vorher beheben.
 
 ### Vorarbeit für die Rauchtests (Schritt 4)
 
@@ -114,8 +115,8 @@ Tests: 253 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). E
    - ✅ **TypeScript 4.6 → 6.0 und eslint 8 → 10** (PR #17), gemeinsam, weil das neue eslint mindestens TypeScript 4.8 verlangt. TypeScript 7 lässt sich noch nicht nutzen, siehe Phase 3d.
    - ✅ **`uuid` 9 → 14** (PR #18)
    - Dazwischen vorgezogen, weil sie das Anmelden bzw. Bearbeiten blockieren: ✅ Issue #19 (PR #21), ✅ Issue #20 (PR #22), ✅ Issue #23 (PR #24, vor Vue 3.5, weil Vue genau Dialoge und Listen steuert)
-   - **← als Nächstes: Vue 3.3 → 3.5.** Verlangt es einen neueren Vite-Baustein (`@vitejs/plugin-vue`), wandert es zu den riskanten Sprüngen.
-4. **Rauchtests für das Frontend**, Details im Abschnitt „Übergabe“: jede Seite einmal öffnen, dazu ein Durchlauf des Anmeldeablaufs. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test.
+   - ✅ **Vue 3.3 → 3.5** (PR #26). Der alte Vite-Baustein `@vitejs/plugin-vue` 2.3.4 kommt damit zurecht, ein Schalter in `vite.config.ts` ersetzt, was neuere Fassungen selbst setzen.
+4. **← als Nächstes: Rauchtests für das Frontend**, Details im Abschnitt „Übergabe“: jede Seite einmal öffnen, dazu ein Durchlauf des Anmeldeablaufs. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test.
 4a. **Qualität II, Schritt 2b: Feldnamen abgleichen.** Nach den Rauchtests, weil diese viele Feldfehler direkt zeigen (eine Seite bleibt leer oder meldet Fehler).
 4b. **Phase 3d, riskante Versionssprünge**: Vite, Pinia, vue-router, `quill`, Tailwind, einzeln, je mit Rauchtests und Klicktest, bei Tailwind zusätzlich Prüfung des Aussehens. Vor Phase 4, damit der neue Anmeldeablauf nicht auf dem alten Fundament entsteht.
 5. **Qualität II, Schritt 3: Keycloak-Abgleich**, zusammen mit dem Keycloak-Baustein im Frontend.
@@ -167,7 +168,7 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 
 ## Phase 3d: Modernisierung Frontend
 
-Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 6.0 (7, siehe unten), eslint 10 (10). Bekannte Sicherheitslücken nach PR #18: 171, davon 3 in den Programmpaketen (`quill`, zweimal `@vue/server-renderer`), der Rest in Entwicklungswerkzeugen. Nach PR #17 waren es 172, nach PR #16 242, davor 329 bzw. 63. Die 63 waren nicht alle Code, der im Browser läuft, siehe `docs/qualitaet.md`.
+Stand 16.10.2026: Vite 2.9 (aktuell 8), Vue 3.5 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 6.0 (7, siehe unten), eslint 10 (10). Bekannte Sicherheitslücken nach PR #26: 169, davon 1 in den Programmpaketen (`quill`), der Rest in Entwicklungswerkzeugen. Nach PR #18 waren es 171, nach PR #17 172, nach PR #16 242, davor 329 bzw. 63. Die 63 waren nicht alle Code, der im Browser läuft, siehe `docs/qualitaet.md`.
 
 **TypeScript 7** ist neu geschrieben und hat noch keine feste Schnittstelle für andere Werkzeuge. `typescript-eslint` unterstützt deshalb nur TypeScript bis 6.0 (Stand 15.10.2026, `typescript-eslint` 8.71). Erst aktualisieren, wenn `typescript-eslint` TypeScript 7 unterstützt. Die Einstellung `moduleResolution: bundler` in `tsconfig.json` ist dafür schon vorbereitet.
 
@@ -177,16 +178,18 @@ Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia
   - Was ein aktualisiertes Paket zwingend mitbringt, darf seine Hauptversion verlassen. Neue Hauptversionen und neue Pakete werden im Pull Request genannt und begründet (Entscheidung vom 15.10.2026).
   - Für Frontend-Pakete gibt es noch keine automatische Prüfung auf Sicherheitslücken wie `pip-audit` im Backend. Mit eslint in die automatischen Prüfungen aufnehmen und `CONTRIBUTING.md` Abschnitt 5 dann ergänzen.
   - Prüfen: `yarn build`, eslint und `npx tsc --noEmit` vorher und nachher vergleichen, Backend-Tests, `yarn audit --groups dependencies --summary`, Änderungsprotokoll des Pakets gegen unsere Aufrufe lesen.
-  - Die `resolutions` (`postcss`, `nanoid`, `source-map-js`) beim Sprung auf Vue 3.5 und Vite neu bewerten und entfernen, wenn die neuen Fassungen behobene Versionen selbst verlangen.
+  - Die `resolutions` aus PR #16 sind mit PR #26 entfernt: Vue 3.5 verlangt selbst behobene Fassungen, und die Vorgabe hätte ihm eine zu alte `postcss`-Fassung aufgezwungen. Lehre: Zwangsvorgaben bei jedem Update der übergeordneten Pakete prüfen, sonst verletzen sie deren Anforderungen still.
+  - Im Browser vorher und nachher vergleichen (seit PR #24 möglich): Seitenrundgang mit Programmfehlern und Vue-Warnungen je Seite, dazu die betroffenen Abläufe. Vorgehen siehe „Vorarbeit für die Rauchtests“.
 - [x] TypeScript 4.6 → 6.0 und eslint 8 → 10 (PR #17). eslint nutzt jetzt `frontend/eslint.config.mjs` statt `.eslintrc.js`, Aufruf mit `yarn lint`. Die Regeln entsprechen weitgehend den bisherigen. Unterschiede und Zahlen stehen in `docs/qualitaet.md`. Die Regel `comma-dangle` fällt mit eslint 11 weg. Drei unbenutzte eslint-Zusatzbausteine (`eslint-plugin-import`, `-node`, `-promise`) sind entfernt.
 - [x] `uuid` 9 → 14 (PR #18). Gewählt wurde die neueste Version statt der niedrigsten behobenen (11.1.1): Sie verlangt TypeScript ab 5.4 (vorhanden). Im Browser braucht sie wie schon uuid 9 die eingebaute Zufallsfunktion `crypto.getRandomValues`, die auch `keycloak-js` voraussetzt. Genutzt wird nur `v4()` in `register.ts`, das unverändert über die Zufallsfunktion des Browsers arbeitet.
-- [ ] Risikoarm, vor den Rauchtests (Entscheidung vom 15.10.2026): Vue 3.5 (schließt die Lücke in `@vue/server-renderer`; doppelte Vue-Fassung über `@vue-leaflet/vue-leaflet` beachten; wandert nach hinten, falls es einen neueren `@vitejs/plugin-vue` verlangt).
+- [x] Vue 3.3 → 3.5 (PR #26). Schließt die Lücke in `@vue/server-renderer`, nur noch eine Vue-Fassung, `resolutions` entfernt.
 - [ ] Riskant, nach den Rauchtests, einzeln je ein Pull Request mit Rauchtests und Klicktest: Vite, Pinia, vue-router, `quill` (über `@vueup/vue-quill`, ggf. Ersatz), Tailwind (zusätzlich Aussehen prüfen).
 - [ ] Rauchtests: jede Seite lädt ohne Fehler, Anmeldeablauf läuft durch. Werkzeug voraussichtlich Playwright (steuert einen echten Browser, unabhängig von der Vite-Version); als neues Paket mit Begründung.
 - [ ] Anleitung, das Tool lokal mit Beispieldaten zu starten (dieselben Beispieldaten nutzen die Rauchtests).
 - [ ] **Nicht definierte Variablen** (gefunden bei Issue #23): `.vue`-Dateien ohne `lang="ts"` prüft weder TypeScript noch eslint auf Namen, die es nicht gibt (Regel `no-undef` ist aus). Eine Probe mit eingeschalteter Regel fand am 16.10.2026 weitere Stellen in genutzten Seiten. Bei einer unvollständigen Eingabe stürzen diese Formulare ab, statt „Bitte Felder überprüfen“ zu zeigen, weil `commonStore` fehlt: `event/components/registration/AddTravelModal.vue` (Anreise im Anmeldeablauf), `event/components/registration/AddMemberModal.vue` und `group/components/AddMemberModal.vue` (Mitglied hinzufügen), `group/components/KickMemberModal.vue`. Außerdem ungenutzter Code mit fehlender Variable `eventData` in `event/components/statistic/payments/CashItem.vue` (die Funktionen werden nirgends aufgerufen; Datei mit `lang="ts"`, trotzdem nicht gemeldet, weil die Typprüfung `.vue`-Dateien nicht prüft). Im eingefrorenen Modul `message` fehlen vier Symbole (`views/tabs/AllMessages.vue`). Beheben und `no-undef` für `.vue`-Dateien einschalten, im Browser nachprüfen.
+- [ ] **Unbenutztes Paket `@vue-leaflet/vue-leaflet`** (gefunden bei PR #26): wird nirgends im Code eingebunden (die Karten nutzen `leaflet` direkt). Es brachte bis PR #26 eine zweite Vue-Fassung mit. Entfernen, mit Begründung im Pull Request.
 - [ ] **Weitere Funde im Anmeldeablauf** (Issue #23, nicht behoben): In `views/newRegister/module/Participants.vue` ist die Sperre der Buchungsoption (`blockBookingOption.value && …` im Template) immer aus, weil Vue im Template schon den Wert liefert. Die Buchungsoption ist im Anmeldeablauf deshalb immer änderbar. Stammesmitglieder landen ohne Buchungsoption in der Liste. In `components/registration/DetailList.vue` schließt `onNewPersonFromMemberConfirmClicked` den falschen Dialog. Fachlich klären, wann die Buchungsoption gesperrt sein soll.
-- [ ] eslint in die automatischen Prüfungen auf GitHub. Nach PR #17: 260 Fehler und 2.796 Warnungen (`yarn lint`, Aufschlüsselung in `docs/qualitaet.md`): zuerst die Fehler, Warnungen schrittweise. Die vorübergehend gelockerten Stufen in `eslint.config.mjs` dabei bewusst einzeln schärfer stellen.
+- [ ] eslint in die automatischen Prüfungen auf GitHub. Nach PR #26: 260 Fehler und 2.795 Warnungen (`yarn lint`, Aufschlüsselung in `docs/qualitaet.md`): zuerst die Fehler, Warnungen schrittweise. Die vorübergehend gelockerten Stufen in `eslint.config.mjs` dabei bewusst einzeln schärfer stellen.
 
 ## Abstimmung der Funktionen und Abläufe
 

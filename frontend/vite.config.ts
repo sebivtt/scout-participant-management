@@ -14,6 +14,13 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 export default defineConfig({
+  // Vue ab 3.4 erwartet diesen Schalter ausdrücklich. Neuere Fassungen von
+  // @vitejs/plugin-vue setzen ihn selbst, die hier genutzte 2.x nicht. Er
+  // betrifft nur Serverseiten-Rendering, das dieses Tool nicht nutzt; false
+  // hält zusätzliche Meldungen aus dem gebauten Programm heraus.
+  define: {
+    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
+  },
   esbuild: {
     supported: {
       'top-level-await': true //browsers can handle top-level-await features
