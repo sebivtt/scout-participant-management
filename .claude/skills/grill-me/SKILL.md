@@ -1,6 +1,6 @@
 ---
 name: grill-me
-description: Ein GitHub-Issue vor der Umsetzung vollständig klären, indem Sebastian Frage für Frage ausgefragt wird, dann das Issue überarbeiten, bei Bedarf in Unter-Issues aufteilen und mit dem Label „geklärt“ freigeben. Verwenden, bevor ein Issue umgesetzt wird, und wenn Sebastian „grill me“, „frag mich aus“ oder „Issue klären“ sagt.
+description: Ein GitHub-Issue vor der Umsetzung vollständig klären, indem Sebastian Frage für Frage ausgefragt wird, dann das Issue überarbeiten, bei Bedarf in Unter-Issues aufteilen und mit dem Label „geklärt“ freigeben. Verwenden, bevor ein Issue ohne Label „geklärt“ umgesetzt wird, und wenn Sebastian „grill me“, „frag mich aus“ oder „Issue klären“ sagt.
 ---
 
 # Grill-Me: ein Issue vor der Umsetzung klären
@@ -18,17 +18,17 @@ Erst alles lesen, was die KI selbst nachsehen kann. Sebastian wird nie etwas gef
 - Das Issue samt Kommentaren. Gibt es schon ein Protokoll einer früheren, unterbrochenen Runde, dort weitermachen.
   ```bash
   gh api repos/sebivtt/scout-participant-management/issues/<nummer> --jq '.title, .body'
-  gh api repos/sebivtt/scout-participant-management/issues/<nummer>/comments --jq '.[].body'
+  gh api repos/sebivtt/scout-participant-management/issues/<nummer>/comments --paginate --jq '.[].body'
   ```
 - Alle offenen Issues (Text, nicht nur Titel) und die eingetragenen Abhängigkeiten:
   ```bash
-  gh api "repos/sebivtt/scout-participant-management/issues?state=open&per_page=100" \
+  gh api --paginate "repos/sebivtt/scout-participant-management/issues?state=open&per_page=100" \
     --jq '.[] | select(.pull_request == null) | "#\(.number) \(.title)"'
   gh api repos/sebivtt/scout-participant-management/issues/<nummer>/dependencies/blocked_by --jq '.[] | "#\(.number) \(.state)"'
   gh api repos/sebivtt/scout-participant-management/issues/<nummer>/dependencies/blocking --jq '.[] | "#\(.number) \(.state)"'
   ```
 - `docs/entscheidungen.md` (widerspricht das Issue einer Entscheidung?), `docs/glossar.md`, `docs/fahrplan.md`.
-- Den betroffenen Code: welche Seiten, Bausteine, Dialoge, Schnittstellen und Rechte berührt sind, wie oft etwas vorkommt (z. B. wie viele Dialoge es gibt), was bestehende Daten betrifft. Die Erfahrungen in `CLAUDE.md` beachten (Adressen mit mehreren Aufrufern, Rechte, Altcode).
+- Den betroffenen Code: welche Seiten, Schritte im Anmeldeablauf, Dialoge, Schnittstellen und Rechte berührt sind, wie oft etwas vorkommt (z. B. wie viele Dialoge es gibt), was bestehende Daten betrifft. Die Erfahrungen in `CLAUDE.md` beachten (Adressen mit mehreren Aufrufern, Rechte, Altcode).
 
 ## 2. Übersicht zeigen
 
@@ -56,7 +56,7 @@ Diese Themen immer durchgehen und nur auslassen, was offensichtlich nicht zutrif
 - Jede Frage hat: ein, zwei Sätze Hintergrund, die Frage selbst, die Möglichkeiten mit ihren Folgen und eine **Empfehlung** mit Begründung. Dann reicht oft ein „ja, so“.
 - Den Stand mitzählen: „Frage 4 von etwa 9“. Werfen Antworten neue Fragen auf, die Zahl anpassen und das kurz sagen.
 - Ist eine Antwort unklar oder widerspricht einer früheren, nachfragen statt deuten.
-- Sagt Sebastian „Pause“ oder „stop“, sofort anhalten. Den bisherigen Stand als Kommentar ins Issue schreiben (beantwortete Fragen mit Antwort, offene Fragen), damit eine spätere Sitzung dort weitermacht. Nichts ändern, was er noch nicht bestätigt hat.
+- Sagt Sebastian „Pause“ oder „stop“, sofort anhalten. Den bisherigen Stand als Kommentar ins Issue schreiben (beantwortete Fragen mit Antwort, offene Fragen), damit eine spätere Sitzung dort weitermacht. Den Text des Issues selbst nicht ändern.
 - Weiter, bis keine Frage aus der Übersicht und keine neu entstandene mehr offen ist.
 
 ## 4. Zusammenfassen und bestätigen lassen
@@ -65,7 +65,9 @@ Alle Entscheidungen kurz als Liste zeigen und fragen, ob das so stimmt. Erst nac
 
 ## 5. Issue überarbeiten
 
-- Den Text des Issues so neu schreiben, dass er ohne das Gespräch vollständig und eindeutig ist. Aufbau und Überschriften der Vorlage (`.github/ISSUE_TEMPLATE/`) beibehalten. Antworten landen dort, wo sie passen: als Akzeptanzkriterium, als Beispiel, unter „Nicht Teil dieser Anforderung“. Unter „Offene Fragen“ steht danach „Keine, geklärt am <Datum>“.
+- Den Text des Issues so neu schreiben, dass er ohne das Gespräch vollständig und eindeutig ist. Aufbau und Überschriften der passenden Vorlage (`.github/ISSUE_TEMPLATE/`) beibehalten, keine neuen Überschriften erfinden. Antworten landen dort, wo sie passen:
+  - **Anforderung:** als Akzeptanzkriterium, als Beispiel oder unter „Nicht Teil dieser Anforderung“. Unter „Offene Fragen“ steht danach „Keine, geklärt am <Datum>“.
+  - **Fehler:** unter „Erwartetes Verhalten“, bei Bedarf ergänzt unter „Schritte zum Nachstellen“. Abgrenzungen, Abhängigkeiten und der Vermerk „Geklärt am <Datum>“ kommen unter „Bildschirmfotos und Hinweise“.
 - Abhängigkeiten über die eingebaute Funktion von GitHub eintragen (siehe Skill `issue-anlegen`, Abschnitt 4), zusätzlich im Text mit einem Satz Begründung.
 - Einen Kommentar mit dem Protokoll anhängen: jede Frage, die Antwort, bei Bedarf der Grund. So bleibt nachvollziehbar, warum etwas so entschieden wurde.
 - Regeln, die über dieses Issue hinaus gelten (z. B. „Alle Dialoge schließen mit ESC“), zusätzlich in `docs/entscheidungen.md` eintragen. Das geschieht im Pull Request der Umsetzung.
@@ -108,5 +110,8 @@ gh api repos/sebivtt/scout-participant-management/issues/<nummer>/labels -f 'lab
 Diese Regeln stehen auch in `CLAUDE.md`:
 - Umgesetzt wird nur ein Issue mit dem Label `geklärt`.
 - Direkt vor dem Start die Abhängigkeiten erneut prüfen. Ist ein blockierendes Issue noch offen, nicht anfangen, sondern Sebastian fragen.
-- Ein Issue = ein Pull Request mit eigenem Test. Die Issues der Reihe nach, der nächste Pull Request beginnt erst, wenn der vorige in `main` ist.
+- Ein Issue = ein Pull Request mit eigenem Test. Die Beschreibung des Pull Requests nennt „Closes #<nummer>“, dann schließt GitHub das Issue bei der Übernahme.
+- Der Reihe nach: Der nächste Pull Request beginnt erst, wenn der vorige in `main` ist. Unter mehreren geklärten Issues ohne Abhängigkeit entscheidet „Wichtigkeit“ bzw. „Auswirkung“, im Zweifel fragt die KI Sebastian.
+- Ein Sammel-Issue wird geschlossen, wenn sein letztes Unter-Issue erledigt ist.
+- Kommt zu einem geklärten Issue neuer Inhalt dazu (neue Anforderung, ergänzte Dublette, neue fachliche Frage), das Label `geklärt` entfernen und `grill-me` nur für den neuen Teil durchlaufen.
 - Taucht während der Umsetzung eine fachliche Frage auf, die das Issue nicht beantwortet, anhalten und Sebastian fragen, die Antwort ins Issue übernehmen. Nicht still selbst entscheiden.

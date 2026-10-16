@@ -15,9 +15,9 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 - Danach wird entschieden, ob das Issue in einem Schritt umgesetzt wird oder in Unter-Issues aufgeteilt wird. Teile werden als Unter-Issues verknüpft, die Reihenfolge als „blockiert durch“.
 - Das Label `geklärt` ist die Freigabe. Umgesetzt wird nur, was es trägt. Es wird erst nach Sebastians ausdrücklichem Okay gesetzt.
 - Umsetzung: ein Issue = ein Pull Request mit eigenem Test, der Reihe nach.
+- Abgrenzung: Das gilt für Fehler und Anforderungen aus den Issues. Die geplanten Schritte im Fahrplan (z. B. Rauchtests, Updates) laufen weiter wie bisher.
 
-**Abgrenzung:** Das gilt für Fehler und Anforderungen aus den Issues. Die geplanten Schritte im Fahrplan (z. B. Rauchtests, Updates) laufen weiter wie bisher.
-**Begründung:** Die meisten Fehler bisher entstanden, weil etwas nicht zu Ende gedacht war (Issues #19, #23, #25). Kleine, vollständig geklärte Schritte senken das Risiko, und die Abhängigkeiten verhindern, dass zwei Änderungen sich gegenseitig stören.
+**Begründung (Zusammenfassung der KI):** Sebastian möchte, dass Anforderungen, Grenzfälle und Probleme vollständig geklärt sind, bevor etwas umgesetzt wird, und dass große Vorhaben in kleine Schritte zerlegt werden, weil sonst das Risiko für Fehler zu groß ist. Die Abhängigkeiten verhindern, dass zwei Änderungen sich gegenseitig stören.
 **Umsetzung:** `.claude/skills/grill-me/SKILL.md`, `.claude/skills/issue-anlegen/SKILL.md`, `CLAUDE.md` (Abschnitt „Arbeitsweise“), Label `geklärt` auf GitHub.
 
 ## 2026-10-16 · Vorlagen für Fehler und Anforderungen

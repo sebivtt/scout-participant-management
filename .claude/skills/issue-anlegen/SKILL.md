@@ -28,7 +28,7 @@ Gesprochen wird mit Sebastian deutsch, in Alltagssprache, ohne Fachjargon. Er is
 Alle offenen Issues lesen, nicht nur die Titel:
 
 ```bash
-gh api "repos/sebivtt/scout-participant-management/issues?state=open&per_page=100" \
+gh api --paginate "repos/sebivtt/scout-participant-management/issues?state=open&per_page=100" \
   --jq '.[] | select(.pull_request == null) | "#\(.number) \(.title)"'
 gh api repos/sebivtt/scout-participant-management/issues/<nummer> --jq '.body'
 ```
@@ -36,8 +36,8 @@ gh api repos/sebivtt/scout-participant-management/issues/<nummer> --jq '.body'
 Eine Abhängigkeit liegt vor, wenn eines dieser Dinge zutrifft:
 - Das neue Issue lässt sich erst sinnvoll umsetzen, wenn ein anderes erledigt ist (**blockiert durch**).
 - Ein anderes Issue wartet auf das neue (**blockiert**).
-- Beide ändern dieselbe Seite, denselben Baustein oder dieselbe Regel, sodass sie sich widersprechen oder gegenseitig überschreiben können. Dann im Text unter „Nicht Teil dieser Anforderung“ bzw. „Bildschirmfotos und Hinweise“ darauf verweisen und Sebastian fragen, ob eine Reihenfolge nötig ist.
-- Es ist dasselbe Thema wie ein offenes Issue (Dublette). Dann kein neues Issue, sondern Sebastian vorschlagen, das bestehende zu ergänzen.
+- Beide ändern dieselbe Seite, denselben Dialog, denselben Schritt im Anmeldeablauf oder dieselbe Regel, sodass sie sich widersprechen oder gegenseitig überschreiben können. Dann im Text unter „Nicht Teil dieser Anforderung“ bzw. „Bildschirmfotos und Hinweise“ darauf verweisen und Sebastian fragen, ob eine Reihenfolge nötig ist.
+- Es ist dasselbe Thema wie ein offenes Issue (Dublette). Dann kein neues Issue, sondern Sebastian vorschlagen, das bestehende zu ergänzen. Trägt es schon das Label `geklärt`, wird es dabei entfernt (siehe Skill `grill-me`, Abschnitt „Danach“).
 
 Gefundene Abhängigkeiten Sebastian in einem Satz je Abhängigkeit nennen, mit Begründung, und erst nach seinem Okay eintragen.
 
