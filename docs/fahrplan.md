@@ -22,7 +22,7 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 - Fachliche Fragen (wer darf was, welche Fristen gelten) entscheidet er. Technische Fragen entscheidet die KI und begründet sie.
 - Pull Requests werden nicht aufeinander aufgebaut. Der nächste beginnt erst, wenn der vorige in `main` ist. (PR #12 landete sonst im falschen Branch und musste mit PR #13 nachgeholt werden.)
 
-## Übergabe (Stand 16.10.2026, nach PR #22)
+## Übergabe (Stand 16.10.2026, nach PR #24)
 
 ### Was erledigt ist
 
@@ -42,6 +42,7 @@ Phase 3d:
 Fehlerbehebungen:
 - **PR #21 (Issue #19):** Neue Anmeldungen mit Personen waren seit PR #3 unmöglich. Die Dublettenprüfung hat jetzt eine eigene Adresse für neue Anmeldungen, meldet Dubletten sofort, auch bei Stammesmitgliedern, und hält bearbeitete Personen nicht mehr für ihre eigene Dublette (Entscheidung vom 15.10.2026). Dabei behoben: Wer in einer neuen Anmeldung eine Person bearbeitete, hatte sie danach doppelt in der Liste (Altcode).
 - **PR #22 (Issue #20):** Nach dem Speichern eines Lagerbeitrags und nach dem Ändern eines Orts blieb die Veranstaltungsseite leer, weil die Weiterleitung die Kennung des gespeicherten Eintrags statt der Veranstaltung nahm (Altcode). Ziel ist jetzt die Veranstaltung aus der Adresse der Seite.
+- **PR #24 (Issue #23):** Im Anmeldeablauf öffnete „ändern“ bei einer Person nichts. Ursache: Eine Variable (`tempId`) in `AddPersonModal.vue` gab es seit einem Umbau der ursprünglichen Entwickler im Mai 2024 nicht mehr. Der Absturz brachte die Seite durcheinander: Bis PR #21 erschien eine danach hinzugefügte Person erst nach dem Neuladen. Seit PR #21 (KI-Fehler: der Dialog merkt sich seither die Kennung der bearbeiteten Person) ersetzte sie still die zuvor geöffnete Person, nur in lokalen Tests vom 16.10. Der Dialog befüllt sich jetzt auch neu, wenn die Seite eine andere Person übergibt. Nachgestellt und geprüft im Browser (siehe „Vorarbeit für die Rauchtests“).
 
 Tests: 253 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). Ergebnisse in `docs/qualitaet.md`, Entscheidungen in `docs/entscheidungen.md`.
 
@@ -55,11 +56,11 @@ Tests: 253 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). E
 
 ### Vorarbeit für die Rauchtests (Schritt 4)
 
-Am 15.10.2026 geklärt:
-- **In der Cloud-Sitzung gibt es keinen Browser.** Die Download-Seiten für Browser (Playwright) sind gesperrt, ebenso Keycloak (Docker-Abbild, GitHub, Maven). Ein Login-Ersatz würde das Problem also nicht lösen und brächte gefährlichen Code in die Login-Anbindung.
+- **Korrektur vom 16.10.2026: In der Cloud-Sitzung gibt es einen Browser.** Chromium mit Playwright ist vorinstalliert (`/opt/pw-browsers`, Playwright unter `/opt/npm-tools/node_modules/playwright`, `PLAYWRIGHT_BROWSERS_PATH` ist gesetzt). Am 15.10. wurde nur an den Standardorten gesucht und fälschlich „kein Browser“ festgehalten. Keycloak bleibt gesperrt (Docker-Abbild, GitHub, Maven).
+- **Bei Issue #23 erprobt:** Das Frontend läuft mit `yarn dev`, Playwright beantwortet im Browser die Anfragen an Keycloak (Login mit Platzhalter-Token) und ans Backend (Testdaten) mit `page.route`. Am Tool selbst ändert sich dafür nichts, es gibt keinen Login-Ersatz im Code. Testdaten, die zum echten Backend passen, erzeugt das Backend selbst über die Testdaten aus `tests/conftest.py`. So ließ sich #23 nachstellen und die Behebung vorher und nachher prüfen. Grenze: Das Backend wird dabei nicht mitgeprüft. Für die Rauchtests deshalb zwei Stufen erwägen: Frontend mit Platzhalter-Backend (schnell, auch in der Cloud) und ein Durchlauf mit echtem Backend und Keycloak (GitHub, Mac).
 - **Vorschlag, mit Sebastian besprochen, noch nicht entschieden:** Die Rauchtests laufen mit einem echten Keycloak 26.7 automatisch auf GitHub und auf Sebastians Mac. `dev/keycloak-setup.sh` legt schon drei Testkonten an (`leitung`, `stammesleitung`, `teilnehmer`). Als Erstes prüfen, ob GitHub das Keycloak-Abbild laden darf. Aufteilung in drei Pull Requests: Beispieldaten und Anleitung „lokal starten“, dann „jede Seite lädt“, dann „Anmeldeablauf“.
 - **Offene Fragen an Sebastian dazu:** Hat er Docker Desktop auf dem Mac? Welcher Anmeldeablauf ist der wichtigste (Vorschlag: Stammesleitung meldet ihren Stamm mit zwei Personen an, die Veranstaltungsleitung sieht die Anmeldung in der Auswertung)? Sollen rote Rauchtests eine Übernahme blockieren (Vorschlag: ja, sobald sie stabil laufen)?
-- **Pflichtpunkte für die Rauchtests** aus Fehlern, die nur durch Klicken auffielen: neue Anmeldung mit „Mich selbst anmelden“ und einem Stammesmitglied (Issue #19), eine schon angemeldete Person wird sofort gemeldet, eine gespeicherte Person bearbeiten ohne Dublettenmeldung, Lagerbeitrag anlegen und ändern sowie Ort ändern, danach auf der Veranstaltung bleiben, dazu ein Fehlerfall: Ort ändern, der auch von einer fremden Veranstaltung genutzt wird, zeigt eine Fehlermeldung und lädt nicht neu (Issue #20).
+- **Pflichtpunkte für die Rauchtests** aus Fehlern, die nur durch Klicken auffielen: neue Anmeldung mit „Mich selbst anmelden“ und einem Stammesmitglied (Issue #19), eine schon angemeldete Person wird sofort gemeldet, eine gespeicherte Person bearbeiten ohne Dublettenmeldung, Lagerbeitrag anlegen und ändern sowie Ort ändern, danach auf der Veranstaltung bleiben, dazu ein Fehlerfall: Ort ändern, der auch von einer fremden Veranstaltung genutzt wird, zeigt eine Fehlermeldung und lädt nicht neu (Issue #20). Im Anmeldeablauf zwei Personen hinzufügen, jede über „ändern“ öffnen (der Dialog zeigt die richtige Person), eine umbenennen (sie steht danach einmal mit neuem Namen da), beide löschen, eine neue hinzufügen (sie erscheint sofort) (Issue #23).
 - Werkzeug voraussichtlich Playwright, weil es einen echten Browser steuert und nicht von der Vite-Version abhängt. Neues Paket, also mit Begründung (`CONTRIBUTING.md` Abschnitt 5). Liste der Seiten und ihrer Anfragen: `docs/schnittstellen.md`.
 
 ### Offene Fragen an Sebastian
@@ -80,7 +81,7 @@ Am 15.10.2026 geklärt:
   - Installieren mit `CYPRESS_INSTALL_BINARY=0 yarn install --frozen-lockfile`.
   - `yarn build` braucht die Umgebungsvariablen `VITE_APP_API`, `VITE_APP_URL`, `VITE_APP_KEYCLOAK_URL`, `VITE_APP_KEYCLOAK_REALM` und `VITE_APP_KEYCLOAK_CLIENT_ID` (Werte wie in `.github/workflows/ci.yml`).
   - Der Build ändert `frontend/components.d.ts` (eine Zeile `StepperNav`). Diese Änderung ist älter und gehört nicht in fremde Pull Requests: mit `git checkout frontend/components.d.ts` zurücksetzen.
-- **Livetest gegen Keycloak ist in der Cloud nicht möglich.** Docker lässt sich mit `dockerd &` starten, aber das Abbild `quay.io/keycloak/keycloak` ist gesperrt. Livetests macht deshalb Sebastian auf seinem Mac, mit einer Schritt-für-Schritt-Anleitung (ein Befehl pro Schritt).
+- **Livetest gegen Keycloak ist in der Cloud nicht möglich.** Docker lässt sich mit `dockerd &` starten, aber das Abbild `quay.io/keycloak/keycloak` ist gesperrt. Ein Browser ist dagegen vorhanden (Chromium mit Playwright, siehe „Vorarbeit für die Rauchtests“). Livetests macht deshalb Sebastian auf seinem Mac, mit einer Schritt-für-Schritt-Anleitung (ein Befehl pro Schritt).
 - **GitHub:** `gh pr …` geht nicht (GraphQL gesperrt). Stattdessen die REST-Schnittstelle, z. B. `gh api repos/sebivtt/scout-participant-management/pulls -f title=… -f head=… -f base=main -F body=@datei.md`. Den Stand der automatischen Prüfungen zeigt `gh api repos/…/commits/<sha>/check-runs`.
 - **Branches:** Die Kopie des Repositorys ist flach und kennt nur `main`. Neue Branches mit `git push -u origin <branch>` hochladen. Meldet ein Hinweis „unpushed commits“, obwohl gepusht wurde, mit `git ls-remote origin <branch>` prüfen.
 - **Nach dem Ändern von Adressen oder Rechten** die Karte neu erzeugen: `.venv/bin/python tools/schnittstellen_karte.py` im Ordner `backend/`. Sonst schlägt ein Test an.
@@ -112,7 +113,7 @@ Am 15.10.2026 geklärt:
 3. **Risikoarme Versionssprünge im Frontend** (Entscheidung vom 15.10.2026, Weg C), je ein Pull Request mit Klickliste, in dieser Reihenfolge:
    - ✅ **TypeScript 4.6 → 6.0 und eslint 8 → 10** (PR #17), gemeinsam, weil das neue eslint mindestens TypeScript 4.8 verlangt. TypeScript 7 lässt sich noch nicht nutzen, siehe Phase 3d.
    - ✅ **`uuid` 9 → 14** (PR #18)
-   - Dazwischen vorgezogen, weil sie das Anmelden bzw. Bearbeiten blockieren: ✅ Issue #19 (PR #21), ✅ Issue #20 (PR #22)
+   - Dazwischen vorgezogen, weil sie das Anmelden bzw. Bearbeiten blockieren: ✅ Issue #19 (PR #21), ✅ Issue #20 (PR #22), ✅ Issue #23 (PR #24, vor Vue 3.5, weil Vue genau Dialoge und Listen steuert)
    - **← als Nächstes: Vue 3.3 → 3.5.** Verlangt es einen neueren Vite-Baustein (`@vitejs/plugin-vue`), wandert es zu den riskanten Sprüngen.
 4. **Rauchtests für das Frontend**, Details im Abschnitt „Übergabe“: jede Seite einmal öffnen, dazu ein Durchlauf des Anmeldeablaufs. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test.
 4a. **Qualität II, Schritt 2b: Feldnamen abgleichen.** Nach den Rauchtests, weil diese viele Feldfehler direkt zeigen (eine Seite bleibt leer oder meldet Fehler).
@@ -183,6 +184,8 @@ Stand 15.10.2026: Vite 2.9 (aktuell 8), Vue 3.3 (3.5), vue-router 4.0 (5), Pinia
 - [ ] Riskant, nach den Rauchtests, einzeln je ein Pull Request mit Rauchtests und Klicktest: Vite, Pinia, vue-router, `quill` (über `@vueup/vue-quill`, ggf. Ersatz), Tailwind (zusätzlich Aussehen prüfen).
 - [ ] Rauchtests: jede Seite lädt ohne Fehler, Anmeldeablauf läuft durch. Werkzeug voraussichtlich Playwright (steuert einen echten Browser, unabhängig von der Vite-Version); als neues Paket mit Begründung.
 - [ ] Anleitung, das Tool lokal mit Beispieldaten zu starten (dieselben Beispieldaten nutzen die Rauchtests).
+- [ ] **Nicht definierte Variablen** (gefunden bei Issue #23): `.vue`-Dateien ohne `lang="ts"` prüft weder TypeScript noch eslint auf Namen, die es nicht gibt (Regel `no-undef` ist aus). Eine Probe mit eingeschalteter Regel fand am 16.10.2026 weitere Stellen in genutzten Seiten. Bei einer unvollständigen Eingabe stürzen diese Formulare ab, statt „Bitte Felder überprüfen“ zu zeigen, weil `commonStore` fehlt: `event/components/registration/AddTravelModal.vue` (Anreise im Anmeldeablauf), `event/components/registration/AddMemberModal.vue` und `group/components/AddMemberModal.vue` (Mitglied hinzufügen), `group/components/KickMemberModal.vue`. Außerdem ungenutzter Code mit fehlender Variable `eventData` in `event/components/statistic/payments/CashItem.vue` (die Funktionen werden nirgends aufgerufen; Datei mit `lang="ts"`, trotzdem nicht gemeldet, weil die Typprüfung `.vue`-Dateien nicht prüft). Im eingefrorenen Modul `message` fehlen vier Symbole (`views/tabs/AllMessages.vue`). Beheben und `no-undef` für `.vue`-Dateien einschalten, im Browser nachprüfen.
+- [ ] **Weitere Funde im Anmeldeablauf** (Issue #23, nicht behoben): In `views/newRegister/module/Participants.vue` ist die Sperre der Buchungsoption (`blockBookingOption.value && …` im Template) immer aus, weil Vue im Template schon den Wert liefert. Die Buchungsoption ist im Anmeldeablauf deshalb immer änderbar. Stammesmitglieder landen ohne Buchungsoption in der Liste. In `components/registration/DetailList.vue` schließt `onNewPersonFromMemberConfirmClicked` den falschen Dialog. Fachlich klären, wann die Buchungsoption gesperrt sein soll.
 - [ ] eslint in die automatischen Prüfungen auf GitHub. Nach PR #17: 260 Fehler und 2.796 Warnungen (`yarn lint`, Aufschlüsselung in `docs/qualitaet.md`): zuerst die Fehler, Warnungen schrittweise. Die vorübergehend gelockerten Stufen in `eslint.config.mjs` dabei bewusst einzeln schärfer stellen.
 
 ## Abstimmung der Funktionen und Abläufe
