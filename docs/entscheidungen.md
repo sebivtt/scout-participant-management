@@ -6,6 +6,17 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-16 · Vorlagen für Fehler und Anforderungen
+
+**Entscheidung:**
+- Neue Fehler und Anforderungen werden nur noch als Issue auf GitHub festgehalten, jeweils eines pro Thema. Die Listen im Fahrplan werden nicht weiter ergänzt. Bestehende Listenpunkte können nach und nach zu Issues werden.
+- Es gibt zwei Vorlagen (`.github/ISSUE_TEMPLATE/`): „Fehler melden“ (Label `bug`) und „Neue Anforderung“ (Label `enhancement`). Wer kein Schreibrecht hat, kann auf GitHub keine leeren Issues ohne Vorlage anlegen. Wer Schreibrecht hat (auch Sebastian), sieht „Blank issue“ weiterhin, nimmt aber trotzdem eine Vorlage.
+- Faustregel für die Einordnung: Fehler heißt, das Tool tut etwas Falsches oder Unerwartetes. Anforderung heißt, das Tool soll etwas können, was bisher nicht vorgesehen ist.
+- Die bestehenden Issues werden anschließend nach den Vorlagen überarbeitet.
+
+**Begründung:** Gleich aufgebaute Issues lassen sich ohne Rückfragen bearbeiten, und es gibt nur eine Stelle, an der offene Punkte stehen. Sebastian schreibt die Issues, die Umsetzung übernimmt meist die KI.
+**Umsetzung:** `.github/ISSUE_TEMPLATE/fehler.yml`, `anforderung.yml`, `config.yml`. Legt die KI ein Issue über die Schnittstelle an, gilt die Vorlage nicht automatisch: Sie übernimmt alle Überschriften der Vorlage als `### …`, auch die der Auswahlfelder (Rolle, Auswirkung, Wichtigkeit), und setzt das Label selbst.
+
 ## 2026-10-16 · Rauchtests und Umgang mit gefundenen Fehlern
 
 **Entscheidung:**

@@ -1,0 +1,60 @@
+name: Neue Anforderung
+description: Das Tool soll etwas können, was bisher nicht vorgesehen ist.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Eine Anforderung pro Issue. Tut das Tool etwas Falsches oder Unerwartetes, bitte die Vorlage **Fehler melden** nehmen.
+
+        Der graue Text in den Feldern ist nur ein Beispiel und wird nicht übernommen.
+
+  - type: textarea
+    id: wunsch
+    attributes:
+      label: Anforderung
+      description: Wer möchte was, und wozu? Am besten in der Form „Als … möchte ich …, damit …“.
+      placeholder: Als Veranstaltungsleitung möchte ich, dass in einer Anmeldung höchstens so viele T-Shirts bestellt werden, wie Personen angemeldet sind, damit keine Fehlbestellungen entstehen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: beispiel
+    attributes:
+      label: Beispiel
+      description: Optional. Ein konkreter Fall macht die Anforderung eindeutig.
+      placeholder: Eine Anmeldung hat 5 Personen. Dann sind höchstens 5 T-Shirts möglich, bei 6 erscheint eine Meldung.
+
+  - type: textarea
+    id: kriterien
+    attributes:
+      label: Akzeptanzkriterien
+      description: Woran erkennt man, dass die Anforderung erfüllt ist? Jedes Kriterium sollte sich durch Ausprobieren prüfen lassen.
+      placeholder: |
+        - [ ] Die Veranstaltungsleitung kann je Zusatzfeld einstellen, ob die Menge begrenzt ist.
+        - [ ] Bei Überschreitung erscheint eine verständliche Meldung, und die Eingabe wird nicht übernommen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: abgrenzung
+    attributes:
+      label: Nicht Teil dieser Anforderung
+      description: Optional. Was ausdrücklich nicht dazugehört, damit der Umfang klar bleibt.
+
+  - type: textarea
+    id: offene_fragen
+    attributes:
+      label: Offene Fragen
+      description: Optional. Was ist fachlich noch zu entscheiden, bevor jemand loslegen kann?
+
+  - type: dropdown
+    id: wichtigkeit
+    attributes:
+      label: Wichtigkeit
+      options:
+        - Muss vor der nächsten Veranstaltung fertig sein
+        - Wichtig
+        - Wäre schön
+    validations:
+      required: true

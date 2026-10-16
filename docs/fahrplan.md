@@ -1,6 +1,6 @@
 # Fahrplan
 
-Stand 16.10.2026. Dieses Dokument ist der Einstieg für jede neue Arbeitssitzung, auch für eine neue KI-Instanz ohne Kenntnis früherer Gespräche. Es sammelt, was erledigt ist, was als Nächstes kommt und welche Anforderungen schon bekannt sind. Erledigte Punkte werden abgehakt, neue ergänzt.
+Stand 16.10.2026. Dieses Dokument ist der Einstieg für jede neue Arbeitssitzung, auch für eine neue KI-Instanz ohne Kenntnis früherer Gespräche. Es sammelt, was erledigt ist, was als Nächstes kommt und welche Anforderungen schon bekannt sind. Erledigte Punkte werden abgehakt. Neue Fehler und Anforderungen kommen nicht mehr hierher, sondern als Issue auf GitHub (Entscheidung vom 16.10.2026, Vorlagen in `.github/ISSUE_TEMPLATE/`).
 
 ## Einstieg für eine neue Sitzung
 
@@ -57,7 +57,7 @@ Die risikoarmen Sprünge sind erledigt (TypeScript, eslint, `uuid`, Vue 3.5). Vo
 
 Vorgehen für den ersten Pull Request der Rauchtests: den Plan (Werkzeug, Aufbau, was in der Cloud und was auf GitHub läuft) zuerst kurz mit Sebastian abstimmen, dann bauen.
 
-**Gesammelte Fehler** (Entscheidungen Sebastians vom 16.10.2026: erst die Updates, dann die Fehler, außer sie betreffen genau den Bereich eines anstehenden Updates; jeder gefundene Fehler wird ein Issue und der Reihe nach abgearbeitet): die Funde aus PR #17 und PR #24 in Phase 4. Für neue Funde ab jetzt ein Issue anlegen (`gh api repos/sebivtt/scout-participant-management/issues -f title=… -F body=@datei.md`). Issue #25 wurde vor den Rauchtests behoben (PR #27), weil es genau den Anmeldeablauf betraf, den die Rauchtests prüfen. Sebastian hatte die Frage offen gelassen, die KI ist ihrer Empfehlung gefolgt.
+**Gesammelte Fehler** (Entscheidungen Sebastians vom 16.10.2026: erst die Updates, dann die Fehler, außer sie betreffen genau den Bereich eines anstehenden Updates; jeder gefundene Fehler wird ein Issue und der Reihe nach abgearbeitet): die Funde aus PR #17 und PR #24 in Phase 4. Für neue Funde ab jetzt ein Issue anlegen (`gh api repos/sebivtt/scout-participant-management/issues -f title=… -F body=@datei.md -f 'labels[]=bug'`), aufgebaut wie die Vorlagen in `.github/ISSUE_TEMPLATE/` (Entscheidung vom 16.10.2026: Überschriften der Vorlage als `### …`, Label `bug` oder `enhancement`). Issue #25 wurde vor den Rauchtests behoben (PR #27), weil es genau den Anmeldeablauf betraf, den die Rauchtests prüfen. Sebastian hatte die Frage offen gelassen, die KI ist ihrer Empfehlung gefolgt.
 
 **T-Shirts und Lunch Pakete** (Entscheidung vom 16.10.2026): sollen nicht in jeder Veranstaltung auftauchen. Was Standard ist, klärt die Abstimmung der Abläufe. Bis dahin bleibt die Vorlage unverändert.
 
