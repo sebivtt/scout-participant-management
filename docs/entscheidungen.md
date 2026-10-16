@@ -6,6 +6,20 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-16 · Issues erst klären, dann umsetzen
+
+**Entscheidung:**
+- Neue Issues werden beim Anlegen auf Abhängigkeiten zu offenen Issues geprüft (blockiert durch, blockiert, berührt dieselbe Stelle, Dublette). Abhängigkeiten stehen als Verknüpfung auf GitHub und mit Begründung im Text.
+- Bevor die KI ein Issue umsetzt, fragt sie Sebastian mit dem Skill `grill-me` aus: erst eine Übersicht der zu klärenden Themen, dann eine Frage pro Nachricht, jeweils mit Möglichkeiten und Empfehlung, so lange, bis nichts mehr offen ist. Fachliches entscheidet Sebastian, Technisches die KI mit Begründung. Was die KI im Code nachsehen kann, fragt sie nicht.
+- Alle Antworten werden ins Issue übernommen (als Kriterium, Beispiel, Abgrenzung oder Abhängigkeit), dazu ein Kommentar mit dem Frage-Antwort-Protokoll.
+- Danach wird entschieden, ob das Issue in einem Schritt umgesetzt wird oder in Unter-Issues aufgeteilt wird. Teile werden als Unter-Issues verknüpft, die Reihenfolge als „blockiert durch“.
+- Das Label `geklärt` ist die Freigabe. Umgesetzt wird nur, was es trägt. Es wird erst nach Sebastians ausdrücklichem Okay gesetzt.
+- Umsetzung: ein Issue = ein Pull Request mit eigenem Test, der Reihe nach.
+
+**Abgrenzung:** Das gilt für Fehler und Anforderungen aus den Issues. Die geplanten Schritte im Fahrplan (z. B. Rauchtests, Updates) laufen weiter wie bisher.
+**Begründung:** Die meisten Fehler bisher entstanden, weil etwas nicht zu Ende gedacht war (Issues #19, #23, #25). Kleine, vollständig geklärte Schritte senken das Risiko, und die Abhängigkeiten verhindern, dass zwei Änderungen sich gegenseitig stören.
+**Umsetzung:** `.claude/skills/grill-me/SKILL.md`, `.claude/skills/issue-anlegen/SKILL.md`, `CLAUDE.md` (Abschnitt „Arbeitsweise“), Label `geklärt` auf GitHub.
+
 ## 2026-10-16 · Vorlagen für Fehler und Anforderungen
 
 **Entscheidung:**

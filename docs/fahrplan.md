@@ -10,6 +10,7 @@ Stand 16.10.2026. Dieses Dokument ist der Einstieg für jede neue Arbeitssitzung
 4. `README.md` für die lokale Installation. Entwicklungswerkzeuge mit `pip install -r backend/requirements-dev.txt`, Prüfung vor jedem Commit im Ordner `backend/` mit `ruff check . && pytest`. Ein echtes Keycloak 26.7 für Livetests startet über `dev/`.
 5. Den Abschnitt „Übergabe“ unten lesen: Er beschreibt den nächsten Schritt konkret und die Eigenheiten der Arbeitsumgebung.
 6. Mit dem Schritt weitermachen, der in der „Reihenfolge der nächsten Schritte“ mit „← als Nächstes“ markiert ist. Nach jedem erledigten Schritt die Markierung weitersetzen.
+7. Fehler und Anforderungen aus den Issues werden erst nach Klärung umgesetzt: nur mit Label `geklärt`, vorher Skill `grill-me` (`CLAUDE.md`, Abschnitt „Arbeitsweise“).
 
 Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z. B. `tests/test_abfragen.py` = `backend/tests/test_abfragen.py`. Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `main` von `sebivtt/scout-participant-management`.
 
