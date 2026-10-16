@@ -27,6 +27,10 @@ from basic.choices import Gender
 from basic.models import ScoutHierarchy, ScoutOrgaLevel, ZipCode
 
 SAMPLE_EVENT_NAME = 'Beispiellager'
+# Kennzeichen, an dem der Befehl sein Beispiellager erkennt. Am Namen allein
+# nicht, sonst würde --reset eine selbst angelegte Veranstaltung „Beispiellager“
+# samt Anmeldungen löschen.
+SAMPLE_TECHNICAL_NAME = 'beispieldaten'
 SAMPLE_LOCATION_NAME = 'Beispielzeltplatz'
 STAMM_LEVEL_ID = 5
 
@@ -67,7 +71,7 @@ class Command(BaseCommand):
             )
 
         with transaction.atomic():
-            existing = Event.objects.filter(name=SAMPLE_EVENT_NAME)
+            existing = Event.objects.filter(technical_name=SAMPLE_TECHNICAL_NAME)
             if existing.exists() and not options['reset']:
                 self.stdout.write(
                     f'„{SAMPLE_EVENT_NAME}“ ist schon vorhanden, nichts geändert. Mit --reset neu anlegen.'
@@ -94,7 +98,15 @@ def get_or_create_account(username: str) -> CustomUser:
     user = CustomUser.objects.filter(username__iexact=username).first()
     if user is not None:
         return user
-    user = CustomUser.objects.create_user(username=username, email=f'{username}@example.org')
+    email = f'{username}@example.org'
+    # Die E-Mail muss eindeutig sein. Ohne diese Prüfung bräche der Befehl mit
+    # einer unverständlichen Datenbankmeldung ab.
+    if CustomUser.objects.filter(email__iexact=email).exists():
+        raise CommandError(
+            f'Die E-Mail {email} gehört schon einem anderen Konto als „{username}“. '
+            f'Dieses Konto in der Django-Verwaltung (/admin/) umbenennen oder ihm eine andere E-Mail geben.'
+        )
+    user = CustomUser.objects.create_user(username=username, email=email)
     Person.objects.create(user=user, email=user.email)
     return user
 
@@ -115,6 +127,7 @@ def create_sample_event(template: StandardEventTemplate) -> Event:
     )
     event = Event.objects.create(
         name=SAMPLE_EVENT_NAME,
+        technical_name=SAMPLE_TECHNICAL_NAME,
         short_description='Beispielveranstaltung zum Ausprobieren',
         is_public=True,
         location=location,

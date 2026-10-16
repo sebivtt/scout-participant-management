@@ -17,8 +17,8 @@ Die Beispieldaten passen zu den Testkonten aus Keycloak:
 
 | Konto | Passwort | Rolle im Beispiellager |
 | --- | --- | --- |
-| `leitung` | `leitung123` | leitet das Beispiellager (zugleich Anmeldeteam, darf überall alles) |
-| `stammesleitung` | `stamm123` | hat ihren Stamm mit zwei Personen angemeldet |
+| `leitung` | `leitung123` | leitet das Beispiellager (zugleich Anmeldeteam, damit Rechte auf alle Gruppen und Orte, aber nicht auf fremde Veranstaltungen) |
+| `stammesleitung` | `stamm123` | hat einen Stamm mit zwei Personen angemeldet (den ersten Stamm aus den Stammdaten, nicht einen „eigenen“) |
 | `teilnehmer` | `teilnehmer123` | keine Rolle, kann eine neue Anmeldung anlegen |
 
 Tipp: Zum Wechseln zwischen den Konten ein privates Browserfenster öffnen (Safari und Chrome: Befehlstaste + Umschalttaste + N). So bleibt das eigene Konto im normalen Fenster angemeldet.
@@ -91,19 +91,24 @@ Laufen Backend und Frontend noch, zuerst beide mit Control + C beenden (siehe Te
 1. `cd ~/Projekte/scout-participant-management`
    Keine Ausgabe.
 2. `git status`
-   Es sollte „nothing to commit, working tree clean“ dastehen. **Steht dort etwas anderes, hier anhalten** und nachfragen, damit keine eigenen Änderungen verloren gehen.
+   Es sollte „nothing to commit, working tree clean“ dastehen.
+   - Stehen dort als geändert **nur** `frontend/components.d.ts`, `frontend/src/auto-imports.d.ts` oder `frontend/.eslintrc-auto-import.json`: Diese Dateien schreibt das Frontend beim Starten selbst neu, sie enthalten nichts Eigenes. Zurücksetzen mit `git restore frontend/components.d.ts frontend/src/auto-imports.d.ts frontend/.eslintrc-auto-import.json` und `git status` wiederholen.
+   - **Steht dort etwas anderes, hier anhalten** und nachfragen, damit keine eigenen Änderungen verloren gehen.
 3. `git fetch origin`
    Lädt die neuen Branches von GitHub. Am Code auf dem Mac ändert sich dadurch noch nichts.
 4. `git switch <Name des Branches>`
-   Zum Beispiel `git switch rauchtests-1a-beispieldaten`. Es erscheint „Switched to a new branch …“ oder „Switched to branch …“. Jetzt liegt der Stand des Pull Requests auf dem Mac.
-5. Nennt der Pull Request Zusatzschritte (neue Pakete, Änderungen an der Datenbank), diese jetzt ausführen.
-6. Tool starten wie in Teil 1 und ausprobieren.
+   Zum Beispiel `git switch rauchtests-1a-beispieldaten`. Es erscheint „Switched to a new branch …“ oder „Switched to branch …“.
+5. `git pull`
+   Wichtig, wenn der Branch schon einmal ausprobiert wurde: Ohne diesen Schritt läge noch der alte Stand vor, ohne spätere Korrekturen im Pull Request. Es erscheint „Already up to date.“ oder eine Liste geänderter Dateien. Jetzt liegt der aktuelle Stand des Pull Requests auf dem Mac.
+6. Nennt der Pull Request Zusatzschritte (neue Pakete, Änderungen an der Datenbank), diese jetzt ausführen.
+7. Tool starten wie in Teil 1 und ausprobieren.
 
 **Zurück zum normalen Stand**, wenn das Ausprobieren fertig ist (Backend und Frontend vorher beenden):
 
-7. `git switch main`
+8. `git status`, wie in Schritt 2 prüfen und gegebenenfalls die drei Frontend-Dateien zurücksetzen.
+9. `git switch main`
    Es erscheint „Switched to branch 'main'“.
-8. `git pull`
+10. `git pull`
    Holt den neuesten Stand von `main`. Wurde der Pull Request inzwischen übernommen, ist er jetzt darin enthalten.
 
 Hat ein Pull Request die Datenbank verändert (eine sogenannte Migration), steht in seiner Beschreibung, was beim Zurückwechseln zu tun ist.
@@ -118,7 +123,7 @@ Hat ein Pull Request die Datenbank verändert (eine sogenannte Migration), steht
 
 ## Anhang: Erstmalige Einrichtung
 
-Nur einmal nötig. Voraussetzungen: Docker Desktop, Python 3.11 bis 3.13, Node.js 22, Yarn (siehe `README.md`).
+Nur einmal nötig. Voraussetzungen: Docker Desktop, Python 3.11 bis 3.13, Node.js 22.13 oder neuer, Yarn (siehe `README.md`).
 
 **Hilfsdienste und Keycloak**
 
@@ -130,7 +135,8 @@ Nur einmal nötig. Voraussetzungen: Docker Desktop, Python 3.11 bis 3.13, Node.j
 **Backend**
 
 4. `cd ../backend`
-5. `python3 -m venv .venv`
+5. `python3.11 -m venv .venv`
+   Ist Python 3.12 oder 3.13 installiert, statt `python3.11` dieses nehmen. Das einfache `python3` kann auf dem Mac eine zu alte oder zu neue Fassung sein.
 6. `source .venv/bin/activate`
 7. `pip install -r requirements-dev.txt` (dauert einige Minuten)
 8. `cp ../dev/backend.env.example backend/.env`

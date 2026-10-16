@@ -49,7 +49,7 @@ def add_event_module(module: EventModule, event: Event) -> EventModule:
     return new_module
 
 
-def set_up_new_event(event: Event, template: StandardEventTemplate, price) -> None:
+def set_up_new_event(event: Event, template: StandardEventTemplate, price: str | float | None) -> None:
     """Stattet eine neu angelegte Veranstaltung aus: Buchungsoption „Standard“ und Bausteine der Vorlage.
 
     Wird beim Anlegen über die Oberfläche und von den Beispieldaten

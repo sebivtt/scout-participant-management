@@ -10,7 +10,7 @@ from django.core.management.base import CommandError
 
 from anmelde_tool.event.deadlines import can_change, can_register
 from anmelde_tool.event.models import BookingOption, Event, EventModule
-from anmelde_tool.registration.models import Registration
+from anmelde_tool.registration.models import Registration, RegistrationParticipant
 from authentication.models import CustomUser
 from basic.management.commands.load_sample_data import SAMPLE_EVENT_NAME
 
@@ -66,9 +66,46 @@ def test_rollen_der_testkonten(beispieldaten, stamm_adler):
 
 
 def test_zweiter_aufruf_legt_nichts_doppelt_an(beispieldaten):
+    vorher = zaehlung()
     call_command('load_sample_data', verbosity=0)
-    assert Event.objects.filter(name=SAMPLE_EVENT_NAME).count() == 1
-    assert Registration.objects.filter(event__name=SAMPLE_EVENT_NAME).count() == 1
+    assert zaehlung() == vorher
+
+
+def zaehlung():
+    return (Event.objects.count(), Registration.objects.count(), RegistrationParticipant.objects.count(),
+            BookingOption.objects.count(), EventModule.objects.count(), CustomUser.objects.count())
+
+
+def test_eigene_veranstaltung_gleichen_namens_bleibt_bei_reset(entwicklung, standardvorlage, stamm_adler, lager):
+    # Eine selbst angelegte Veranstaltung „Beispiellager“ ist nicht das Beispiellager
+    # des Befehls und darf beim Zurücksetzen nicht verschwinden.
+    lager.name = SAMPLE_EVENT_NAME
+    lager.save()
+    call_command('load_sample_data', verbosity=0)
+    call_command('load_sample_data', '--reset', verbosity=0)
+    assert Event.objects.filter(id=lager.id).exists()
+    assert Event.objects.filter(name=SAMPLE_EVENT_NAME).count() == 2
+
+
+def test_belegte_email_verstaendliche_meldung(entwicklung, standardvorlage, stamm_adler):
+    CustomUser.objects.create_user(username='jemand', email='leitung@example.org')
+    with pytest.raises(CommandError, match='gehört schon einem anderen Konto'):
+        call_command('load_sample_data', verbosity=0)
+    assert not Event.objects.exists()
+
+
+def test_erster_login_uebernimmt_vorab_angelegtes_konto(beispieldaten):
+    # Der Befehl legt die Testkonten vorab an. Der erste Login über Keycloak muss
+    # dieses Konto finden und ergänzen, statt ein zweites anzulegen.
+    from backend.OIDCAuthentication import MyOIDCAB
+    claims = {'sub': 'kc-stammesleitung', 'preferred_username': 'stammesleitung',
+              'email': 'stammesleitung@example.org', 'given_name': 'Stamm', 'family_name': 'Leitung'}
+    backend = MyOIDCAB()
+    (konto,) = backend.filter_users_by_claims(claims)
+    backend.update_user(konto, claims)
+    konto.refresh_from_db()
+    assert konto.keycloak_id == 'kc-stammesleitung'
+    assert Registration.objects.get(event=beispieldaten).responsible_persons.get() == konto
 
 
 def test_neu_anlegen_ersetzt_nur_das_beispiellager(beispieldaten, anmeldung_adler):
@@ -96,12 +133,12 @@ def test_im_echtbetrieb_verweigert(standardvorlage, stamm_adler):
 
 
 def test_ohne_stammdaten_verstaendliche_meldung(entwicklung, stamm_adler):
-    with pytest.raises(CommandError, match='Stammdaten'):
+    with pytest.raises(CommandError, match='Vorlage für Veranstaltungen fehlt'):
         call_command('load_sample_data', verbosity=0)
     assert not Event.objects.exists()
 
 
 def test_ohne_stamm_verstaendliche_meldung(entwicklung, standardvorlage):
-    with pytest.raises(CommandError, match='Stamm'):
+    with pytest.raises(CommandError, match='Es gibt keinen Stamm'):
         call_command('load_sample_data', verbosity=0)
     assert not Event.objects.exists()
