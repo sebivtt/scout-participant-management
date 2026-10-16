@@ -17,12 +17,17 @@ Lies und befolge `CONTRIBUTING.md`. Kurzfassung:
 
 ## Vor jeder Änderung
 
-1. Stand, nächste Schritte und bekannte Anforderungen: `docs/fahrplan.md`. Erledigte Punkte dort abhaken. Neue Fehler und Anforderungen als Issue auf GitHub anlegen, aufgebaut wie die Vorlagen in `.github/ISSUE_TEMPLATE/`, nicht im Fahrplan.
+1. Stand, nächste Schritte und bekannte Anforderungen: `docs/fahrplan.md`. Erledigte Punkte dort abhaken. Neue Fehler und Anforderungen als Issue auf GitHub anlegen, mit dem Skill `issue-anlegen` (Vorlagen in `.github/ISSUE_TEMPLATE/`, Prüfung auf Abhängigkeiten), nicht im Fahrplan. Das gilt auch für Fehler, die die KI selbst findet.
 2. Fachliche Regeln stehen in `docs/entscheidungen.md`. Widerspricht eine Anfrage einer dort festgehaltenen Entscheidung, frag nach, statt sie still zu ändern.
 3. Begriffe: `docs/glossar.md`. Aufbau des Systems: `docs/architektur.md`.
 
 ## Arbeitsweise
 
+- **Issues erst klären, dann umsetzen** (Entscheidung vom 16.10.2026):
+  - Neue Issues mit dem Skill `issue-anlegen` (`.claude/skills/issue-anlegen/`) anlegen. Er prüft auch die Abhängigkeiten zu offenen Issues.
+  - Umgesetzt wird nur ein Issue mit dem Label `geklärt`. Das Label setzt der Skill `grill-me` (`.claude/skills/grill-me/`), nachdem Sebastian Frage für Frage ausgefragt wurde und zugestimmt hat. Fehlt es, zuerst `grill-me` anbieten.
+  - Direkt vor dem Start die Abhängigkeiten erneut prüfen. Ist ein blockierendes Issue noch offen, nicht anfangen.
+  - Ein Issue = ein Pull Request mit eigenem Test, der Reihe nach. Taucht beim Umsetzen eine fachliche Frage auf, anhalten, fragen und die Antwort ins Issue übernehmen.
 - **Erst einen Test schreiben, der das Problem zeigt**, dann beheben.
 - Lokale Prüfung vor jedem Commit, im Ordner `backend/`:
   ```bash

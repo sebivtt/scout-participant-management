@@ -10,6 +10,7 @@ Stand 16.10.2026. Dieses Dokument ist der Einstieg für jede neue Arbeitssitzung
 4. `README.md` für die lokale Installation. Entwicklungswerkzeuge mit `pip install -r backend/requirements-dev.txt`, Prüfung vor jedem Commit im Ordner `backend/` mit `ruff check . && pytest`. Ein echtes Keycloak 26.7 für Livetests startet über `dev/`.
 5. Den Abschnitt „Übergabe“ unten lesen: Er beschreibt den nächsten Schritt konkret und die Eigenheiten der Arbeitsumgebung.
 6. Mit dem Schritt weitermachen, der in der „Reihenfolge der nächsten Schritte“ mit „← als Nächstes“ markiert ist. Nach jedem erledigten Schritt die Markierung weitersetzen.
+7. Fehler und Anforderungen aus den Issues werden erst nach Klärung umgesetzt: nur mit Label `geklärt`, vorher Skill `grill-me` (`CLAUDE.md`, Abschnitt „Arbeitsweise“).
 
 Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z. B. `tests/test_abfragen.py` = `backend/tests/test_abfragen.py`. Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `main` von `sebivtt/scout-participant-management`.
 
@@ -57,7 +58,7 @@ Die risikoarmen Sprünge sind erledigt (TypeScript, eslint, `uuid`, Vue 3.5). Vo
 
 Vorgehen für den ersten Pull Request der Rauchtests: den Plan (Werkzeug, Aufbau, was in der Cloud und was auf GitHub läuft) zuerst kurz mit Sebastian abstimmen, dann bauen.
 
-**Gesammelte Fehler** (Entscheidungen Sebastians vom 16.10.2026: erst die Updates, dann die Fehler, außer sie betreffen genau den Bereich eines anstehenden Updates; jeder gefundene Fehler wird ein Issue und der Reihe nach abgearbeitet): die Funde aus PR #17 und PR #24 in Phase 4. Für neue Funde ab jetzt ein Issue anlegen (`gh api repos/sebivtt/scout-participant-management/issues -f title=… -F body=@datei.md -f 'labels[]=bug'`), aufgebaut wie die Vorlagen in `.github/ISSUE_TEMPLATE/` (Entscheidung vom 16.10.2026: Überschriften der Vorlage als `### …`, Label `bug` oder `enhancement`). Issue #25 wurde vor den Rauchtests behoben (PR #27), weil es genau den Anmeldeablauf betraf, den die Rauchtests prüfen. Sebastian hatte die Frage offen gelassen, die KI ist ihrer Empfehlung gefolgt.
+**Gesammelte Fehler** (Entscheidungen Sebastians vom 16.10.2026: erst die Updates, dann die Fehler, außer sie betreffen genau den Bereich eines anstehenden Updates; jeder gefundene Fehler wird ein Issue und der Reihe nach abgearbeitet): die Funde aus PR #17 und PR #24 in Phase 4. Für neue Funde ab jetzt ein Issue mit dem Skill `issue-anlegen` anlegen (`.claude/skills/issue-anlegen/`, Entscheidungen vom 16.10.2026). Issue #25 wurde vor den Rauchtests behoben (PR #27), weil es genau den Anmeldeablauf betraf, den die Rauchtests prüfen. Sebastian hatte die Frage offen gelassen, die KI ist ihrer Empfehlung gefolgt. Seit der Entscheidung „Issues erst klären, dann umsetzen“ (16.10.2026) gilt das nicht mehr: Issues werden erst nach `grill-me` und mit Label `geklärt` umgesetzt.
 
 **T-Shirts und Lunch Pakete** (Entscheidung vom 16.10.2026): sollen nicht in jeder Veranstaltung auftauchen. Was Standard ist, klärt die Abstimmung der Abläufe. Bis dahin bleibt die Vorlage unverändert.
 

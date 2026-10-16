@@ -61,3 +61,17 @@ Regeln: `docs/entscheidungen.md`, Logik: `anmelde_tool/event/deadlines.py`.
 | Migration | Datei, die die Datenbank an ein geändertes Datenmodell anpasst |
 | N+1-Muster | Eine Liste löst pro Eintrag eine neue Datenbankabfrage aus; wird bei vielen Einträgen langsam |
 | `xfail` | Test für einen bekannten, noch offenen Fehler |
+
+## Arbeit mit GitHub-Issues
+
+Regeln: `docs/entscheidungen.md` (16.10.2026), Ablauf: `.claude/skills/issue-anlegen/` und `.claude/skills/grill-me/`.
+
+| Begriff | Bedeutung |
+| --- | --- |
+| Issue | Ein Eintrag auf GitHub für einen Fehler oder eine Anforderung |
+| Label | Markierung an einem Issue, z. B. `bug`, `enhancement` oder `geklärt` |
+| `geklärt` | Label: Das Issue ist mit `grill-me` vollständig geklärt und darf umgesetzt werden |
+| Blockiert durch | Dieses Issue kann erst umgesetzt werden, wenn ein anderes erledigt ist |
+| Sammel-Issue | Großes Issue, das in mehrere kleinere aufgeteilt wurde; wird selbst nicht umgesetzt |
+| Unter-Issue | Ein Teil eines Sammel-Issues; wird einzeln mit eigenem Test umgesetzt |
+| Skill | Eine Anleitung für die KI im Ordner `.claude/skills/`, die jede KI-Sitzung im Projekt kennt |
