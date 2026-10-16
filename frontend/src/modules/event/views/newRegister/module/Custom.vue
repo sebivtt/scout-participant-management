@@ -73,7 +73,9 @@ function onNextButtonClicked() {
     return;
   }
 
-  eventRegisterStore.updateRegisterCustom(moduleId, state);
+  // Kopie statt Verweis auf das Formular: Sonst ändert jede spätere Eingabe
+  // auf dieser Seite nachträglich die gespeicherten Antworten mit.
+  eventRegisterStore.updateRegisterCustom(moduleId, { ...state });
 
   router.push({
     name: props.step.nextLink,

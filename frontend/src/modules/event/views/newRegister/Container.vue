@@ -7,7 +7,11 @@
       >
         <component :is="components[compNo]" :steps="steps" />
       </nav>
+      <!-- key: Mehrere Zusatzschritte nutzen dieselbe Seite (Custom). Ohne
+           Neuaufbau bei jedem Schritt zeigte sie nach einem Sprung zwischen
+           ihnen leere Felder und überschrieb die Antworten (Issue #25). -->
       <router-view
+        :key="route.fullPath"
         :step="
           steps.find((step) => {
             return step.current;
