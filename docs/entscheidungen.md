@@ -9,11 +9,12 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 ## 2026-10-16 · Rauchtests und Umgang mit gefundenen Fehlern
 
 **Entscheidung:**
-- Der wichtigste Ablauf für die Rauchtests ist die Standard-Anmeldung: eine Veranstaltung aus der Standardvorlage, alle Schritte bis zum Absenden.
+- Der wichtigste Ablauf für die Rauchtests ist die Standard-Anmeldung über alle Schritte bis zum Absenden.
 - Rote Rauchtests blockieren keine Übernahme. Jeder gefundene Fehler wird als Issue auf GitHub angelegt und danach der Reihe nach abgearbeitet.
-- Für Livetests auf dem Mac steht Docker Desktop zur Verfügung.
+- Für Livetests auf dem Mac steht Docker zur Verfügung.
 
-**Begründung:** Fehler sollen sichtbar und nachvollziehbar gesammelt werden, ohne die Arbeit an anderen Stellen anzuhalten.
+**Offen (Abgrenzung):** Gilt „blockiert nicht“ auch, wenn ein Pull Request die Rauchtests selbst rot macht, etwa ein Versionssprung? Die älteren Einträge „Modernisierung des Frontends: risikoarme Sprünge“ und „Erst die Updates, dann gesammelte Fehler“ sehen die Rauchtests als Sicherheitsnetz für die riskanten Sprünge. Vorschlag der KI: GitHub sperrt die Übernahme nicht automatisch, aber ein Rot, das der eigene Pull Request verursacht, wird vorher behoben oder im Pull Request begründet. Wartet auf Sebastians Antwort.
+**Begründung (Zusammenfassung der KI):** Fehler sollen sichtbar und nachvollziehbar gesammelt werden, ohne die Arbeit an anderen Stellen anzuhalten.
 **Umsetzung:** `docs/fahrplan.md`, Abschnitte „Übergabe“ und „Vorarbeit für die Rauchtests“
 
 ## 2026-10-16 · T-Shirts und Lunch Pakete nicht in jeder Veranstaltung
