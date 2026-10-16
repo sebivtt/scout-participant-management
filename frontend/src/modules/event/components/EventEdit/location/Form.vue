@@ -88,17 +88,34 @@ function onSaveClicked() {
   if (isUpdate.value) {
     eventStore
       .updateLocation(returnObj)
-      .then(() => goToEvent());
+      .then(onSaved);
   } else {
     const eventId = route.params.id;
     eventStore
       .createLocation(returnObj)
-      .then((response_location) => eventStore.eventPartialUpdate({
+      .then((response_location) => response_location && eventStore.eventPartialUpdate({
         id: eventId,
         location: response_location.data.id
       }))
-      .then(() => goToEvent());
+      .then(onSaved);
   }
+}
+
+/**
+ * Nach dem Speichern: bei Erfolg zur Veranstaltung, sonst Fehler zeigen.
+ *
+ * Die Speicherfunktionen im Store fangen Fehler ab und liefern dann nichts
+ * zurück. Ohne diese Prüfung würde die Seite auch nach einem gescheiterten
+ * Speichern neu laden, und es sähe aus, als wäre gespeichert worden. So
+ * bleibt das Formular mit den Eingaben offen.
+ */
+function onSaved(response) {
+  if (response) {
+    goToEvent();
+    return;
+  }
+  isLoading.value = false;
+  commonStore.showError("Speichern fehlgeschlagen. Bitte Eingaben und Berechtigung prüfen.");
 }
 
 /**

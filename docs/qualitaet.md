@@ -132,6 +132,8 @@ Hinweis: In der Kasse lässt sich beim Ändern eines Zahlungseingangs die Person
 
 ### Offen: eingefrorene Module
 
+Weiterleitung nach dem Speichern (gefunden bei Issue #20, nicht behoben laut Entscheidung zu eingefrorenen Modulen): Im Kontaktformular-Modul (Frontend-Ordner `modules/message`) springen zwei Formulare nach dem Speichern mit der falschen Kennung zur Seite einer Anfrage (`/message-details/:id`, dort ist `:id` die Anfrage). `issueTypeEdit/Form.vue` nimmt die Kennung des Nachrichtentyps, `MessageEdit/Form.vue` die der Nachricht. Die Seite bleibt dann leer oder zeigt eine andere Anfrage.
+
 In `food` (Essensplanung) und `inspi` (Programmideen) gibt es rund 40 Schnittstellen, über die jede eingeloggte Person Einträge anderer ändern oder löschen kann. Personenbezogene Daten sind dort kaum betroffen, aber alle Inhalte könnten von jeder eingeloggten Person verändert werden. Eine Behebung wäre aufwendig. Entscheidung vom 15.10.2026: Beide Module sind abgeschaltet (Qualität II 1d, PR #12). Ihre Adressen sind nicht mehr erreichbar. Nur die Verwaltungsseiten unter `/admin/` bleiben, und die sind dem Anmeldeteam (Staff) vorbehalten. Abgesichert werden sie gegebenenfalls nach der Abstimmung der Anforderungen.
 
 ### Öffentliche Adressen

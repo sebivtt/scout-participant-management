@@ -137,12 +137,29 @@ function onSaveClicked() {
   if (bookingId) {
     eventEditStore
       .updateBookingOptionById(eventId, bookingId, returnObj)
-      .then(() => goToEvent());
+      .then(onSaved);
   } else {
     eventEditStore
       .createBookingOption(eventId, returnObj)
-      .then(() => goToEvent());
+      .then(onSaved);
   }
+}
+
+/**
+ * Nach dem Speichern: bei Erfolg zur Veranstaltung, sonst Fehler zeigen.
+ *
+ * Die Speicherfunktionen im Store fangen Fehler ab und liefern dann nichts
+ * zurück. Ohne diese Prüfung würde die Seite auch nach einem gescheiterten
+ * Speichern neu laden, und es sähe aus, als wäre gespeichert worden. So
+ * bleibt das Formular mit den Eingaben offen.
+ */
+function onSaved(response) {
+  if (response) {
+    goToEvent();
+    return;
+  }
+  isLoading.value = false;
+  commonStore.showError("Speichern fehlgeschlagen. Bitte Eingaben und Berechtigung prüfen.");
 }
 
 /**
