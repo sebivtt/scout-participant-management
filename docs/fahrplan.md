@@ -22,7 +22,7 @@ Pfade zu Tests und Backend-Code sind relativ zum Ordner `backend/` angegeben, z.
 - Fachliche Fragen (wer darf was, welche Fristen gelten) entscheidet er. Technische Fragen entscheidet die KI und begründet sie.
 - Pull Requests werden nicht aufeinander aufgebaut. Der nächste beginnt erst, wenn der vorige in `main` ist. (PR #12 landete sonst im falschen Branch und musste mit PR #13 nachgeholt werden.)
 
-## Übergabe (Stand 15.10.2026, nach PR #18)
+## Übergabe (Stand 15.10.2026, nach PR #21)
 
 ### Was erledigt ist
 
@@ -39,9 +39,19 @@ Phase 3d:
 - **PR #18:** `uuid` 9 → 14. Schließt eine Lücke, uuid bringt jetzt eigene Typbeschreibungen mit.
 - Reihenfolge geändert (Entscheidung vom 15.10.2026, Weg C): erst die risikoarmen Sprünge, dann Rauchtests, dann die riskanten.
 
-Tests: 228 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). Ergebnisse in `docs/qualitaet.md`, Entscheidungen in `docs/entscheidungen.md`.
+Fehlerbehebungen:
+- **PR #21 (Issue #19):** Neue Anmeldungen mit Personen waren seit PR #3 unmöglich. Die Dublettenprüfung hat jetzt eine eigene Adresse für neue Anmeldungen, meldet Dubletten sofort, auch bei Stammesmitgliedern, und hält bearbeitete Personen nicht mehr für ihre eigene Dublette (Entscheidung vom 15.10.2026). Dabei behoben: Wer in einer neuen Anmeldung eine Person bearbeitete, hatte sie danach doppelt in der Liste (Altcode).
 
-### Nächster Schritt: Vue 3.3 → 3.5
+Tests: 253 bestanden, 1 übersprungen, 6 als bekannte Fehler markiert (xfail). Ergebnisse in `docs/qualitaet.md`, Entscheidungen in `docs/entscheidungen.md`.
+
+### Nächster Schritt: Issue #20, Weiterleitung nach dem Speichern
+
+- Nach dem Speichern eines Lagerbeitrags (`frontend/src/modules/event/components/EventEdit/FormBookings.vue`, Anlegen und Ändern) und nach dem Ändern eines Orts (`EventEdit/location/Form.vue`) springt die Seite zur Veranstaltung mit der Kennung aus der Antwort des Backends, also der des Lagerbeitrags bzw. Orts. Die Seite bleibt leer. Gespeichert wird trotzdem.
+- Behebung: Ziel der Weiterleitung ist die Veranstaltung aus der Adresse der Seite (`route.params.id`). Die übrigen Formulare der Veranstaltung (Namen, Daten, Rechte, Eigenes) speichern die Veranstaltung selbst und sind richtig.
+- Altcode der ursprünglichen Entwickler. Das Frontend hat keine Tests: Prüfung über Klickliste, der Fall kommt als Pflichtpunkt in die Rauchtests.
+- Ähnliches Muster im eingefrorenen Modul `messaging` (`issueTypeEdit/Form.vue` springt mit der Kennung eines Nachrichtentyps zur Nachrichtenseite). Nur festhalten, nicht beheben (Entscheidung zu eingefrorenen Modulen).
+
+### Danach: Vue 3.3 → 3.5
 
 - Schließt die letzten hohen Lücken in den Programmpaketen (`@vue/server-renderer`, zweimal gezählt). Danach bleibt nur `quill`.
 - `yarn.lock` enthält zwei Vue-Fassungen: 3.3.4 direkt und 3.4.15 über `@vue-leaflet/vue-leaflet` (verlangt `^3.2.25`). Ziel ist eine einzige Fassung 3.5.x.
@@ -55,12 +65,12 @@ Am 15.10.2026 geklärt:
 - **In der Cloud-Sitzung gibt es keinen Browser.** Die Download-Seiten für Browser (Playwright) sind gesperrt, ebenso Keycloak (Docker-Abbild, GitHub, Maven). Ein Login-Ersatz würde das Problem also nicht lösen und brächte gefährlichen Code in die Login-Anbindung.
 - **Vorschlag, mit Sebastian besprochen, noch nicht entschieden:** Die Rauchtests laufen mit einem echten Keycloak 26.7 automatisch auf GitHub und auf Sebastians Mac. `dev/keycloak-setup.sh` legt schon drei Testkonten an (`leitung`, `stammesleitung`, `teilnehmer`). Als Erstes prüfen, ob GitHub das Keycloak-Abbild laden darf. Aufteilung in drei Pull Requests: Beispieldaten und Anleitung „lokal starten“, dann „jede Seite lädt“, dann „Anmeldeablauf“.
 - **Offene Fragen an Sebastian dazu:** Hat er Docker Desktop auf dem Mac? Welcher Anmeldeablauf ist der wichtigste (Vorschlag: Stammesleitung meldet ihren Stamm mit zwei Personen an, die Veranstaltungsleitung sieht die Anmeldung in der Auswertung)? Sollen rote Rauchtests eine Übernahme blockieren (Vorschlag: ja, sobald sie stabil laufen)?
+- **Pflichtpunkte für die Rauchtests** aus Fehlern, die nur durch Klicken auffielen: neue Anmeldung mit „Mich selbst anmelden“ und einem Stammesmitglied (Issue #19), eine schon angemeldete Person wird sofort gemeldet, eine gespeicherte Person bearbeiten ohne Dublettenmeldung, Lagerbeitrag speichern und auf der Veranstaltung bleiben (Issue #20).
 - Werkzeug voraussichtlich Playwright, weil es einen echten Browser steuert und nicht von der Vite-Version abhängt. Neues Paket, also mit Begründung (`CONTRIBUTING.md` Abschnitt 5). Liste der Seiten und ihrer Anfragen: `docs/schnittstellen.md`.
 
 ### Offene Fragen an Sebastian
 
 - **Klicktest zu PR #11:** Die Rechte wurden spürbar enger. Klickliste siehe PR #11, Abschnitt 3. Ist er erfolgt, und ist etwas fälschlich gesperrt?
-- **Weiterleitung nach dem Speichern** (Phase 4, Rückmeldungen): War das Speichern eines Veranstaltungsorts gemeint? `EventEdit/location/Form.vue` springt nach dem Ändern mit der Kennung des Orts statt der Veranstaltung zur Detailseite.
 - **Person aus einer Anmeldung löschen** schlug lokal wegen eines fehlenden Schrägstrichs fehl (behoben in PR #14). Ist das beim Testen aufgefallen?
 
 ### Eigenheiten der Arbeitsumgebung (Cloud-Sitzung)
@@ -108,7 +118,8 @@ Am 15.10.2026 geklärt:
 3. **Risikoarme Versionssprünge im Frontend** (Entscheidung vom 15.10.2026, Weg C), je ein Pull Request mit Klickliste, in dieser Reihenfolge:
    - ✅ **TypeScript 4.6 → 6.0 und eslint 8 → 10** (PR #17), gemeinsam, weil das neue eslint mindestens TypeScript 4.8 verlangt. TypeScript 7 lässt sich noch nicht nutzen, siehe Phase 3d.
    - ✅ **`uuid` 9 → 14** (PR #18)
-   - **← als Nächstes: Vue 3.3 → 3.5.** Verlangt es einen neueren Vite-Baustein (`@vitejs/plugin-vue`), wandert es zu den riskanten Sprüngen.
+   - Dazwischen vorgezogen, weil sie das Anmelden bzw. Bearbeiten blockieren: ✅ Issue #19 (PR #21), **← als Nächstes: Issue #20** (Weiterleitung nach dem Speichern), Details in der Übergabe
+   - Vue 3.3 → 3.5. Verlangt es einen neueren Vite-Baustein (`@vitejs/plugin-vue`), wandert es zu den riskanten Sprüngen.
 4. **Rauchtests für das Frontend**, Details im Abschnitt „Übergabe“: jede Seite einmal öffnen, dazu ein Durchlauf des Anmeldeablaufs. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test.
 4a. **Qualität II, Schritt 2b: Feldnamen abgleichen.** Nach den Rauchtests, weil diese viele Feldfehler direkt zeigen (eine Seite bleibt leer oder meldet Fehler).
 4b. **Phase 3d, riskante Versionssprünge**: Vite, Pinia, vue-router, `quill`, Tailwind, einzeln, je mit Rauchtests und Klicktest, bei Tailwind zusätzlich Prüfung des Aussehens. Vor Phase 4, damit der neue Anmeldeablauf nicht auf dem alten Fundament entsteht.
@@ -220,7 +231,7 @@ Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit i
 - [ ] Die **Stammauswahl** ist eine lange flache Liste, die sich schlecht scrollen lässt. Gewünscht ist eine hierarchische Auswahl (Bund → Ring/Gau → Stamm).
 - [ ] Das **E-Mail-Feld** in den persönlichen Daten ist gesperrt, ohne Erklärung. Es kommt aus Keycloak. Ein erklärender Hinweis fehlt.
 - [ ] **Adressfelder** sollen aufgeteilt werden (Straße, PLZ, Ort) und um ein **Bundesland** ergänzt werden.
-- [ ] Nach dem **Speichern** führt die Weiterleitung auf die nächste Seite (`router.push`) ins Leere oder scheitert. Welche Seite betroffen war, ist nicht mehr bekannt: nachfragen, reproduzieren, beheben.
+- [ ] Nach dem **Speichern** führt die Weiterleitung auf die nächste Seite (`router.push`) ins Leere oder scheitert. Geklärt am 15.10.2026: Lagerbeitrag und Ort, als Issue #20 vorgezogen (siehe Übergabe).
 - [ ] Ein **abgelaufener Login** führt zu stillen 401-Fehlern. Stattdessen soll man eine klare Meldung sehen oder neu angemeldet werden.
 - [ ] Die zentrale Fehlerbehandlung für Antworten (`frontend/src/plugin/auth.ts`) liest `error.response.status`, ohne zu prüfen, ob es eine Antwort gibt. Ist das Backend nicht erreichbar oder bricht eine Anfrage ab, zum Beispiel bei der Weiterleitung zum Login, entsteht dort ein zweiter Fehler, der den eigentlichen verdeckt. Das war schon vor PR #16 so. axios 1.20 ändert nur, dass auch der aktuelle Firefox solche Abbrüche als Fehler meldet statt als leere Antwort. Beim Seitenwechsel ist es unsichtbar, weil die Seite ohnehin verlassen wird. Zusammen mit dem Punkt darüber beheben.
 - [ ] Die Schaltfläche **„Anmeldungen zusammenfassen“** in der Auswertung erscheint auch für Ansichtsgruppe sowie Bundes- und Ringführung. Seit Qualität II 1b-2 lehnt das Backend das ab, die Oberfläche zeigt dann keine Meldung, sondern bricht still ab. Nur der Veranstaltungsleitung anzeigen, Fehler anzeigen.
@@ -229,6 +240,7 @@ Die Stichpunkte sind aus dem Gespräch übernommen. Vor der Umsetzung kurz mit i
 - [ ] **Funde von eslint 10** (PR #17), je mit Test oder Klickprüfung beheben:
   - `frontend/src/modules/event/components/eventModule/Form.vue` (Zeile 148): Die Position eines neuen Bausteins wird berechnet und verworfen, die Funktion liefert immer 1. Das Backend sortiert nach Position, neue Bausteine landen also vorn. Hat die Veranstaltung genau einen Baustein, greift der Ausdruck auf `modules[-1]` zu, und das Speichern bricht mit einem Fehler ab. Beim Beheben `length - 2` nicht übernehmen: gemeint ist vermutlich die Position des letzten Bausteins plus 1.
   - `frontend/src/components/stepper/StepFrame.vue`: `isLoading` ist zugleich Eigenschaft von außen (Prop) und eigener Wert `ref(false)`. Das Formular nutzt die Prop, die Knöpfe „weiter“ und „speichern“ den eigenen Wert, der immer `false` ist. Die Knöpfe zeigen deshalb nie den Ladezustand, obwohl neun Seiten ihn übergeben. Behebung: den eigenen Wert entfernen.
+  - `frontend/src/modules/event/views/newRegister/module/Person.vue`: tote Datei, nirgends eingebunden (gefunden bei Issue #19). Löschen.
   - `frontend/src/modules/help/store/index.ts`: tote Datei. Eine Kopie von `modules/task/store` mit derselben Kennung, nirgends importiert. Die Abfragen `task` und `isLoading` geben nie etwas zurück, das wirkt aber nirgends. Behebung: Datei löschen.
 
 ### Technische Grundlage Frontend

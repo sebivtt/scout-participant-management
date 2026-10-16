@@ -38,6 +38,7 @@ CHECKED_ELSEWHERE = {
     'MyOwnRequestGroupAccessViewSet': 'nur eigene Beitrittsanfragen (get_queryset)',
     'MyMembersViewSet': 'nur selbst angelegte Personen, Stamm nur mit Admin-Recht (get_queryset)',
     'RequestGroupAccessViewSet': 'get_permissions: IsGroupAdmin außer beim Anfragen',
+    'EventCheckPersonViewSet': 'create: schreibt nichts, nur Dublettenprüfung; neue Anmeldungen offen wie beim Anlegen (require_registration_open)',
     'LeaveGroupViewSet': 'nur selbst austreten',
     'MyMembersUploadViewSet': 'legt nur Personen an, die der Person selbst zugeordnet sind (created_by)',
     'AllGroupsViewSet': 'create: Admin-Recht auf die Obergruppe; Ändern und Löschen: tests/test_gruppenrechte.py',

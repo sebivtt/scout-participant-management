@@ -259,13 +259,24 @@ export const useRegisterStore = defineStore("registerStore", {
         return false
       }
     },
+    /** Dublettenprüfung in einer bestehenden Anmeldung. Liefert false oder die Meldung des Backends. */
     async checkPerson(regId: any, person: any): Promise<boolean> {
-      //todo for some reason every request with error status is printed to console
       try {
-        const response = await checkingServices.personCheck(regId, person)
+        await checkingServices.personCheck(regId, person)
         return false;
       } catch (e) {
-        return e.response?.data?.detail
+        const error = e as { response?: { data?: { detail?: string } } };
+        return error.response?.data?.detail || "Die Prüfung auf doppelte Anmeldung ist fehlgeschlagen.";
+      }
+    },
+    /** Dublettenprüfung für eine neue Anmeldung, über die Veranstaltung. Liefert false oder die Meldung des Backends. */
+    async checkPersonForEvent(eventId: string, person: Record<string, unknown>): Promise<boolean | string> {
+      try {
+        await checkingServices.personCheckForEvent(eventId, person)
+        return false;
+      } catch (e) {
+        const error = e as { response?: { data?: { detail?: string } } };
+        return error.response?.data?.detail || "Die Prüfung auf doppelte Anmeldung ist fehlgeschlagen.";
       }
     },
     async passwordCheck(password: string): Promise<boolean> {

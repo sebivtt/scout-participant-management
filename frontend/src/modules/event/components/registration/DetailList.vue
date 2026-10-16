@@ -304,6 +304,7 @@
       :callbackOnConfirm="onNewPersonConfirmClicked"
       :callbackOnCancel="onNewPersonCancelClicked"
       :blockBookingOption="blockBookingOption"
+      check-scope="registration"
     />
     <AddStammesMitgliedModalBig
       :open="openNewPersonFromMemberModal"

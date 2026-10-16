@@ -17,4 +17,9 @@ export default {
   async personCheck(regId: any, person: any) {
     return axios.post(`${BASE_URL}/event/registration/${regId}/check-person/`, person)
   },
+  // Für neue Anmeldungen: Die Anmeldung gibt es noch nicht, deshalb prüft
+  // das Backend über die Veranstaltung (Issue #19).
+  async personCheckForEvent(eventId: string, person: Record<string, unknown>) {
+    return axios.post(`${BASE_URL}/event/event/${eventId}/check-person/`, person)
+  },
 }

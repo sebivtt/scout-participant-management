@@ -6,6 +6,16 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-15 · Dublettenprüfung beim Anmelden
+
+**Entscheidung:**
+- Ist eine Person (gleicher Vor- und Nachname, gleicher Geburtstag) schon für die Veranstaltung angemeldet, erscheint die Meldung sofort beim Hinzufügen der Person, nicht erst beim Abschicken. Das gilt für alle Wege: neue Person, „Mich selbst anmelden“, Stammesmitglieder.
+- Bei einer neuen Anmeldung darf jede eingeloggte Person diese Prüfung auslösen, solange neue Anmeldungen möglich sind, also mit denselben Rechten wie beim Anlegen der Anmeldung selbst. Die Veranstaltungsleitung ist von Sperren ausgenommen. Bei einer bestehenden Anmeldung bleibt die Prüfung der anmeldenden Leitung und der Veranstaltungsleitung vorbehalten.
+- Wer eine schon gespeicherte Person bearbeitet, bekommt keine Dublettenmeldung für die Person selbst.
+
+**Begründung:** Issue #19: Seit PR #3 war jede neue Anmeldung mit Personen unmöglich, weil die Prüfung eine Anmeldung erwartete, die es noch nicht gab. Die Prüfung verrät nur „ja oder nein“ für genau eine Person, mehr als das Anlegen einer Anmeldung ohnehin erlaubt, braucht sie nicht.
+**Umsetzung:** `anmelde_tool/registration/views.py` (`EventCheckPersonViewSet`, `CheckPersonViewSet`), Tests in `tests/test_dublettenpruefung.py` (PR #21)
+
 ## 2026-10-15 · Modernisierung des Frontends: risikoarme Sprünge vor den Rauchtests
 
 **Entscheidung:** Die Versionssprünge im Frontend werden nach Risiko aufgeteilt (Weg C). Risikoarme Sprünge kommen sofort, je als kleiner Pull Request mit Klickliste: TypeScript und eslint, `uuid`, Vue 3.5. Danach folgen die Rauchtests, dann die riskanten Sprünge (Vite, Pinia, vue-router, `quill`, Tailwind). Zieht ein risikoarmer Sprung einen riskanten nach sich, wird er nach hinten verschoben.

@@ -41,7 +41,7 @@ from anmelde_tool.email_services import services
 from anmelde_tool.event import api_exceptions as event_api_exceptions
 from anmelde_tool.event import models as event_models
 from anmelde_tool.event import permissions as event_permissions
-from anmelde_tool.event.helper import get_registration, custom_get_or_404
+from anmelde_tool.event.helper import get_event, get_registration, custom_get_or_404
 from anmelde_tool.registration import serializers as registration_serializers
 from anmelde_tool.registration.api_exceptions import ParticipantAlreadyExists
 from anmelde_tool.registration.models import (
@@ -96,13 +96,39 @@ def get_attribute_params(kwargs, post_serializer, request=None):
     return attribute_module, registration
 
 
-def check_for_double_participants(request, event_id):
-    if RegistrationParticipant.objects.filter(
-            first_name=request.data.get("first_name"),
-            last_name=request.data.get("last_name"),
-            birthday=request.data.get("birthday"),
-            registration__event=event_id,
-    ).exists():
+def _participant_id_or_none(value) -> int | None:
+    """Kennung einer Person aus dem Inhalt einer Anfrage, oder None bei allem anderen.
+
+    Der Inhalt kommt aus dem Browser und kann alles enthalten. Ein Serverfehler
+    wäre die falsche Antwort, die Person zählt dann einfach als nicht bearbeitet.
+    """
+    if isinstance(value, bool):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def check_for_double_participants(request, event_id, own_registration: Registration | None = None):
+    """Wirft ParticipantAlreadyExists, wenn die Person schon für die Veranstaltung angemeldet ist.
+
+    Gleich ist eine Person bei gleichem Vor- und Nachnamen und Geburtstag.
+    Wird eine schon gespeicherte Person bearbeitet, schickt das Frontend ihre
+    Kennung als `id` mit. Sie zählt dann nicht als ihre eigene Dublette, aber
+    nur, wenn sie zu `own_registration` gehört: Sonst ließe sich mit der
+    Kennung einer fremden Person jede Dublette verstecken.
+    """
+    participants = RegistrationParticipant.objects.filter(
+        first_name=request.data.get("first_name"),
+        last_name=request.data.get("last_name"),
+        birthday=request.data.get("birthday"),
+        registration__event=event_id,
+    )
+    edited_id = _participant_id_or_none(request.data.get("id"))
+    if own_registration is not None and edited_id is not None:
+        participants = participants.exclude(id=edited_id, registration=own_registration)
+    if participants.exists():
         raise ParticipantAlreadyExists()
     return False
 
@@ -257,29 +283,36 @@ def require_booking_option_of_event(booking_option_id, event) -> None:
         raise ValidationError({'booking_option': 'Diese Preisstufe gehört nicht zu dieser Veranstaltung.'})
 
 
-class CheckPersonViewSet(viewsets.ReadOnlyModelViewSet):
+class CheckPersonViewSet(viewsets.GenericViewSet):
+    """Dublettenprüfung beim Hinzufügen oder Bearbeiten einer Person in einer bestehenden Anmeldung.
+
+    Nur für die anmeldende Leitung und die Veranstaltungsleitung. Für neue
+    Anmeldungen, die es noch nicht gibt, ist EventCheckPersonViewSet zuständig.
+    """
     permission_classes = [event_permissions.IsSubRegistrationResponsiblePerson]
 
-    def participant_initialization(self, request) -> Registration:
-        input_serializer = (
-            registration_serializers.RegistrationParticipantPutSerializer(
-                data=request.data
-            )
-        )
-        input_serializer.is_valid(raise_exception=True)
+    def create(self, request, *args, **kwargs) -> Response:
+        registration = get_object_or_404(Registration, id=self.kwargs.get("registration_pk"))
+        check_for_double_participants(request, registration.event_id, own_registration=registration)
+        return Response('Person ist nicht vorhanden.', status=status.HTTP_200_OK)
 
-        registration_id = self.kwargs.get("registration_pk", None)
-        registration: Registration = get_registration(registration_id)
 
-        return registration
+class EventCheckPersonViewSet(viewsets.GenericViewSet):
+    """Dublettenprüfung beim Anlegen einer neuen Anmeldung, über die Veranstaltung.
+
+    Die Anmeldung gibt es zu diesem Zeitpunkt noch nicht, deshalb hängt die
+    Prüfung an der Veranstaltung (Issue #19). Es gelten dieselben Rechte wie
+    beim Anlegen einer Anmeldung: jede eingeloggte Person, solange neue
+    Anmeldungen möglich sind, die Veranstaltungsleitung auch danach
+    (Entscheidung vom 15.10.2026). Die Antwort verrät nur, ob genau diese
+    Person schon angemeldet ist.
+    """
+    permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs) -> Response:
-        # Früher wurde die Anmelde-ID als Veranstaltungs-ID verwendet,
-        # dadurch fand die Dublettenprüfung nie etwas.
-        registration = get_object_or_404(Registration, id=self.kwargs.get("registration_pk"))
-
-        check_for_double_participants(request, registration.event_id)
-
+        event = get_event(self.kwargs.get("event_pk"))
+        event_permissions.require_registration_open(request, event)
+        check_for_double_participants(request, event.id)
         return Response('Person ist nicht vorhanden.', status=status.HTTP_200_OK)
 
 

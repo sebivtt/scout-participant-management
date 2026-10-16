@@ -48,6 +48,7 @@
       :callbackOnConfirm="onNewPersonConfirmClicked"
       :callbackOnCancel="onNewPersonCancelClicked"
       :blockBookingOption="blockBookingOption.value && !eventEditAdmin.value"
+      check-scope="event"
     />
     <AddStammesMitgliedModalBig
       :open="openAddStammesMitgliedModal"
@@ -130,17 +131,38 @@ function onNewPersonCancelClicked() {
 function onAddStammesMitgliedCancelClicked() {
   openAddStammesMitgliedModal.value = false;
 }
-function onAddStammesMitgliedConfirmClicked(selectedPersons: any) {
+/**
+ * Übernimmt ausgewählte Stammesmitglieder in die Anmeldung.
+ *
+ * Wer schon in dieser Anmeldung steht oder schon für die Veranstaltung
+ * angemeldet ist, wird sofort gemeldet und
+ * nicht übernommen, statt erst beim Abschicken aufzufallen (Entscheidung vom
+ * 15.10.2026). Die übrigen Personen werden trotzdem übernommen.
+ */
+async function onAddStammesMitgliedConfirmClicked(selectedPersons: any) {
   if (selectedPersons.length < 1) {
     commonStore.showError("Bitte wähle mindestens eine Person aus.");
     return;
   }
-  selectedPersons.forEach((person: any) => {
+  const eventId = String(route.params.id);
+  for (const person of selectedPersons) {
+    const alreadyInList = eventRegisterStore.registerPerson.some((element: any) =>
+      element.firstName == person.firstName &&
+      element.lastName == person.lastName &&
+      element.birthday == person.birthday);
+    if (alreadyInList) {
+      commonStore.showError(`${person.firstName} ${person.lastName} steht schon in dieser Anmeldung.`);
+      continue;
+    }
+    const duplicate = await registerStore.checkPersonForEvent(eventId, person);
+    if (duplicate) {
+      commonStore.showError(`${person.firstName} ${person.lastName}: ${duplicate}`);
+      continue;
+    }
     person.eatHabit = person.eatHabits.map((eatHabit: any) => eatHabit.id);
     eventRegisterStore.addPerson(person);
-  });
+  }
   openAddStammesMitgliedModal.value = false;
-
 }
 
 function onNewPersonConfirmClicked(newPerson) {

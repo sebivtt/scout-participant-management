@@ -24,6 +24,7 @@ Welche Anfrage des Frontends welche Klasse im Backend trifft und welche Rechtepr
 | GET | `/event/choices/scout-level-types/` | `anmelde_tool.event.choices.views.ScoutLevelTypesViewSet` | AllowAny | `src/modules/auth/services/mapping.ts:15` |
 | GET | `/event/email-sets/` | `anmelde_tool.email_services.views.StandardEmailViewSet` | IsAuthenticated, IsStaffOrReadOnly | `src/modules/auth/services/mapping.ts:30` |
 | GET | `/event/event-location/` | `anmelde_tool.event.views.EventLocationViewSet` | IsAuthenticated | `src/modules/auth/services/mapping.ts:33` |
+| POST | `/event/event/{x}/check-person/` | `anmelde_tool.registration.views.EventCheckPersonViewSet` | IsAuthenticated | `src/modules/auth/services/checking.ts:23` |
 | POST | `/event/registration/{x}/check-person/` | `anmelde_tool.registration.views.CheckPersonViewSet` | IsSubRegistrationResponsiblePerson | `src/modules/auth/services/checking.ts:18` |
 
 ## dashboard

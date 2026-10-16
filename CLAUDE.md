@@ -43,6 +43,7 @@ Diese Fehler sind tatsächlich passiert. Sie wiederholen sich leicht.
 - **Tests gegen den alten Stand prüfen:** Ein Test zu einem behobenen Fehler muss ohne die Behebung fehlschlagen. Das ist mit `git worktree add <pfad> HEAD~1` schnell nachgeprüft. Einmal bestand ein Test auch ohne Behebung, weil er die falsche Adresse aufrief.
 - **Die unabhängige Prüfung findet fast immer etwas.** Ihren Auftrag eng fassen (nur den Diff, konkrete Prüfpunkte), Befunde selbst nachprüfen, dann beheben. Bricht sie ab (z. B. Nutzungslimit), sie fortsetzen statt neu zu starten.
 - **Zahlen in der Doku nachrechnen,** bevor sie im Pull Request stehen: `backend/tools/qualitaet_messen.py` und eigene Zählungen. Falsche Zahlen fielen mehrfach erst in der Prüfung auf.
+- **Eine Adresse, mehrere Aufrufer, verschiedene Kennungen:** Dieselbe Komponente steckt oft in mehreren Seiten, und `route.params.id` bedeutet dort Verschiedenes, z. B. im Dialog „Person hinzufügen“ einmal die Veranstaltung (neue Anmeldung), einmal die Anmeldung (bestehende). PR #3 zog die Rechte der Personenprüfung auf „Anmeldung“ enger, ohne alle Aufrufer zu verfolgen, und machte damit jede neue Anmeldung unmöglich (Issue #19). Vor jeder Änderung an Rechten oder Kennungen einer Adresse alle Seiten verfolgen, die sie aufrufen, und klären, welche Kennung dort in der Adresse steht.
 - **Pull Requests nicht aufeinander aufbauen.** Ein auf einen anderen PR aufgebauter PR landete nach der Übernahme im falschen Branch.
 
 ## Was du nicht tun sollst
