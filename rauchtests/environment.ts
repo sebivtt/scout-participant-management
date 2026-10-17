@@ -46,4 +46,6 @@ export interface SampleIds {
   eventId: string;
   registrationId: string;
   groupId: string;
+  /** Beispielfahrt: Ihren Ort nutzt auch eine fremde Veranstaltung (Issue #20). */
+  tripEventId: string;
 }

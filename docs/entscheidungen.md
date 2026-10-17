@@ -6,6 +6,16 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-17 · Rauchtests 1c: alle Pflichtpunkte in einem Pull Request
+
+**Entscheidung:**
+- Schritt 1c der Rauchtests (Anmeldeablauf) setzt alle Pflichtpunkte aus „Vorarbeit für die Rauchtests“ (Fahrplan) in einem einzigen Pull Request um, samt der nötigen Erweiterung der Beispieldaten. Ausnahme von „ein Thema pro Pull Request“ (`CONTRIBUTING.md` Abschnitt 6).
+- Die Tests räumen ihre Daten im Backend selbst auf.
+- Auf GitHub laufen die Rauchtests dafür nur einmal, mit dem Label `rauchtests` am fertigen Pull Request.
+
+**Begründung:** Effizienz. Die Pflichtpunkte teilen sich Einrichtung, Beispieldaten und Hilfsfunktionen, getrennte Pull Requests hätten jeweils dieselbe Vorarbeit und Prüfung gebraucht.
+**Umsetzung:** `rauchtests/tests/anmeldeablauf.spec.ts`, `backend/basic/management/commands/load_sample_data.py`, `dev/keycloak-setup.sh`.
+
 ## 2026-10-17 · Rollen klären, bevor Rechte geändert werden
 
 **Entscheidung:**

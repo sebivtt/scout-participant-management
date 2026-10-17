@@ -18,8 +18,8 @@ Die Beispieldaten passen zu den Testkonten aus Keycloak:
 | Konto | Passwort | Rolle im Beispiellager |
 | --- | --- | --- |
 | `leitung` | `leitung123` | leitet das Beispiellager (zugleich Anmeldeteam, damit Rechte auf alle Gruppen und Orte, aber nicht auf fremde Veranstaltungen) |
-| `stammesleitung` | `stamm123` | hat einen Stamm mit zwei Personen angemeldet (den ersten Stamm aus den Stammdaten, nicht einen „eigenen“) |
-| `teilnehmer` | `teilnehmer123` | keine Rolle, kann eine neue Anmeldung anlegen |
+| `stammesleitung` | `stamm123` | hat einen Stamm mit zwei Personen angemeldet (den ersten Stamm aus den Stammdaten, nicht einen „eigenen“), leitet außerdem die „Beispielfahrt“ |
+| `teilnehmer` | `teilnehmer123` | keine Rolle, kann eine neue Anmeldung anlegen. Gehört zum Stamm „Falken“ und hat dort zwei Personen selbst angelegt (Ben Probe, Mia Beispiel), die unter „Stammesmitglied anmelden“ erscheinen |
 
 Tipp: Zum Wechseln zwischen den Konten ein privates Browserfenster öffnen (Safari und Chrome: Befehlstaste + Umschalttaste + N). So bleibt das eigene Konto im normalen Fenster angemeldet.
 
@@ -59,6 +59,8 @@ Das Tool besteht aus drei Teilen, die nebeneinander laufen: den Hilfsdiensten in
 
 Der Befehl legt die Veranstaltung **„Beispiellager“** an, mit dem Ort „Beispielzeltplatz“, der Buchungsoption „Standard“ (15 €) und den Schritten der Standardvorlage, genau wie beim Anlegen über die Oberfläche. Dazu kommt eine Anmeldung eines Stamms durch `stammesleitung` mit zwei erfundenen Personen (Mia Beispiel und Leo Muster). Die Anmeldung ist offen, Anmeldestart war gestern.
 
+Für die Rauchtests zum Anmeldeablauf kommen hinzu: zwei nicht öffentliche Veranstaltungen am gemeinsamen Ort „Geteilter Zeltplatz“, die „Beispielfahrt“ (Leitung `stammesleitung`) und ein „Fremdes Lager“ (Leitung ein Konto ohne Login). Damit lässt sich zeigen, dass man einen Ort nicht ändern kann, den auch eine fremde Veranstaltung nutzt (Issue #20). Außerdem zwei Stammesmitglieder für `teilnehmer` (siehe Testkonten).
+
 **Was mit deinen eigenen Daten passiert:** nichts. Der Befehl legt nur zusätzlich an und ändert oder löscht nichts, was schon da ist. Ein zweiter Aufruf legt nichts doppelt an. Im Echtbetrieb verweigert der Befehl.
 
 Das Backend muss dafür nicht laufen, die Hilfsdienste aus Teil 1 schon.
@@ -69,17 +71,30 @@ Das Backend muss dafür nicht laufen, die Hilfsdienste aus Teil 1 schon.
 3. `source .venv/bin/activate`
    Vorne steht `(.venv)`.
 4. `python manage.py load_sample_data`
-   Es erscheint: „Beispiellager“ angelegt: Leitung „leitung“, Anmeldung von „…“ durch „stammesleitung“ mit 2 Personen. Statt der Punkte steht der Name eines Stamms aus den Stammdaten.
+   Es erscheint: „Beispiellager“ angelegt: Leitung „leitung“, Anmeldung von „…“ durch „stammesleitung“ mit 2 Personen. Statt der Punkte steht der Name eines Stamms aus den Stammdaten. Danach folgen Beispielfahrt, fremdes Lager und Stammesmitglieder.
 5. Im Browser als `teilnehmer` anmelden: Unter „Veranstaltungen“ erscheint das Beispiellager bei „Einladungen“.
 
 **Beispiellager frisch anlegen:** Wurde im Beispiellager herumprobiert, oder liegen seine Termine nach einigen Wochen in der Vergangenheit, setzt dieser Befehl es zurück:
 
 - `python manage.py load_sample_data --reset`
-  Löscht nur das Beispiellager samt seiner Anmeldungen und legt es neu an. Alles andere bleibt.
+  Löscht nur das Beispiellager, die Beispielfahrt und das fremde Lager samt ihrer Anmeldungen und legt sie neu an. Alles andere bleibt.
+
+**Beispieldaten von vor dem 17.10.2026** (vor Schritt 1c der Rauchtests): Es fehlen die Beispielfahrt und die Stammesmitglieder, der Befehl weist dann darauf hin. Einmalig nachholen, mit laufenden Hilfsdiensten:
+
+1. `cd ~/Projekte/scout-participant-management/dev`
+2. `./keycloak-setup.sh`
+   Am Ende steht „Keycloak-Realm 'dpv' ist eingerichtet“. Das Skript legt jetzt auch den Stamm „Falken“ als Gruppe an und ordnet ihm `teilnehmer` zu.
+3. `cd ../backend`
+4. `source .venv/bin/activate`
+   Vorne steht `(.venv)`.
+5. `python manage.py sync_keycloak_groups`
+   Unter „added groups“ stehen fünf Gruppen, die letzte endet auf „Falken“.
+6. `python manage.py load_sample_data --reset`
+   Die Meldung endet mit „… und 2 Stammesmitglieder für „teilnehmer“.“
 
 **Wenn etwas nicht klappt:**
 
-- Meldung „Die Vorlage für Veranstaltungen fehlt“ oder „Es gibt keinen Stamm“: Die Stammdaten sind nicht geladen. Einmal `python manage.py loaddata data/main/*.json` ausführen (dauert etwa eine halbe Minute), dann Schritt 4 wiederholen.
+- Meldung „Die Vorlage für Veranstaltungen fehlt“, „Es gibt keinen Stamm“ oder „Der Stamm „Falken“ fehlt“: Die Stammdaten sind nicht geladen. Einmal `python manage.py loaddata data/main/*.json` ausführen (dauert etwa eine halbe Minute), dann Schritt 4 wiederholen.
 - Login mit einem Testkonto klappt nicht: Im Ordner `dev` einmal `./keycloak-setup.sh` ausführen. Das Skript legt fehlende Testkonten an und darf mehrfach laufen.
 
 ## 3. Einen offenen Pull Request ausprobieren

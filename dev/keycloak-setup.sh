@@ -93,4 +93,26 @@ for U in leitung stammesleitung; do
   $KCADM update "users/$USER_ID/groups/$GROUP_ID" -r "$REALM" -n >/dev/null
 done
 
+# Stamm des Testkontos teilnehmer, wie beim Verband als Gruppenbaum. Der Abgleich
+# (python manage.py sync_keycloak_groups) ordnet die unterste Gruppe dem Stamm
+# „Falken“ aus den Stammdaten zu. Nur mit dieser Zuordnung zeigt der Anmeldeablauf
+# unter „Stammesmitglied anmelden“ Personen an. Die Angaben stamm und bund im
+# Konto übernimmt das Backend beim Login als Stamm der Person.
+# Namen mit Umlauten nur als ASCII-Umschreibung übergeben: kcadm liest und schreibt
+# je nach Spracheinstellung des Rechners kein UTF-8 und hätte sonst „B??nde“ angelegt.
+# Gesucht wird deshalb über den Pfad in URL-Schreibweise statt über den Namen.
+PARENT=""; GROUP_PATH=""
+for NAME in 'DPV:DPV' 'B%C3%BCnde:B\u00fcnde' 'PBW:PBW' 'St%C3%A4mme:St\u00e4mme' 'Falken:Falken'; do
+  GROUP_PATH="$GROUP_PATH/${NAME%%:*}"
+  ID=$($KCADM get "group-by-path$GROUP_PATH" -r "$REALM" --fields id --format csv --noquotes 2>/dev/null || true)
+  if [ -z "$ID" ]; then
+    if [ -z "$PARENT" ]; then LIST="groups"; else LIST="groups/$PARENT/children"; fi
+    ID=$(echo "{\"name\":\"${NAME#*:}\"}" | $KCADM create "$LIST" -r "$REALM" -f - -i)
+  fi
+  PARENT="$ID"
+done
+USER_ID=$($KCADM get users -r "$REALM" -q username=teilnehmer -q exact=true --fields id --format csv --noquotes)
+$KCADM update "users/$USER_ID/groups/$PARENT" -r "$REALM" -n >/dev/null
+$KCADM update "users/$USER_ID" -r "$REALM" -s attributes.stamm=Falken -s attributes.bund=PBW >/dev/null
+
 echo "Keycloak-Realm '$REALM' ist eingerichtet ($KC_URL)."

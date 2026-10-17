@@ -5,7 +5,7 @@
 // zeigt Inhalt und landet nicht auf „Seite nicht gefunden“ oder der Anmeldung.
 import fs from 'node:fs';
 import { test, expect, type Page } from '@playwright/test';
-import { watchPage } from '../findings';
+import { type ExpectedError, unexpectedErrors, watchPage } from '../findings';
 import {
   type AccountName, FINDINGS_FILE, IDS_FILE, KEYCLOAK_URL, type SampleIds, storageStateFor,
 } from '../environment';
@@ -26,7 +26,7 @@ interface PageCheck {
    * Tritt einer nicht mehr auf, scheitert der Test, damit die Markierung entfernt
    * wird (wie xfail(strict=True) im Backend). Andere Fehler bleiben Fehler.
    */
-  known?: { text: string; issue: string }[];
+  known?: ExpectedError[];
 }
 
 const PAGES: PageCheck[] = [
@@ -139,15 +139,9 @@ for (const check of PAGES) {
       // eine andere Adresse als BACKEND_URL, und Fehler des Backends blieben unbemerkt.
       if (check.account) expect(findings.backendResponses, 'Keine Antwort vom Backend gesehen: Stimmt BACKEND_URL?').toBeGreaterThan(0);
 
-      // Bekannte Fehler aussortieren. Jeder muss noch auftreten, sonst ist er behoben.
-      let errors = findings.errors;
-      for (const known of check.known ?? []) {
-        const matching = errors.filter((error) => error.includes(known.text));
-        expect(matching, `Bekannter Fehler (Issue ${known.issue}) tritt nicht mehr auf: Markierung entfernen`)
-          .not.toEqual([]);
-        errors = errors.filter((error) => !error.includes(known.text));
-      }
-      expect(errors, 'Fehler beim Laden').toEqual([]);
+      // Bekannte Fehler aussortieren. Jeder muss noch auftreten, sonst ist er behoben
+      // und die Markierung muss weg.
+      expect(unexpectedErrors(findings.errors, check.known ?? []), 'Fehler beim Laden').toEqual([]);
     });
   });
 }

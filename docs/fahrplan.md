@@ -36,8 +36,8 @@ Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `mai
 1. **Rauchtests für das Frontend.** Rauchtests sind automatische Klicktests in einem echten Browser: Jede Seite einmal öffnen und den wichtigsten Ablauf einmal durchklicken, um grobe Brüche sofort zu sehen. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test. Werkzeug und Aufbau sind abgestimmt (Entscheidung „Rauchtests: Werkzeug und Aufbau“ vom 16.10.2026). Drei Pull Requests:
    - [x] 1a. Beispieldaten und Anleitung „Tool lokal mit Beispieldaten starten“ (dieselben Beispieldaten nutzen die Rauchtests) (PR #59)
    - [x] 1b. Jede Seite lädt ohne Programmfehler, dazu die Prüfung auf GitHub (PR #61)
-   - [ ] 1c. **← als Nächstes:** Anmeldeablauf mit allen Pflichtpunkten (siehe „Vorarbeit für die Rauchtests“)
-2. [ ] **#37** „Mich selbst anmelden“ erscheint mittig. Vorher mit `grill-me` klären. Klein, und die Rauchtests sichern dieses Fenster dann schon ab.
+   - [x] 1c. Anmeldeablauf mit allen Pflichtpunkten (siehe „Vorarbeit für die Rauchtests“), alles in einem Pull Request (Entscheidung vom 17.10.2026) (PR folgt)
+2. [ ] **← als Nächstes: #37** „Mich selbst anmelden“ erscheint mittig. Vorher mit `grill-me` klären. Klein, und die Rauchtests sichern dieses Fenster dann schon ab.
 3. **Riskante Versionssprünge im Frontend** (Updates von Bausteinen, auf denen die Oberfläche aufbaut), einzeln, je ein Pull Request mit Rauchtests und Klickliste, in dieser Reihenfolge (siehe „Vorgehen für künftige Updates“):
    - [ ] `quill`, der Texteditor in Formularen (über `@vueup/vue-quill`, ggf. Ersatz). Zuerst, weil es die einzige verbliebene Sicherheitslücke in Code ist, der im Browser läuft.
    - [ ] Vite 2.9 → aktuell, das Werkzeug, das die Oberfläche baut und lokal startet. Dabei das unbenutzte Paket `@vue-leaflet/vue-leaflet` entfernen (wird nirgends eingebunden, die Karten nutzen `leaflet` direkt).
@@ -116,14 +116,14 @@ Betrieb:
 
 - **Rahmen (entschieden am 16.10.2026):** Docker ist auf Sebastians Mac vorhanden. Wichtigster Ablauf ist die Standard-Anmeldung über alle Schritte bis zum Absenden. Rote Rauchtests sperren die Übernahme nicht automatisch, siehe „Regeln für die Reihenfolge“.
 - **Werkzeug Playwright, eine Stufe mit echtem Backend und Keycloak 26.7,** in der Cloud und auf GitHub (Entscheidung „Rauchtests: Werkzeug und Aufbau“ vom 16.10.2026). Playwright ist ein neues Paket, also mit Begründung (`CONTRIBUTING.md` Abschnitt 5). Die Version an die in der Cloud installierte anpassen (1.56, Browser unter `/opt/pw-browsers`). Liste der Seiten und ihrer Anfragen: `docs/schnittstellen.md`. Ganzes Tool in der Cloud starten: `docs/arbeitsumgebung.md`.
-- **Stand nach 1b:** Die Rauchtests liegen in `rauchtests/` (Anleitung dort in `README.md`). GitHub lädt das Keycloak-Abbild. Auf GitHub laufen sie nur mit dem Label `rauchtests` (Entscheidung „Rauchtests: nur bei Bedarf auf GitHub“ vom 17.10.2026). 1c ergänzt eine zweite Testdatei in `rauchtests/tests/` und, wo nötig, die Beispieldaten.
-- **Pflichtpunkte** aus Fehlern, die nur durch Klicken auffielen:
+- **Stand nach 1c:** Die Rauchtests liegen in `rauchtests/` (Anleitung dort in `README.md`): `tests/seiten.spec.ts` öffnet jede Seite, `tests/anmeldeablauf.spec.ts` klickt die Abläufe mit allen Pflichtpunkten unten durch und räumt seine Daten selbst auf. GitHub lädt das Keycloak-Abbild. Auf GitHub laufen sie nur mit dem Label `rauchtests` (Entscheidung „Rauchtests: nur bei Bedarf auf GitHub“ vom 17.10.2026).
+- **Pflichtpunkte** aus Fehlern, die nur durch Klicken auffielen, alle abgedeckt mit 1c:
   - Neue Anmeldung mit „Mich selbst anmelden“ und einem Stammesmitglied (Issue #19), eine schon angemeldete Person wird sofort gemeldet, eine gespeicherte Person bearbeiten ohne Dublettenmeldung.
   - Lagerbeitrag anlegen und ändern sowie Ort ändern, danach auf der Veranstaltung bleiben. Fehlerfall: Ort ändern, der auch von einer fremden Veranstaltung genutzt wird, zeigt eine Fehlermeldung und lädt nicht neu (Issue #20).
   - Im Anmeldeablauf zwei Personen hinzufügen, jede über „ändern“ öffnen (der Dialog zeigt die richtige Person), eine umbenennen (sie steht danach einmal mit neuem Namen da), beide löschen, eine neue hinzufügen (sie erscheint sofort) (Issue #23).
   - Mit einer Veranstaltung aus der Standardvorlage den ganzen Anmeldeablauf durchklicken, über Anreise, Rückreise, T-Shirts, Anmerkungen und Lunch Pakete bis zur Zusammenfassung, dazu der Reise-Dialog mit fehlender Angabe (zeigt „Bitte Felder überprüfen“, übernimmt nichts) (Issue #25).
   - Über die Schrittanzeige von „Lunch Pakete“ zurück zu „T-Shirts“ springen, die Antworten sind noch da und werden alle abgeschickt. Das gilt, solange die Standardvorlage beide Schritte enthält, sonst mit einer Veranstaltung, die sie zusätzlich wählt.
-  - Testdaten wie eine echt angelegte Veranstaltung: erledigt mit `python manage.py load_sample_data` (PR #59, Rollen der Testkonten in `docs/lokal-starten.md`). Was 1c zusätzlich braucht (z. B. ein Ort, den eine fremde Veranstaltung mitnutzt, für #20), ergänzt 1c im selben Befehl.
+  - Testdaten wie eine echt angelegte Veranstaltung: erledigt mit `python manage.py load_sample_data` (PR #59, Rollen der Testkonten in `docs/lokal-starten.md`). 1c hat ergänzt: „Beispielfahrt“ und „Fremdes Lager“ an einem gemeinsamen Ort (#20), zwei Stammesmitglieder für `teilnehmer` und dessen Stamm „Falken“ als Gruppenbaum in Keycloak (`dev/keycloak-setup.sh`).
 
 ## Vorgehen für künftige Updates
 
@@ -214,6 +214,7 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 | Arbeitsweise: Vorlagen für Issues, Skills `issue-anlegen` und `grill-me` | #31, #36 |
 | Rauchtests 1a: Beispieldaten, Anleitung „lokal starten“, Keycloak in der Cloud | #59 |
 | Rauchtests 1b: jede Seite lädt, Prüfung auf GitHub per Label | #61 |
+| Rauchtests 1c: Anmeldeablauf mit allen Pflichtpunkten | (PR folgt) |
 | Doku und Übergaben | #8, #15, #28 |
 
 Einzelheiten stehen in den Beschreibungen der Pull Requests und in `docs/qualitaet.md`.
