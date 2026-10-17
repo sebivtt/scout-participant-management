@@ -611,6 +611,40 @@ test.describe('leitung', () => {
     }
   });
 
+  test('Texteditor: Handy-Tastatur und Link-Fenster überschreiben den Text nicht', async ({ page }, testInfo) => {
+    // Base.vue hängt einen Zuhörer für Eingaben an jedes Feld. Beim Editor kam er
+    // auf dem äußeren Rahmen an: Die Adresse im Link-Fenster ersetzte den ganzen
+    // Text, und eine Eingabe wie bei Handy-Tastaturen (Komposition) leerte ihn.
+    const restore = () => api('leitung', 'PATCH', `/event/event/${ids.eventId}/`, { longDescription: '' });
+    const dialog = page.getByRole('dialog');
+    const editor = dialog.locator('.ql-editor');
+    await restore();
+    try {
+      const findings = watchPage(page);
+      await page.goto(`/event-details/${ids.eventId}`);
+      await page.locator('h3', { hasText: 'Namen und Texte' }).locator('..').getByRole('button').click();
+      await editor.click();
+      await page.keyboard.type('Hallo Welt ');
+      // Komposition, wie sie Android-Tastaturen und Tottasten am Mac erzeugen
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Input.imeSetComposition', { text: 'a', selectionStart: 1, selectionEnd: 1 });
+      await cdp.send('Input.imeSetComposition', { text: 'ab', selectionStart: 2, selectionEnd: 2 });
+      await cdp.send('Input.insertText', { text: 'abc' });
+      await expect(editor).toHaveText('Hallo Welt abc');
+
+      await page.keyboard.press('Shift+Home');
+      await dialog.locator('button.ql-link').click();
+      await dialog.locator('.ql-tooltip input[type=text]').fill('https://beispiel.de');
+      await expect(editor).toHaveText('Hallo Welt abc');
+      await page.keyboard.press('Enter');
+      await expect(editor.locator('a[href="https://beispiel.de"]')).toHaveText('Hallo Welt abc');
+
+      await checkFindings(page, testInfo, findings, []);
+    } finally {
+      await restore();
+    }
+  });
+
   test('Ort ändern, danach auf der Veranstaltung bleiben (#20)', async ({ page }, testInfo) => {
     const event = await apiGet<{ location: { id: number } }>('leitung', `/event/event-read/${ids.eventId}/`);
     const restore = () => api('leitung', 'PATCH', `/event/event-location/${event.location.id}/`, { address: SAMPLE_ADDRESS });

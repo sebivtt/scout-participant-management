@@ -48,7 +48,13 @@ const props = defineProps({
   cols: { type: Number, required: false, default: 3 },
 });
 
-const emit = defineEmits(["update:modelValue"]);
+// „input“ ist angemeldet, obwohl der Baustein es nie meldet: Base.vue hängt
+// `@input` an jedes Feld und übernimmt dann `event.target.value`. Ohne
+// Anmeldung landete dieser Zuhörer auf dem äußeren Rahmen und bekäme jede
+// Eingabe aus dem Editor und dem Link-Fenster. Dann ersetzte die getippte
+// Link-Adresse den ganzen Text, und bei Handy-Tastaturen (Komposition) wurde
+// der Text mitten im Tippen durch „undefined“, also leeren Inhalt, ersetzt.
+const emit = defineEmits(["update:modelValue", "input"]);
 
 const hasError = computed(() => {
   return props.errors[0] && props.errors.length;
@@ -71,11 +77,14 @@ let lastEmitted = null;
 /**
  * Lädt gewöhnliches HTML in den Editor. Quills eigene Umwandlung
  * (`clipboard.convert`) übersetzt Listen und Formatierungen in sein
- * internes Format. „silent“ verhindert, dass das Laden als Änderung gilt.
+ * internes Format. „silent“ verhindert, dass das Laden als Änderung gemeldet
+ * wird. Den Verlauf leeren, sonst machte Strg+Z das Laden rückgängig und der
+ * Editor stünde leer da.
  */
 function loadHtml(html) {
   lastEmitted = html;
   quill.setContents(quill.clipboard.convert({ html: html || "" }), "silent");
+  quill.history.clear();
 }
 
 /** Übernimmt den Editor, sobald vue-quill Quill geladen hat. */
