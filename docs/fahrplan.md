@@ -37,9 +37,9 @@ Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `mai
    - [x] 1a. Beispieldaten und Anleitung „Tool lokal mit Beispieldaten starten“ (dieselben Beispieldaten nutzen die Rauchtests) (PR #59)
    - [x] 1b. Jede Seite lädt ohne Programmfehler, dazu die Prüfung auf GitHub (PR #61)
    - [x] 1c. Anmeldeablauf mit allen Pflichtpunkten (siehe „Vorarbeit für die Rauchtests“), alles in einem Pull Request (Entscheidung vom 17.10.2026) (PR #62)
-2. [ ] **← als Nächstes: #37** „Mich selbst anmelden“ erscheint mittig. Vorher mit `grill-me` klären. Klein, und die Rauchtests sichern dieses Fenster dann schon ab.
+2. [x] **#37** „Mich selbst anmelden“ und Reise-Dialog erscheinen mittig, geklärt mit `grill-me` am 17.10.2026 (PR folgt).
 3. **Riskante Versionssprünge im Frontend** (Updates von Bausteinen, auf denen die Oberfläche aufbaut), einzeln, je ein Pull Request mit Rauchtests und Klickliste, in dieser Reihenfolge (siehe „Vorgehen für künftige Updates“):
-   - [ ] `quill`, der Texteditor in Formularen (über `@vueup/vue-quill`, ggf. Ersatz). Zuerst, weil es die einzige verbliebene Sicherheitslücke in Code ist, der im Browser läuft.
+   - [ ] **← als Nächstes:** `quill`, der Texteditor in Formularen (über `@vueup/vue-quill`, ggf. Ersatz). Zuerst, weil es die einzige verbliebene Sicherheitslücke in Code ist, der im Browser läuft.
    - [ ] Vite 2.9 → aktuell, das Werkzeug, das die Oberfläche baut und lokal startet. Dabei das unbenutzte Paket `@vue-leaflet/vue-leaflet` entfernen (wird nirgends eingebunden, die Karten nutzen `leaflet` direkt).
    - [ ] Pinia, der Zwischenspeicher der Oberfläche für geladene Daten
    - [ ] vue-router, die Navigation zwischen den Seiten

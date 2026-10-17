@@ -96,6 +96,19 @@ async function startRegistration(page: Page): Promise<void> {
   await next(page, /\/participants\//);
 }
 
+/**
+ * Trägt die Postleitzahl ein und wartet, bis das Backend sie geprüft hat.
+ *
+ * Wer „Speichern“ klickt, solange diese Prüfung noch läuft, dem passiert nichts,
+ * ohne Meldung (neu gefunden bei Issue #37, Issue folgt). Bis zur Behebung
+ * wartet der Test wie ein Mensch, der nicht sofort klickt.
+ */
+async function fillZipCode(page: Page, dialog: Locator, zipCode: string): Promise<void> {
+  const checked = page.waitForResponse((response) => response.url().includes('/basic/check-zip-code/'));
+  await field(dialog, 'Postleitzahl*').fill(zipCode);
+  await checked;
+}
+
 /** Legt im Schritt „Teilnehmende“ eine neue Person an. */
 async function addNewPerson(page: Page, firstName: string, lastName: string, birthday: string): Promise<void> {
   await page.getByRole('button', { name: 'Neue Person hinzufügen' }).click();
@@ -104,7 +117,7 @@ async function addNewPerson(page: Page, firstName: string, lastName: string, bir
   await field(dialog, 'Nachname*').fill(lastName);
   await field(dialog, 'Geburtstag*').fill(birthday);
   await field(dialog, 'Straße und Hausnummer*').fill('Zeltweg 4');
-  await field(dialog, 'Postleitzahl*').fill('10115');
+  await fillZipCode(page, dialog, '10115');
   await dialog.getByRole('button', { name: 'Speichern' }).click();
   await expect(dialog).toHaveCount(0);
 }
@@ -128,6 +141,48 @@ async function addTravel(page: Page, station: string): Promise<void> {
   await dialog.getByRole('button', { name: 'Speichern' }).click();
   await expect(dialog).toHaveCount(0);
   await expect(stepContent(page).getByText(station)).toBeVisible();
+}
+
+/** Abstände des geöffneten Fensters zu den Bildschirmrändern, in Bildpunkten. */
+async function dialogMargins(page: Page): Promise<{ left: number; right: number; top: number; bottom: number }> {
+  const panel = page.locator('[id^="headlessui-dialog-panel"]');
+  // Das Fenster gleitet beim Öffnen herein. Erst messen, wenn es still steht.
+  await page.waitForTimeout(400);
+  const box = await panel.boundingBox();
+  const viewport = page.viewportSize();
+  if (!box || !viewport) throw new Error('Fenster oder Bildschirmgröße nicht gefunden');
+  return {
+    left: box.x, right: viewport.width - box.x - box.width,
+    top: box.y, bottom: viewport.height - box.y - box.height,
+  };
+}
+
+/**
+ * Prüft, wo das geöffnete Fenster steht (Issue #37).
+ *
+ * Am Laptop mittig, auf dem Handy wie „Stammesmitglied anmelden“ am unteren
+ * Rand. Ist das Fenster höher als der Bildschirm, beginnt es oben und lässt sich
+ * rollen, dann zählt nur die waagerechte Lage. Dazu muss der abgedunkelte
+ * Hintergrund den ganzen Bildschirm abdecken. Vor #37 klebte das Fenster am
+ * linken Rand, und der Hintergrund war ein schmaler Streifen.
+ */
+async function expectDialogPlacement(page: Page, where: 'mittig' | 'unten'): Promise<void> {
+  const margins = await dialogMargins(page);
+  expect(Math.abs(margins.left - margins.right), `Fenster nicht waagerecht mittig: ${JSON.stringify(margins)}`)
+    .toBeLessThanOrEqual(2);
+  if (margins.top > 0 && margins.bottom > 0) {
+    if (where === 'mittig') {
+      expect(Math.abs(margins.top - margins.bottom), `Fenster nicht senkrecht mittig: ${JSON.stringify(margins)}`)
+        .toBeLessThanOrEqual(2);
+    } else {
+      expect(margins.bottom, `Fenster nicht am unteren Rand: ${JSON.stringify(margins)}`).toBeLessThanOrEqual(20);
+    }
+  }
+  const backdrop = page.getByRole('dialog').locator('xpath=./div[1]');
+  const cover = await backdrop.boundingBox();
+  const viewport = page.viewportSize();
+  expect(cover && viewport && cover.width >= viewport.width && cover.height >= viewport.height,
+    `Hintergrund deckt den Bildschirm nicht ab: ${JSON.stringify(cover)}`).toBe(true);
 }
 
 // --- Prüfen und Aufräumen über das Backend ---------------------------------------
@@ -250,9 +305,10 @@ test.describe('teilnehmer', () => {
     await page.getByRole('button', { name: 'Mich selbst anmelden' }).click();
     const dialog = page.getByRole('dialog');
     await expect(field(dialog, 'Vorname*')).toHaveValue('Tim');
+    await expectDialogPlacement(page, 'mittig');
     await field(dialog, 'Geburtstag*').fill('2000-03-15');
     await field(dialog, 'Straße und Hausnummer*').fill('Zeltweg 3');
-    await field(dialog, 'Postleitzahl*').fill('10115');
+    await fillZipCode(page, dialog, '10115');
     await dialog.getByRole('button', { name: 'Speichern' }).click();
     await expect(dialog).toHaveCount(0);
     await addMembers(page, ['Ben Probe']);
@@ -263,6 +319,7 @@ test.describe('teilnehmer', () => {
     // #25: Fehlt im Reise-Dialog eine Angabe, erscheint eine Meldung, und es wird
     // nichts übernommen.
     await page.getByRole('button', { name: 'Neuer Eintrag' }).click();
+    await expectDialogPlacement(page, 'mittig');
     await dialog.getByRole('button', { name: 'Speichern' }).click();
     await expect(errorMessage(page)).toContainText('Bitte Felder überprüfen');
     // Das Element mit der Rolle „dialog“ selbst hat keine Fläche, deshalb wird
@@ -326,6 +383,25 @@ test.describe('teilnehmer', () => {
   });
 });
 
+test.describe('teilnehmer am Handy', () => {
+  test.use({ storageState: storageStateFor('teilnehmer'), viewport: { width: 390, height: 844 } });
+
+  test('Fenster für Personen und Reisen stehen am unteren Rand (#37)', async ({ page }, testInfo) => {
+    const findings = watchPage(page);
+    await startRegistration(page);
+    await page.getByRole('button', { name: 'Neue Person hinzufügen' }).click();
+    await expectDialogPlacement(page, 'unten');
+    await page.getByRole('dialog').getByRole('button', { name: 'Abbrechen' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await addNewPerson(page, 'Ida', 'Probe', '2011-02-03');
+    await next(page, /\/travel\//);
+    await page.getByRole('button', { name: 'Neuer Eintrag' }).click();
+    await expectDialogPlacement(page, 'unten');
+
+    await checkFindings(page, testInfo, findings, [registrationProbe()]);
+  });
+});
+
 // --- Bestehende Anmeldung --------------------------------------------------------
 
 test.describe('stammesleitung', () => {
@@ -339,6 +415,8 @@ test.describe('stammesleitung', () => {
     await page.locator('dd', { hasText: 'Geburtsdatum' }).getByRole('button').first().click();
     const dialog = page.getByRole('dialog');
     await expect(field(dialog, 'Vorname*')).toHaveValue('Mia');
+    // Dasselbe Fenster wie im Anmeldeablauf, hier in einer abgeschickten Anmeldung (#37).
+    await expectDialogPlacement(page, 'mittig');
     // Mit einer Dublettenmeldung bliebe der Dialog offen.
     await dialog.getByRole('button', { name: 'Speichern' }).click();
     await expect(dialog).toHaveCount(0);

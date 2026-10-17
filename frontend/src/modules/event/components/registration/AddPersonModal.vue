@@ -1,6 +1,10 @@
 <template>
   <TransitionRoot as="template" :show="props.open">
     <Dialog as="div" @close="close" class="relative z-10">
+      <!-- Hintergrund mit fixed: Er deckt den ganzen Bildschirm ab, wie bei
+           „Stammesmitglied anmelden“. Mit relative war er ein Streifen der
+           Höhe null (Issue #37). Der Kommentar steht hier außen, weil
+           TransitionChild mit as="template" genau ein Kind verlangt. -->
       <TransitionChild
         as="template"
         enter="ease-out duration-300"
@@ -11,13 +15,16 @@
         leave-to="opacity-0"
       >
         <div
-          class="relative inset-0 z-100 bg-gray-500 bg-opacity-75 transition-opacity"
+          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
         />
       </TransitionChild>
 
       <div class="fixed inset-0 z-10 overflow-y-auto">
+        <!-- flex: Erst damit wirken items-end und justify-center, und das
+             Fenster steht mittig (auf dem Handy unten) statt am linken Rand
+             (Issue #37). -->
         <div
-          class="h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
+          class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
         >
           <TransitionChild
             as="template"
