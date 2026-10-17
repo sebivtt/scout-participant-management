@@ -35,7 +35,7 @@ test.use({ timezoneId: 'Europe/Berlin' });
 function registrationProbe(): ExpectedError {
   return {
     text: `Backend antwortet 404: GET /event/registration-read/${ids.eventId}/`,
-    issue: 'neu gefunden, Issue nach Rückmeldung von Sebastian',
+    issue: '#63',
   };
 }
 
