@@ -66,12 +66,13 @@ Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `mai
 
 Beginnt jetzt, parallel zu Strang 1 (Entscheidung vom 16.10.2026). Ein Ablauf pro Sitzung, je Ablauf ein Pull Request. Vorgehen im Abschnitt „Abstimmung der Funktionen und Abläufe“.
 
-1. [ ] **← als Nächstes: Anmelden** (inkl. T-Shirts und Lunch Pakete als Standard, Buchungsoption, „bestätigt“ für #51, offene Fragen aus #30)
-2. [ ] Veranstaltung anlegen (inkl. Reiter „Module“ und #33)
-3. [ ] Anmeldung ändern
-4. [ ] Kasse und Auswertung
-5. [ ] Gruppen verwalten
-6. [ ] Konto und persönliche Daten
+1. [ ] **← als Nächstes: Rollen und Rechte** (Entscheidung „Rollen klären, bevor Rechte geändert werden“ vom 17.10.2026): welche Rollen es gibt, was jede darf, wer sie wann und wie erhält, wie die Oberfläche dazu passt (z. B. was Suchen und Auswahllisten zeigen). Ergebnis ist die Grundlage für die Tabellen „wer darf was“ in den folgenden Abläufen. Betrifft #60.
+2. [ ] Anmelden (inkl. T-Shirts und Lunch Pakete als Standard, Buchungsoption, „bestätigt“ für #51, offene Fragen aus #30)
+3. [ ] Veranstaltung anlegen (inkl. Reiter „Module“ und #33)
+4. [ ] Anmeldung ändern
+5. [ ] Kasse und Auswertung
+6. [ ] Gruppen verwalten
+7. [ ] Konto und persönliche Daten
 
 ### Vor dem ersten Echtbetrieb
 
@@ -146,7 +147,7 @@ Vereinbart am 15.10.2026. Ziel: Für jeden Ablauf ist abgestimmt, wer was darf u
 3. Jede abgestimmte Regel bekommt einen Test, sobald sie umgesetzt wird. Weicht das Soll vom Ist ab, wird daraus ein Issue.
 
 **Schon gesammelte Fragen:**
-- **Rollen, vor jeder Änderung an Rechten** (Entscheidung vom 17.10.2026): Welche Rollen gibt es, was darf jede, wer erhält sie wann und wie? Dazu, wie die Oberfläche passt, z. B. was Suchen und Auswahllisten einer Rolle anzeigen. Betrifft #60 und die Rechte in jedem Ablauf. Sebastian hat Änderungswünsche am ganzen Rollenaufbau.
+- Rollen und Rechte (erster Punkt in Strang 2): Sebastian hat Änderungswünsche am ganzen Rollenaufbau. Dazu gehören die schon gesammelten Fragen zu Rechten weiter unten, die Feinabstimmung der Rechte des Anmeldeteams (Abschnitt „Irgendwann“) und die Suche in #60.
 - Anmelden: Welche Schritte und Abfragen bekommt jede neue Veranstaltung standardmäßig, welche wählt die Veranstaltungsleitung zusätzlich? Heute gibt die Standardvorlage „T-Shirts“ und „Lunch Pakete“ immer mit, das soll nicht so bleiben (Entscheidung vom 16.10.2026).
 - Anmelden: Wann soll die Buchungsoption gesperrt sein? Heute ist die Sperre im Anmeldeablauf immer aus (`views/newRegister/module/Participants.vue`, `blockBookingOption.value && …` im Template), und Stammesmitglieder landen ohne Buchungsoption in der Liste.
 - Anmelden: Wann gilt eine Anmeldung als bestätigt (#51)?

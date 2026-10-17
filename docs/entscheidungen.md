@@ -10,10 +10,11 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 **Entscheidung:**
 - Bevor Rechte geändert werden, wird geklärt, welche Rollen es gibt, was jede Rolle darf und wann wer welche Rolle wie erhält. Dazu gehört, wie die Oberfläche dazu passt, z. B. was Suchen und Auswahllisten einer Rolle anzeigen.
+- Die Klärung ist der erste Punkt in Strang 2 („Rollen und Rechte“), vor „Anmelden“. Rechte kommen in jedem Ablauf vor, so muss die Tabelle „wer darf was“ nicht in jedem Ablauf neu entschieden und später umgebaut werden. Ersetzt im Eintrag „Reihenfolge nach der Aufräumrunde“ (16.10.2026) „zuerst mit ‚Anmelden‘“.
 - Issue #60 (anmeldende Leitung findet beim Hinzufügen einer verantwortlichen Person niemanden) kommt in Schritt 6 zu den Fehlern und wartet auf diese Klärung. Die Regel „könnte durch eine KI-Änderung entstanden sein, kommt direkt dran“ gilt hier ausdrücklich nicht.
 
 **Begründung:** Sebastian möchte den ganzen Rollenaufbau ändern. Einzelne Rechte vorher anzupassen, würde Arbeit erzeugen, die danach wieder umgebaut werden müsste.
-**Umsetzung:** `docs/fahrplan.md` (Schritt 6 und „Schon gesammelte Fragen“), Issue #60. Wo die Klärung im Strang 2 eingeplant wird, ist noch offen.
+**Umsetzung:** `docs/fahrplan.md` (Strang 2, Punkt 1; Schritt 6; „Schon gesammelte Fragen“), Issue #60.
 
 ## 2026-10-17 · Rauchtests: nur bei Bedarf auf GitHub
 
