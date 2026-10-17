@@ -210,7 +210,7 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 | Qualität: Regeln, ruff, Dokumentation, Messung | #7 |
 | Qualität II, Schritte 1a, 1b-1, 1b-2, 1d, 2a | #9 bis #14 |
 | Frontend: Sicherheitsupdates innerhalb der Hauptversionen, TypeScript 6 und eslint 10, `uuid` 14, Vue 3.5 | #16, #17, #18, #26 |
-| Fehler aus Issues: #19, #20, #23, #25 | #21, #22, #24, #27 |
+| Fehler aus Issues: #19, #20, #23, #25, #37 | #21, #22, #24, #27, #65 |
 | Arbeitsweise: Vorlagen für Issues, Skills `issue-anlegen` und `grill-me` | #31, #36 |
 | Rauchtests 1a: Beispieldaten, Anleitung „lokal starten“, Keycloak in der Cloud | #59 |
 | Rauchtests 1b: jede Seite lädt, Prüfung auf GitHub per Label | #61 |
