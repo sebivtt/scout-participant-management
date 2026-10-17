@@ -1,0 +1,119 @@
+name: Rauchtests
+
+# Läuft nur, wenn ein Pull Request das Label „rauchtests“ trägt, oder von Hand
+# (Reiter „Actions“ → „Rauchtests“ → „Run workflow“). Grund: Ein Lauf startet das
+# ganze Tool und kostet rund 8 Minuten Rechenzeit aus dem begrenzten Kontingent
+# privater Repositorys. Wann das Label gesetzt wird: docs/entscheidungen.md,
+# „Rauchtests: nur bei Bedarf auf GitHub“ (17.10.2026).
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
+  push:
+    branches: [rauchtests-1b-seiten]  # VORÜBERGEHEND zum Ausprobieren
+
+permissions:
+  contents: read
+
+# Ein neuer Stand im selben Pull Request bricht den älteren Lauf ab, statt
+# beide bis zum Ende laufen zu lassen.
+concurrency:
+  group: rauchtests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rauchtests:
+    name: Rauchtests (jede Seite lädt)
+    # Beim Setzen eines anderen Labels nicht erneut laufen.
+    if: >-
+      github.event_name == 'workflow_dispatch' || github.event_name == 'push' ||
+      (contains(github.event.pull_request.labels.*.name, 'rauchtests') &&
+       (github.event.action != 'labeled' || github.event.label.name == 'rauchtests'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: scout
+          POSTGRES_PASSWORD: scout
+          POSTGRES_DB: scout
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U scout" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      CYPRESS_INSTALL_BINARY: '0'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Keycloak 26.7 starten
+        # Gleiche Version wie beim Verband und in dev/docker-compose.yml. Ohne eigene
+        # Datenbank (start-dev speichert in einer Datei), das genügt für einen Lauf.
+        run: |
+          docker run -d --name keycloak -p 8180:8180 \
+            -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin \
+            quay.io/keycloak/keycloak:26.7 start-dev --http-port=8180
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: yarn
+          cache-dependency-path: |
+            frontend/yarn.lock
+            rauchtests/yarn.lock
+
+      - name: Pakete installieren
+        run: |
+          pip install -r backend/requirements-dev.txt
+          (cd frontend && yarn install --frozen-lockfile)
+          (cd rauchtests && yarn install --frozen-lockfile && npx playwright install --with-deps chromium)
+
+      - name: Keycloak einrichten (Realm, Testkonten)
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:8180/realms/master && break
+            sleep 2
+          done
+          KCADM="docker exec -i keycloak /opt/keycloak/bin/kcadm.sh" dev/keycloak-setup.sh
+
+      - name: Backend mit Beispieldaten starten
+        working-directory: backend
+        run: |
+          cp ../dev/backend.env.example backend/.env
+          python manage.py migrate -v 0
+          python manage.py loaddata data/main/*.json
+          python manage.py sync_keycloak_groups
+          python manage.py load_sample_data
+          nohup python manage.py runserver 8000 --noreload > ../backend.log 2>&1 &
+
+      - name: Frontend starten
+        working-directory: frontend
+        run: |
+          cp ../dev/frontend.env.example .env.local
+          nohup yarn dev > ../frontend.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:8080 && curl -sf -o /dev/null http://localhost:8000/basic/gender/ && break
+            sleep 2
+          done
+
+      - name: Rauchtests
+        working-directory: rauchtests
+        run: yarn test
+
+      - name: Bericht und Protokolle aufheben
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rauchtests-bericht
+          retention-days: 14
+          path: |
+            rauchtests/playwright-report/
+            rauchtests/ergebnisse/
+            backend.log
+            frontend.log

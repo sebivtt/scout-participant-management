@@ -1,0 +1,11 @@
+{
+  "name": "scout-rauchtests",
+  "private": true,
+  "description": "Rauchtests für das Frontend: echte Klicks im Browser gegen Backend und Keycloak (siehe README.md in diesem Ordner)",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.0"
+  }
+}
