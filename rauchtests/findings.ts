@@ -64,3 +64,31 @@ export function watchPage(page: Page): Findings {
   });
   return findings;
 }
+
+/** Ein Fehler, der auftreten muss: bekannt mit Issue oder an dieser Stelle gewollt (z. B. eine Ablehnung). */
+export interface ExpectedError {
+  /** Teil der Meldung, an dem der Fehler zu erkennen ist. */
+  text: string;
+  /** Issue-Nummer eines bekannten Fehlers oder Grund, warum er gewollt ist. */
+  issue: string;
+}
+
+/**
+ * Sortiert erwartete Fehler aus und liefert die übrigen.
+ *
+ * Jeder erwartete Fehler muss mindestens einmal auftreten, sonst wird das als
+ * eigener Befund zurückgegeben: Ein behobener bekannter Fehler soll seine
+ * Markierung verlieren (wie xfail(strict=True) im Backend), und eine gewollte
+ * Ablehnung, die ausbleibt, heißt, dass die Prüfung im Backend nicht mehr greift.
+ */
+export function unexpectedErrors(errors: string[], expected: ExpectedError[]): string[] {
+  let remaining = errors;
+  const missing: string[] = [];
+  for (const item of expected) {
+    if (!remaining.some((error) => error.includes(item.text))) {
+      missing.push(`Erwarteter Fehler (${item.issue}) tritt nicht mehr auf: ${item.text}`);
+    }
+    remaining = remaining.filter((error) => !error.includes(item.text));
+  }
+  return [...missing, ...remaining];
+}

@@ -3,13 +3,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium, type Browser } from '@playwright/test';
+import { apiGet } from './api';
 import {
-  ACCOUNTS, type AccountName, BACKEND_URL, FINDINGS_FILE, FRONTEND_URL, IDS_FILE, KEYCLOAK_URL, REALM,
+  ACCOUNTS, type AccountName, FINDINGS_FILE, FRONTEND_URL, IDS_FILE, KEYCLOAK_URL,
   type SampleIds, AUTH_DIR, storageStateFor,
 } from './environment';
 
-// Am technischen Namen erkennt load_sample_data sein Beispiellager.
+// An den technischen Namen erkennt load_sample_data seine Veranstaltungen.
 const SAMPLE_TECHNICAL_NAME = 'beispieldaten';
+const TRIP_TECHNICAL_NAME = 'bspdaten-fahrt';
 const SAMPLE_GROUP_NAME = 'Testgruppe Lagerteam';
 
 /** Meldet ein Konto über die Anmeldeseite an und speichert die Sitzung für die Tests. */
@@ -34,48 +36,19 @@ async function loginInBrowser(browser: Browser, account: AccountName): Promise<v
   await context.close();
 }
 
-/** Wartet auf eine Anfrage und ersetzt „fetch failed“ durch eine verständliche Meldung. */
-async function reachable(service: string, url: string, request: Promise<Response>): Promise<Response> {
-  try {
-    return await request;
-  } catch {
-    throw new Error(`${service} unter ${url} nicht erreichbar. Läuft das Tool? (docs/lokal-starten.md)`);
-  }
-}
-
-/** Holt einen Ausweis von Keycloak ohne Browser, für Abfragen an das Backend. */
-async function accessToken(account: AccountName): Promise<string> {
-  const response = await reachable('Keycloak', KEYCLOAK_URL, fetch(`${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/token`, {
-    method: 'POST',
-    body: new URLSearchParams({
-      grant_type: 'password',
-      client_id: 'scout-frontend',
-      // Ohne „openid“ lehnt Keycloak die Abfrage der Kontodaten ab, die das Backend
-      // bei jeder Anfrage stellt.
-      scope: 'openid',
-      username: account,
-      password: ACCOUNTS[account].password,
-    }),
-  }));
-  if (!response.ok) throw new Error(`Keycloak-Login für ${account} fehlgeschlagen: ${response.status}`);
-  return (await response.json()).access_token;
-}
-
-async function apiGet<T>(account: AccountName, path: string): Promise<T> {
-  const token = await accessToken(account);
-  const response = await reachable('Backend', BACKEND_URL, fetch(`${BACKEND_URL}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  }));
-  if (!response.ok) throw new Error(`${path} als ${account}: ${response.status}`);
-  return response.json() as Promise<T>;
-}
-
-/** Sucht die Kennungen des Beispiellagers, seiner Anmeldung und der Leitungsgruppe. */
+/** Sucht die Kennungen des Beispiellagers, seiner Anmeldung, der Beispielfahrt und der Leitungsgruppe. */
 async function findSampleIds(): Promise<SampleIds> {
   const events = await apiGet<{ id: string; technicalName: string }[]>('leitung', '/event/event-overview/');
   const event = events.find((e) => e.technicalName === SAMPLE_TECHNICAL_NAME);
   if (!event) {
     throw new Error('Beispiellager fehlt. Zuerst im Ordner backend/: python manage.py load_sample_data');
+  }
+  // Die Beispielfahrt leitet stammesleitung (Grund in load_sample_data).
+  const ownEvents = await apiGet<{ id: string; technicalName: string }[]>('stammesleitung', '/event/event-overview/');
+  const trip = ownEvents.find((e) => e.technicalName === TRIP_TECHNICAL_NAME);
+  if (!trip) {
+    throw new Error('Beispielfahrt fehlt: Die Beispieldaten sind älter als die Tests zum Anmeldeablauf. '
+      + 'Im Ordner backend/: python manage.py load_sample_data --reset');
   }
   const registrations = await apiGet<{ id: string; event: { id: string } }[]>(
     'stammesleitung', '/event/my-registrations/');
@@ -84,7 +57,7 @@ async function findSampleIds(): Promise<SampleIds> {
   const groups = await apiGet<{ id: string; name: string }[]>('leitung', '/auth/my-groups/');
   const group = groups.find((g) => g.name === SAMPLE_GROUP_NAME);
   if (!group) throw new Error(`Gruppe „${SAMPLE_GROUP_NAME}“ fehlt. Im Ordner backend/: python manage.py sync_keycloak_groups`);
-  return { eventId: event.id, registrationId: registration.id, groupId: group.id };
+  return { eventId: event.id, registrationId: registration.id, groupId: group.id, tripEventId: trip.id };
 }
 
 export default async function globalSetup(): Promise<void> {
@@ -99,5 +72,22 @@ export default async function globalSetup(): Promise<void> {
     }
   } finally {
     await browser.close();
+  }
+  await checkMembersOfParticipant();
+}
+
+/**
+ * Prüft, ob `teilnehmer` unter „Stammesmitglied anmelden“ seine Personen sieht.
+ *
+ * Das klappt nur, wenn sein Stamm eine Keycloak-Gruppe hat. Den Stamm übernimmt
+ * das Backend erst beim Login, deshalb steht die Prüfung nach den Logins. Ohne
+ * sie scheiterte der Test zum Anmeldeablauf an einer leeren Liste, ohne dass
+ * man sähe, warum.
+ */
+async function checkMembersOfParticipant(): Promise<void> {
+  const members = await apiGet<{ results: { firstName: string }[] }>('teilnehmer', '/auth/my-members-addable/');
+  if (!members.results.some((member) => member.firstName === 'Ben')) {
+    throw new Error('teilnehmer sieht keine Stammesmitglieder. Im Ordner dev/: ./keycloak-setup.sh, '
+      + 'dann im Ordner backend/: python manage.py sync_keycloak_groups und python manage.py load_sample_data --reset');
   }
 }

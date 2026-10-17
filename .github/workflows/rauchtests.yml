@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   rauchtests:
-    name: Rauchtests (jede Seite lädt)
+    name: Rauchtests (Seiten und Anmeldeablauf)
     # Beim Setzen eines anderen Labels nicht erneut laufen.
     if: >-
       github.event_name == 'workflow_dispatch' ||

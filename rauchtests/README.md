@@ -4,9 +4,13 @@ Automatische Klicktests in einem echten Browser (Chromium, gesteuert von Playwri
 
 Die Tests laufen gegen das ganze Tool: Frontend, Backend und Keycloak 26.7, mit den Beispieldaten aus `python manage.py load_sample_data` und den drei Testkonten aus `dev/keycloak-setup.sh`.
 
+Hilfsdateien: `findings.ts` sammelt die Fehler, `environment.ts` enthält Adressen und Testkonten, `api.ts` fragt das Backend ohne Browser, `global-setup.ts` meldet die Konten an und prüft, ob die Beispieldaten passen.
+
 ## Was geprüft wird
 
-`tests/seiten.spec.ts` (Hilfsdateien: `findings.ts` sammelt die Fehler, `environment.ts` enthält Adressen und Testkonten, `global-setup.ts` meldet die Konten an): Jede Seite lädt ohne Programmfehler. Jede Seite wird einmal mit dem Testkonto geöffnet, das sie im Alltag nutzt. Ein Test scheitert, wenn
+### Jede Seite lädt
+
+`tests/seiten.spec.ts`: Jede Seite lädt ohne Programmfehler. Jede Seite wird einmal mit dem Testkonto geöffnet, das sie im Alltag nutzt. Ein Test scheitert, wenn
 
 - im Browser ein Programmfehler oder eine Fehlermeldung auftritt,
 - das Backend mit einem Fehler antwortet, auch mit einer Ablehnung (4xx),
@@ -25,8 +29,32 @@ Nur berichtet, ohne dass der Test scheitert, werden:
 Grenzen:
 
 - Nicht abgedeckt sind Seiten, die Daten brauchen, die es in den Beispieldaten nicht gibt: einzelne Aufgaben, Nachrichten und Benachrichtigungen und die Detailseite einer Person. Ebenso die Seiten der abgeschalteten Module und die Adressen `/registrations-details-statistic/…` und `/user/…`, auf die nirgends ein Link führt.
-- „Seite ist leer“ greift kaum, weil Kopfzeile und Menü fast immer zu sehen sind. Ob der eigentliche Inhalt stimmt, prüfen die Tests zum Anmeldeablauf (Fahrplan, Schritt 1c) genauer.
+- „Seite ist leer“ greift kaum, weil Kopfzeile und Menü fast immer zu sehen sind. Ob der eigentliche Inhalt stimmt, prüfen die Tests zum Anmeldeablauf genauer.
 - Ein bekannter Fehler gilt für alle Meldungen, die seinen Text enthalten, auch für eine andere Ablehnung derselben Adresse.
+
+### Anmeldeablauf
+
+`tests/anmeldeablauf.spec.ts` klickt ganze Abläufe durch und prüft danach über das Backend, was angekommen ist. Abgedeckt sind die Pflichtpunkte aus Fehlern, die nur durch Klicken auffielen (`docs/fahrplan.md`, „Vorarbeit für die Rauchtests“):
+
+| Test | Konto | Was geprüft wird |
+| --- | --- | --- |
+| Personen hinzufügen, ändern, umbenennen und löschen | `teilnehmer` | Eine schon angemeldete Person wird sofort gemeldet (#19). Zwei Personen über „ändern“ öffnen, eine umbenennen, beide löschen, eine neue hinzufügen (#23). |
+| Ganzer Anmeldeablauf bis zum Absenden | `teilnehmer` | „Mich selbst anmelden“ und ein Stammesmitglied (#19), alle Schritte der Standardvorlage, Reise-Dialog mit fehlender Angabe (#25), über die Schrittanzeige von „Lunch Pakete“ zurück zu „T-Shirts“. Danach im Backend: alle Personen und Antworten sind angekommen. |
+| Gespeicherte Person unverändert speichern | `stammesleitung` | Keine Dublettenmeldung, die Daten bleiben gleich (#19). |
+| Fremder Ort | `stammesleitung` | Einen Ort, den auch eine fremde Veranstaltung nutzt, ändern: Fehlermeldung, die Seite lädt nicht neu (#20). |
+| Lagerbeitrag ändern und anlegen | `leitung` | Danach auf der Veranstaltung bleiben, auch zwischendurch nicht auf eine andere Adresse springen (#20). |
+| Ort ändern | `leitung` | Ebenso (#20). |
+
+Fehler zählen wie bei den Seiten. Erwartete Fehler stehen beim Test, mit Issue oder Grund, z. B. die gewollte Ablehnung beim fremden Ort. Sie müssen auftreten, sonst scheitert der Test. Damit fällt auch auf, wenn eine Prüfung im Backend nicht mehr greift.
+
+**Aufräumen:** Was die Tests im Backend anlegen oder ändern (die neue Anmeldung, Lagerbeiträge, Adressen), setzen sie vor und nach jedem Test auf die Werte aus `load_sample_data` zurück, auch wenn sie unterwegs scheitern oder ein früherer Lauf abgebrochen wurde. Die Beispieldaten bleiben so bei jedem Lauf gleich. Einzige Ausnahme: Verändert das unveränderte Speichern einer Person ihre Daten (der Fehler, den der Test sucht), bleibt der Test rot, bis die Beispieldaten mit `python manage.py load_sample_data --reset` neu angelegt sind.
+
+Die Tests laufen mit deutscher Zeitzone, wie bei Nutzenden. Sonst zeigt der Browser Geburtstage einen Tag zu früh an.
+
+Grenzen:
+
+- Geprüft wird mit Chromium, nicht mit Safari. Der Fehler aus #20 trat nur manchmal auf (die Seite sprang zur falschen Adresse und lud gleichzeitig neu). Deshalb zählt jede Adresse, die die Seite zwischendurch zeigt.
+- Die Tests sind nachgeprüft: Mit den alten, fehlerhaften Fassungen der Behebungen von #19, #20, #23 und #25 scheitern sie. Wie das geprüft wurde, steht in PR #62.
 
 ## Starten
 
@@ -39,14 +67,16 @@ npx playwright install chromium   # nur auf dem Mac nötig, in der Cloud-Sitzung
 yarn test
 ```
 
-Ein Lauf dauert gut 2 Minuten. Am Ende steht „49 passed“ oder eine Liste der gescheiterten Seiten. Einzelne Seiten: `yarn test -g "Auswertung"`.
+Ein Lauf dauert etwa 3,5 Minuten. Am Ende steht „55 passed“ oder eine Liste der gescheiterten Seiten und Abläufe. Einzelne Seiten oder Abläufe: `yarn test -g "Auswertung"`, nur der Anmeldeablauf: `yarn test tests/anmeldeablauf.spec.ts`.
+
+Beispieldaten von vor dem 17.10.2026 passen nicht zu den Tests zum Anmeldeablauf. Die Einrichtung meldet das und nennt die Befehle, Anleitung in `docs/lokal-starten.md`, Teil 2.
 
 Andere Adressen als `localhost` lassen sich über die Umgebungsvariablen `FRONTEND_URL`, `BACKEND_URL` und `KEYCLOAK_URL` einstellen.
 
 ## Ergebnisse lesen
 
 - `playwright-report/index.html`: Bericht mit Bildschirmfoto und Ablaufaufzeichnung je gescheiterter Seite. Öffnen mit `npx playwright show-report`.
-- `results/pages.jsonl`: alle Befunde, eine Zeile je Seite, auch Vue-Warnungen und bekannte Fehler. Bei Updates die Datei nach einem vollständigen Lauf vor dem Update beiseitelegen und mit der Fassung nach dem Update vergleichen (`docs/fahrplan.md`, „Vorgehen für künftige Updates“). Jeder Lauf legt sie neu an, auch einer mit `-g`.
+- `results/pages.jsonl`: alle Befunde, eine Zeile je Seite und je Ablauf (Name beginnt mit „Ablauf:“), auch Vue-Warnungen und bekannte Fehler. Bei Updates die Datei nach einem vollständigen Lauf vor dem Update beiseitelegen und mit der Fassung nach dem Update vergleichen (`docs/fahrplan.md`, „Vorgehen für künftige Updates“). Jeder Lauf legt sie neu an, auch einer mit `-g`.
 
 Beide Ordner und die gespeicherten Anmeldungen (`.auth/`) stehen in `.gitignore`.
 
