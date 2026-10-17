@@ -130,7 +130,7 @@ Für alle Versionssprünge im Frontend (Entscheidungen vom 15.10.2026):
 - Was ein aktualisiertes Paket zwingend mitbringt, darf seine Hauptversion verlassen. Neue Hauptversionen und neue Pakete werden im Pull Request genannt und begründet.
 - Zwangsvorgaben (`resolutions`) bei jedem Update der übergeordneten Pakete prüfen, sonst verletzen sie deren Anforderungen still. (Die Vorgaben aus PR #16 sind mit PR #26 entfernt, weil sie Vue 3.5 eine zu alte `postcss`-Fassung aufgezwungen hätten.)
 - Prüfen: `yarn build`, eslint und `npx tsc --noEmit` vorher und nachher vergleichen, Backend-Tests, `yarn audit --groups dependencies --summary`, Änderungsprotokoll des Pakets gegen unsere Aufrufe lesen.
-- Im Browser vorher und nachher vergleichen: Rauchtests vor und nach dem Update laufen lassen (`rauchtests/README.md`). Die Datei `rauchtests/ergebnisse/seiten.jsonl` enthält je Seite auch Vue-Warnungen, beide Fassungen vergleichen. Dazu die betroffenen Abläufe von Hand. Pull Requests mit riskanten Updates tragen immer das Label `rauchtests`.
+- Im Browser vorher und nachher vergleichen: Rauchtests vor und nach dem Update laufen lassen (`rauchtests/README.md`). Die Datei `rauchtests/results/pages.jsonl` enthält je Seite auch Vue-Warnungen, beide Fassungen vergleichen. Dazu die betroffenen Abläufe von Hand. Pull Requests mit riskanten Updates tragen immer das Label `rauchtests`.
 
 Stand der Versionen am 16.10.2026: Vite 2.9 (aktuell 8), Vue 3.5 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 6.0 (7), eslint 10 (10). Bekannte Sicherheitslücken nach PR #26: 169, davon 1 in den Programmpaketen (`quill`), der Rest in Entwicklungswerkzeugen (Verlauf in `docs/qualitaet.md`).
 

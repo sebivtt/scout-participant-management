@@ -57,7 +57,7 @@ Erprobt am 16.10.2026: Keycloak 26.7.5, Postgres, Redis, Backend und Frontend la
 - **Frontend**, im Ordner `frontend/`: `cp ../dev/frontend.env.example .env.local`, installieren wie oben, dann im Hintergrund `exec yarn dev`.
 - **Login im Browser** mit Playwright: http://localhost:8080 aufrufen, das Frontend leitet zur Keycloak-Anmeldeseite weiter, dort `#username`, `#password` ausfüllen und `#kc-login` klicken. Nach dem Login landet man unter „Veranstaltungen“ auf „Einladungen“, nicht auf der ursprünglich aufgerufenen Seite.
 
-- **Rauchtests** bei laufendem Tool: `cd rauchtests && yarn install --frozen-lockfile && yarn test` (`rauchtests/README.md`). Chromium findet Playwright über `PLAYWRIGHT_BROWSERS_PATH`, deshalb ist die Version von `@playwright/test` auf 1.56.0 festgelegt, passend zum vorinstallierten Browser. Beim Anheben der Version prüfen, ob die Cloud-Sitzung den passenden Browser hat (`ls /opt/pw-browsers`).
+- **Rauchtests** bei laufendem Tool: `cd rauchtests && yarn install --frozen-lockfile && yarn test` (`rauchtests/README.md`). Playwright findet Chromium über `PLAYWRIGHT_BROWSERS_PATH`, deshalb ist die Version von `@playwright/test` auf 1.56.0 festgelegt, passend zum vorinstallierten Browser. Beim Anheben der Version prüfen, ob die Cloud-Sitzung den passenden Browser hat (`ls /opt/pw-browsers`).
 - **GitHub-Protokolle** lassen sich aus der Cloud nicht herunterladen (die Ablage liegt auf einem gesperrten Server). Ob ein Lauf grün war, zeigen `gh api repos/…/actions/runs/<id>` und `…/jobs` mit den einzelnen Schritten.
 
 ## Browser und Nachstellen von Frontend-Fehlern

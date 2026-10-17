@@ -23,7 +23,7 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 - Die riskanten Updates (Fahrplan, Schritt 3) bekommen das Label immer. Sonst entscheidet die KI im Einzelfall, etwa bei Änderungen an Login, Navigation oder vielen Seiten, und begründet das in der Beschreibung des Pull Requests. Sebastian kann das Label jederzeit setzen oder entfernen.
 - In der Cloud-Sitzung lässt die KI die Rauchtests vor jedem Pull Request laufen, der Code ändert, und nennt das Ergebnis in der Beschreibung.
 
-**Begründung:** Das Repository ist privat, GitHub stellt dafür nur ein begrenztes Kontingent an Rechenzeit bereit (2.000 Minuten im Monat im kostenlosen Tarif). Vom 14. bis 16.10.2026 liefen 55 Prüfläufe mit je mindestens 4 Minuten, bei diesem Tempo ist das Kontingent schon ausgeschöpft. Ein Lauf der Rauchtests dauert auf GitHub rund 6,5 Minuten. Die Läufe in der Cloud kosten nichts und fangen auch Brüche bei Änderungen ab, die niemand für riskant gehalten hätte.
+**Begründung:** Das Repository ist privat, GitHub stellt dafür nur ein begrenztes Kontingent an Rechenzeit bereit (2.000 Minuten im Monat im kostenlosen Tarif). Vom 14. bis 16.10.2026 liefen 55 Prüfläufe mit je mindestens 4 Minuten, bei diesem Tempo wäre das Kontingent im Monat schon ausgeschöpft. Ein Lauf der Rauchtests dauert auf GitHub gut 6,5 Minuten, abgerechnet werden 7. Die Läufe in der Cloud kosten nichts und fangen auch Brüche bei Änderungen ab, die niemand für riskant gehalten hätte.
 **Umsetzung:** `.github/workflows/rauchtests.yml`, Label `rauchtests` auf GitHub (PR #61).
 
 ## 2026-10-16 · Rauchtests: Werkzeug und Aufbau

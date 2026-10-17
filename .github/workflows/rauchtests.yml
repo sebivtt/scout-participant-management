@@ -2,7 +2,7 @@ name: Rauchtests
 
 # Läuft nur, wenn ein Pull Request das Label „rauchtests“ trägt, oder von Hand
 # (Reiter „Actions“ → „Rauchtests“ → „Run workflow“). Grund: Ein Lauf startet das
-# ganze Tool und kostet rund 8 Minuten Rechenzeit aus dem begrenzten Kontingent
+# ganze Tool und kostet rund 7 Minuten Rechenzeit aus dem begrenzten Kontingent
 # privater Repositorys. Wann das Label gesetzt wird: docs/entscheidungen.md,
 # „Rauchtests: nur bei Bedarf auf GitHub“ (17.10.2026).
 on:
@@ -12,12 +12,6 @@ on:
 
 permissions:
   contents: read
-
-# Ein neuer Stand im selben Pull Request bricht den älteren Lauf ab, statt
-# beide bis zum Ende laufen zu lassen.
-concurrency:
-  group: rauchtests-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   rauchtests:
@@ -29,6 +23,13 @@ jobs:
        (github.event.action != 'labeled' || github.event.label.name == 'rauchtests'))
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    # Ein neuer Stand im selben Pull Request bricht den älteren Lauf ab, statt
+    # beide bis zum Ende laufen zu lassen. Steht beim Job und nicht beim ganzen
+    # Ablauf: Dort würde auch ein übersprungener Lauf (anderes Label gesetzt)
+    # den laufenden Rauchtest abbrechen.
+    concurrency:
+      group: rauchtests-${{ github.ref }}
+      cancel-in-progress: true
     services:
       postgres:
         image: postgres:16
@@ -41,6 +42,8 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U scout" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
+      # Das Frontend bringt das alte, ungenutzte Testwerkzeug Cypress mit. Ohne diese
+      # Einstellung lädt die Installation dessen Browser (mehrere hundert MB) mit.
       CYPRESS_INSTALL_BINARY: '0'
     steps:
       - uses: actions/checkout@v4
@@ -78,6 +81,7 @@ jobs:
             curl -sf -o /dev/null http://localhost:8180/realms/master && break
             sleep 2
           done
+          curl -sf -o /dev/null http://localhost:8180/realms/master || { echo "Keycloak nicht erreichbar"; docker logs keycloak | tail -50; exit 1; }
           KCADM="docker exec -i keycloak /opt/keycloak/bin/kcadm.sh" dev/keycloak-setup.sh
 
       - name: Backend mit Beispieldaten starten
@@ -99,6 +103,8 @@ jobs:
             curl -sf -o /dev/null http://localhost:8080 && curl -sf -o /dev/null http://localhost:8000/basic/gender/ && break
             sleep 2
           done
+          curl -sf -o /dev/null http://localhost:8000/basic/gender/ || { echo "Backend nicht erreichbar"; tail -50 ../backend.log; exit 1; }
+          curl -sf -o /dev/null http://localhost:8080 || { echo "Frontend nicht erreichbar"; tail -50 ../frontend.log; exit 1; }
 
       - name: Rauchtests
         working-directory: rauchtests
@@ -112,6 +118,6 @@ jobs:
           retention-days: 14
           path: |
             rauchtests/playwright-report/
-            rauchtests/ergebnisse/
+            rauchtests/results/
             backend.log
             frontend.log

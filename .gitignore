@@ -9,7 +9,7 @@ node_modules
 .vscode/
 
 # Rauchtests: gespeicherte Anmeldungen und Berichte
-rauchtests/.anmeldung/
+rauchtests/.auth/
 rauchtests/test-results/
 rauchtests/playwright-report/
-rauchtests/ergebnisse/
+rauchtests/results/

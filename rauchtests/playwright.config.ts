@@ -1,5 +1,6 @@
 // Einstellungen der Rauchtests. Was sie prüfen und wie man sie startet: README.md in diesem Ordner.
 import { defineConfig, devices } from '@playwright/test';
+import { FRONTEND_URL } from './environment';
 
 export default defineConfig({
   testDir: './tests',
@@ -14,7 +15,7 @@ export default defineConfig({
   retries: 0,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: process.env.FRONTEND_URL ?? 'http://localhost:8080',
+    baseURL: FRONTEND_URL,
     ...devices['Desktop Chrome'],
     locale: 'de-DE',
     trace: 'retain-on-failure',
