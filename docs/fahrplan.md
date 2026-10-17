@@ -39,7 +39,7 @@ Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `mai
    - [x] 1c. Anmeldeablauf mit allen Pflichtpunkten (siehe „Vorarbeit für die Rauchtests“), alles in einem Pull Request (Entscheidung vom 17.10.2026) (PR #62)
 2. [x] **#37** „Mich selbst anmelden“ und Reise-Dialog erscheinen mittig, geklärt mit `grill-me` am 17.10.2026 (PR #65).
 3. **Riskante Versionssprünge im Frontend** (Updates von Bausteinen, auf denen die Oberfläche aufbaut), einzeln, je ein Pull Request mit Rauchtests und Klickliste, in dieser Reihenfolge (siehe „Vorgehen für künftige Updates“):
-   - [x] `quill`, der Texteditor in Formularen (über `@vueup/vue-quill`, ggf. Ersatz). Zuerst, weil es die einzige verbliebene Sicherheitslücke in Code ist, der im Browser läuft. (PR #NUMMER)
+   - [x] `quill`, der Texteditor in Formularen (über `@vueup/vue-quill`, ggf. Ersatz). Zuerst, weil es die einzige verbliebene Sicherheitslücke in Code ist, der im Browser läuft. (PR #68)
    - [ ] **← als Nächstes:** Vite 2.9 → aktuell, das Werkzeug, das die Oberfläche baut und lokal startet. Dabei das unbenutzte Paket `@vue-leaflet/vue-leaflet` entfernen (wird nirgends eingebunden, die Karten nutzen `leaflet` direkt).
    - [ ] Pinia, der Zwischenspeicher der Oberfläche für geladene Daten
    - [ ] vue-router, die Navigation zwischen den Seiten
@@ -210,7 +210,7 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 | Qualität: Regeln, ruff, Dokumentation, Messung | #7 |
 | Qualität II, Schritte 1a, 1b-1, 1b-2, 1d, 2a | #9 bis #14 |
 | Frontend: Sicherheitsupdates innerhalb der Hauptversionen, TypeScript 6 und eslint 10, `uuid` 14, Vue 3.5 | #16, #17, #18, #26 |
-| Frontend, riskante Updates: `quill` 2 (Texteditor) | #NUMMER |
+| Frontend, riskante Updates: `quill` 2 (Texteditor) | #68 |
 | Fehler aus Issues: #19, #20, #23, #25, #37 | #21, #22, #24, #27, #65 |
 | Arbeitsweise: Vorlagen für Issues, Skills `issue-anlegen` und `grill-me` | #31, #36 |
 | Rauchtests 1a: Beispieldaten, Anleitung „lokal starten“, Keycloak in der Cloud | #59 |
