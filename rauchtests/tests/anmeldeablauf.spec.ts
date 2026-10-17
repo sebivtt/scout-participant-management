@@ -146,8 +146,10 @@ async function addTravel(page: Page, station: string): Promise<void> {
 /** Abstände des geöffneten Fensters zu den Bildschirmrändern, in Bildpunkten. */
 async function dialogMargins(page: Page): Promise<{ left: number; right: number; top: number; bottom: number }> {
   const panel = page.locator('[id^="headlessui-dialog-panel"]');
-  // Das Fenster gleitet beim Öffnen herein. Erst messen, wenn es still steht.
-  await page.waitForTimeout(400);
+  // Das Fenster gleitet beim Öffnen herein. Erst messen, wenn diese Bewegung
+  // (und die des Hintergrunds) beendet ist, sonst stimmen die Abstände nicht.
+  await panel.waitFor();
+  await page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished)));
   const box = await panel.boundingBox();
   const viewport = page.viewportSize();
   if (!box || !viewport) throw new Error('Fenster oder Bildschirmgröße nicht gefunden');
