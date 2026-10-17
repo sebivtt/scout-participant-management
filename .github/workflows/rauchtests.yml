@@ -9,8 +9,6 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
-  push:
-    branches: [rauchtests-1b-seiten]  # VORÜBERGEHEND zum Ausprobieren
 
 permissions:
   contents: read
@@ -26,7 +24,7 @@ jobs:
     name: Rauchtests (jede Seite lädt)
     # Beim Setzen eines anderen Labels nicht erneut laufen.
     if: >-
-      github.event_name == 'workflow_dispatch' || github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
       (contains(github.event.pull_request.labels.*.name, 'rauchtests') &&
        (github.event.action != 'labeled' || github.event.label.name == 'rauchtests'))
     runs-on: ubuntu-latest
