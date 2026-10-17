@@ -14,7 +14,7 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 - Auf GitHub laufen die Rauchtests dafür nur einmal, mit dem Label `rauchtests` am fertigen Pull Request.
 
 **Begründung:** Effizienz. Die Pflichtpunkte teilen sich Einrichtung, Beispieldaten und Hilfsfunktionen, getrennte Pull Requests hätten jeweils dieselbe Vorarbeit und Prüfung gebraucht.
-**Umsetzung:** `rauchtests/tests/anmeldeablauf.spec.ts`, `backend/basic/management/commands/load_sample_data.py`, `dev/keycloak-setup.sh`.
+**Umsetzung:** `rauchtests/tests/anmeldeablauf.spec.ts`, `backend/basic/management/commands/load_sample_data.py`, `dev/keycloak-setup.sh` (PR #62).
 
 ## 2026-10-17 · Rollen klären, bevor Rechte geändert werden
 

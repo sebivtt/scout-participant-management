@@ -36,7 +36,7 @@ Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `mai
 1. **Rauchtests für das Frontend.** Rauchtests sind automatische Klicktests in einem echten Browser: Jede Seite einmal öffnen und den wichtigsten Ablauf einmal durchklicken, um grobe Brüche sofort zu sehen. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test. Werkzeug und Aufbau sind abgestimmt (Entscheidung „Rauchtests: Werkzeug und Aufbau“ vom 16.10.2026). Drei Pull Requests:
    - [x] 1a. Beispieldaten und Anleitung „Tool lokal mit Beispieldaten starten“ (dieselben Beispieldaten nutzen die Rauchtests) (PR #59)
    - [x] 1b. Jede Seite lädt ohne Programmfehler, dazu die Prüfung auf GitHub (PR #61)
-   - [x] 1c. Anmeldeablauf mit allen Pflichtpunkten (siehe „Vorarbeit für die Rauchtests“), alles in einem Pull Request (Entscheidung vom 17.10.2026) (PR folgt)
+   - [x] 1c. Anmeldeablauf mit allen Pflichtpunkten (siehe „Vorarbeit für die Rauchtests“), alles in einem Pull Request (Entscheidung vom 17.10.2026) (PR #62)
 2. [ ] **← als Nächstes: #37** „Mich selbst anmelden“ erscheint mittig. Vorher mit `grill-me` klären. Klein, und die Rauchtests sichern dieses Fenster dann schon ab.
 3. **Riskante Versionssprünge im Frontend** (Updates von Bausteinen, auf denen die Oberfläche aufbaut), einzeln, je ein Pull Request mit Rauchtests und Klickliste, in dieser Reihenfolge (siehe „Vorgehen für künftige Updates“):
    - [ ] `quill`, der Texteditor in Formularen (über `@vueup/vue-quill`, ggf. Ersatz). Zuerst, weil es die einzige verbliebene Sicherheitslücke in Code ist, der im Browser läuft.
@@ -214,7 +214,7 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 | Arbeitsweise: Vorlagen für Issues, Skills `issue-anlegen` und `grill-me` | #31, #36 |
 | Rauchtests 1a: Beispieldaten, Anleitung „lokal starten“, Keycloak in der Cloud | #59 |
 | Rauchtests 1b: jede Seite lädt, Prüfung auf GitHub per Label | #61 |
-| Rauchtests 1c: Anmeldeablauf mit allen Pflichtpunkten | (PR folgt) |
+| Rauchtests 1c: Anmeldeablauf mit allen Pflichtpunkten | #62 |
 | Doku und Übergaben | #8, #15, #28 |
 
 Einzelheiten stehen in den Beschreibungen der Pull Requests und in `docs/qualitaet.md`.

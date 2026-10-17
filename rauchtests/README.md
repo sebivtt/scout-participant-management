@@ -54,7 +54,7 @@ Die Tests laufen mit deutscher Zeitzone, wie bei Nutzenden. Sonst zeigt der Brow
 Grenzen:
 
 - Geprüft wird mit Chromium, nicht mit Safari. Der Fehler aus #20 trat nur manchmal auf (die Seite sprang zur falschen Adresse und lud gleichzeitig neu). Deshalb zählt jede Adresse, die die Seite zwischendurch zeigt.
-- Die Tests sind nachgeprüft: Mit den alten, fehlerhaften Fassungen der Behebungen von #19, #20, #23 und #25 scheitern sie. Wie das geprüft wurde, steht im Pull Request zu Schritt 1c.
+- Die Tests sind nachgeprüft: Mit den alten, fehlerhaften Fassungen der Behebungen von #19, #20, #23 und #25 scheitern sie. Wie das geprüft wurde, steht in PR #62.
 
 ## Starten
 
