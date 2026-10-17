@@ -213,7 +213,7 @@ Gemessen am 15.10.2026 mit `yarn audit` im Ordner `frontend/`, vor und nach dem 
 | Pakete des Programms (`--groups dependencies`) | 63 (1 kritisch, 31 hoch, 30 mittel, 1 niedrig) | 4 (2 hoch, 2 mittel) |
 | alle Pakete, auch Entwicklungswerkzeuge | 329 | 242 |
 
-Nach PR #17 (eslint 10, TypeScript 6): alle Pakete 172. Das alte eslint brachte viele veraltete Hilfspakete mit. Nach PR #18 (`uuid` 14): alle Pakete 171, in den Programmpaketen 3 (`quill`, zweimal `@vue/server-renderer`). Nach PR #26 (Vue 3.5): alle Pakete 169, in den Programmpaketen 1 (`quill`).
+Nach PR #17 (eslint 10, TypeScript 6): alle Pakete 172. Das alte eslint brachte viele veraltete Hilfspakete mit. Nach PR #18 (`uuid` 14): alle Pakete 171, in den Programmpaketen 3 (`quill`, zweimal `@vue/server-renderer`). Nach PR #26 (Vue 3.5): alle Pakete 169, in den Programmpaketen 1 (`quill`). Mit dem Update von `quill` (17.10.2026, `@vueup/vue-quill` 1.5.5 mit `quill` 2.0.2): alle Pakete 168, in den Programmpaketen 0.
 
 Übrig sind im Programm nur die bewusst offenen Pakete (Stand bis PR #17; `uuid` ist mit PR #18 geschlossen, `@vue/server-renderer` mit PR #26, seither nur noch `quill`): `@vue/server-renderer` (zweimal gezählt, weil zwei Vue-Fassungen enthalten sind), `uuid` und `quill`. Sie folgen mit den großen Versionssprüngen (Phase 3d). Die übrigen 238 (Stand PR #16) betreffen Entwicklungswerkzeuge wie Vite, eslint und Cypress, die nur auf dem eigenen Rechner bzw. beim Bauen laufen. Darunter erscheinen auch `axios` und `uuid` noch einmal: Das Startwerkzeug `wait-on` bringt eine alte axios-Fassung (0.25) mit, Cypress eine eigene uuid-Fassung. Sie gehören nicht zum Programm.
 
