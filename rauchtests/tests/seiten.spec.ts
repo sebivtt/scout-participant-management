@@ -74,7 +74,7 @@ const PAGES: PageCheck[] = [
     account: 'stammesleitung',
     // Der Dialog „Verantwortliche Person hinzufügen“ sucht beim Laden in allen
     // Konten. Das darf seit PR #2 nur, wer Admin-Recht auf eine Gruppe hat.
-    known: [{ text: 'Backend antwortet 403: GET /keycloak/members/', issue: '#ISSUE_MITGLIEDERSUCHE' }],
+    known: [{ text: 'Backend antwortet 403: GET /keycloak/members/', issue: '#60' }],
   },
 
   // Veranstaltungsleitung: Verwaltung und Auswertung des Beispiellagers

@@ -35,8 +35,8 @@ Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `mai
 
 1. **Rauchtests für das Frontend.** Rauchtests sind automatische Klicktests in einem echten Browser: Jede Seite einmal öffnen und den wichtigsten Ablauf einmal durchklicken, um grobe Brüche sofort zu sehen. Ohne sie lässt sich nach den riskanten Versionssprüngen nicht prüfen, ob noch alles geht. Das Frontend hat heute keinen einzigen Test. Werkzeug und Aufbau sind abgestimmt (Entscheidung „Rauchtests: Werkzeug und Aufbau“ vom 16.10.2026). Drei Pull Requests:
    - [x] 1a. Beispieldaten und Anleitung „Tool lokal mit Beispieldaten starten“ (dieselben Beispieldaten nutzen die Rauchtests) (PR #59)
-   - [ ] 1b. **← als Nächstes:** Jede Seite lädt ohne Programmfehler, dazu die Prüfung auf GitHub
-   - [ ] 1c. Anmeldeablauf mit allen Pflichtpunkten (siehe „Vorarbeit für die Rauchtests“)
+   - [x] 1b. Jede Seite lädt ohne Programmfehler, dazu die Prüfung auf GitHub (PR #61)
+   - [ ] 1c. **← als Nächstes:** Anmeldeablauf mit allen Pflichtpunkten (siehe „Vorarbeit für die Rauchtests“)
 2. [ ] **#37** „Mich selbst anmelden“ erscheint mittig. Vorher mit `grill-me` klären. Klein, und die Rauchtests sichern dieses Fenster dann schon ab.
 3. **Riskante Versionssprünge im Frontend** (Updates von Bausteinen, auf denen die Oberfläche aufbaut), einzeln, je ein Pull Request mit Rauchtests und Klickliste, in dieser Reihenfolge (siehe „Vorgehen für künftige Updates“):
    - [ ] `quill`, der Texteditor in Formularen (über `@vueup/vue-quill`, ggf. Ersatz). Zuerst, weil es die einzige verbliebene Sicherheitslücke in Code ist, der im Browser läuft.
@@ -49,6 +49,7 @@ Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `mai
    - Technisches Aufräumen, je mit Klickprüfung. Die Einzelheiten sind für die umsetzende KI:
      - `views/newRegister/Container.vue`: `nextLink` liefert als Rückfall den ungültigen Seitennamen „Custom“, `console.log(routeObj)` läuft bei jeder Änderung.
      - `components/stepper/StepperNavSmall.vue`: `:key="step.name"` ist bei mehreren Zusatzschritten doppelt (alle heißen „Custom“), besser die Kennung des Schritts.
+     - `src/router.ts` (Wache vor jedem Seitenwechsel): Ohne Login ruft sie die Anmeldung auf, ohne den Seitenwechsel abzuschließen. vue-router meldet dann im Entwicklungsmodus „Invalid navigation guard“ (nur in der Fehlerkonsole, gefunden am 16.10.2026). Die Prüfung auf `landing` greift nie, weil im `some` das `return` fehlt.
      - `components/stepper/StepFrame.vue`: `isLoading` ist zugleich Prop und eigener Wert `ref(false)`. Die Knöpfe zeigen deshalb nie den Ladezustand, obwohl neun Seiten ihn übergeben. Den eigenen Wert entfernen.
      - Tote Dateien löschen: `modules/event/views/newRegister/module/Person.vue`, `modules/help/store/index.ts`.
      - Ungenutzter Code mit fehlender Variable `eventData` in `event/components/statistic/payments/CashItem.vue`.
@@ -56,7 +57,7 @@ Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `mai
    - Nach PR #26: 260 Fehler und 2.795 Warnungen (`yarn lint`, Aufschlüsselung in `docs/qualitaet.md`). Zuerst die Fehler, Warnungen schrittweise. Die vorübergehend gelockerten Stufen in `eslint.config.mjs` bewusst einzeln schärfer stellen. Die Regel `comma-dangle` fällt mit eslint 11 weg. Dazu eine automatische Prüfung der Frontend-Pakete auf Sicherheitslücken wie `pip-audit` im Backend, `CONTRIBUTING.md` Abschnitt 5 dann ergänzen.
 5. **Pop-ups** (Sammel-Issue #35), der Reihe nach: [ ] #38 → [ ] #39 → [ ] #40 → [ ] #41 → [ ] #42. #41 und #42 warten zusätzlich auf #43. #41 braucht vorher eine kurze Nachklärung mit `grill-me`: Wohin kommt man nach dem Anlegen einer Gruppe? Die Frage stand im alten Fahrplan und wurde bei der Klärung von #35 nicht gestellt.
 6. **Fehler und Anforderungen aus den Issues.** Erst Fehler, dann Anforderungen „Wichtig“, dann „Wäre schön“. Innerhalb einer Gruppe in dieser Reihenfolge:
-   - Fehler: [ ] #48 abgelaufener Login → [ ] #47 Knopf „zusammenfassen“ → [ ] #44 Fehler als Erfolgsmeldung → [ ] #45 Bausteinposition → [ ] #34 nur Zahlen in Mengenfeldern → [ ] #46 Zahlung ohne Betrag → [ ] #51 „bestätigt“ (wartet auf die Abstimmung „Anmelden“)
+   - Fehler: [ ] #48 abgelaufener Login → [ ] #47 Knopf „zusammenfassen“ → [ ] #44 Fehler als Erfolgsmeldung → [ ] #45 Bausteinposition → [ ] #34 nur Zahlen in Mengenfeldern → [ ] #46 Zahlung ohne Betrag → [ ] #51 „bestätigt“ (wartet auf die Abstimmung „Anmelden“) → [ ] #60 verantwortliche Person hinzufügen (wartet auf die Klärung der Rollen)
    - Wichtig: [ ] #49 Absenden ganz oder gar nicht (wartet auf „Anmelden“) → [ ] #50 verständliche Fehlermeldungen (wartet auf „Anmelden“ und #49) → [ ] #53 Orientierung im Anmeldeablauf (wartet auf „Anmelden“) → [ ] #52 Fristen im Frontend (wartet auf „Veranstaltung anlegen“) → [ ] #32 eindeutige technische Namen (wartet auf „Veranstaltung anlegen“)
    - Wäre schön: [ ] #54 Texte als Fragen (wartet auf „Anmelden“) → [ ] #55 Stammauswahl (wartet auf „Anmelden“) → [ ] #57 Adressfelder (wartet auf „Anmelden“) → [ ] #30 Mengen begrenzen (wartet auf „Anmelden“) → [ ] #33 Namen für Datentypen (wartet auf „Veranstaltung anlegen“) → [ ] #56 Hinweis E-Mail-Feld (wartet auf „Konto und persönliche Daten“)
 7. **Qualität II, Rest** (siehe Abschnitt „Qualität II“): [ ] 2b Feldnamen → [ ] 1c Prüfregeln → [ ] 3 Keycloak-Abgleich → [ ] 4a/4b (nach der Abstimmung) → [ ] N+1 auf sechs Seiten → [ ] 5 Abschluss.
@@ -110,7 +111,7 @@ Betrieb:
 
 - **Rahmen (entschieden am 16.10.2026):** Docker ist auf Sebastians Mac vorhanden. Wichtigster Ablauf ist die Standard-Anmeldung über alle Schritte bis zum Absenden. Rote Rauchtests sperren die Übernahme nicht automatisch, siehe „Regeln für die Reihenfolge“.
 - **Werkzeug Playwright, eine Stufe mit echtem Backend und Keycloak 26.7,** in der Cloud und auf GitHub (Entscheidung „Rauchtests: Werkzeug und Aufbau“ vom 16.10.2026). Playwright ist ein neues Paket, also mit Begründung (`CONTRIBUTING.md` Abschnitt 5). Die Version an die in der Cloud installierte anpassen (1.56, Browser unter `/opt/pw-browsers`). Liste der Seiten und ihrer Anfragen: `docs/schnittstellen.md`. Ganzes Tool in der Cloud starten: `docs/arbeitsumgebung.md`.
-- **Für 1b:** Als Erstes prüfen, ob GitHub das Keycloak-Abbild laden darf. Falls nicht, lädt GitHub dasselbe Programmpaket wie die Cloud.
+- **Stand nach 1b:** Die Rauchtests liegen in `rauchtests/` (Anleitung dort in `README.md`). GitHub lädt das Keycloak-Abbild. Auf GitHub laufen sie nur mit dem Label `rauchtests` (Entscheidung „Rauchtests: nur bei Bedarf auf GitHub“ vom 17.10.2026). 1c ergänzt eine zweite Testdatei in `rauchtests/tests/` und, wo nötig, die Beispieldaten.
 - **Pflichtpunkte** aus Fehlern, die nur durch Klicken auffielen:
   - Neue Anmeldung mit „Mich selbst anmelden“ und einem Stammesmitglied (Issue #19), eine schon angemeldete Person wird sofort gemeldet, eine gespeicherte Person bearbeiten ohne Dublettenmeldung.
   - Lagerbeitrag anlegen und ändern sowie Ort ändern, danach auf der Veranstaltung bleiben. Fehlerfall: Ort ändern, der auch von einer fremden Veranstaltung genutzt wird, zeigt eine Fehlermeldung und lädt nicht neu (Issue #20).
@@ -128,7 +129,7 @@ Für alle Versionssprünge im Frontend (Entscheidungen vom 15.10.2026):
 - Was ein aktualisiertes Paket zwingend mitbringt, darf seine Hauptversion verlassen. Neue Hauptversionen und neue Pakete werden im Pull Request genannt und begründet.
 - Zwangsvorgaben (`resolutions`) bei jedem Update der übergeordneten Pakete prüfen, sonst verletzen sie deren Anforderungen still. (Die Vorgaben aus PR #16 sind mit PR #26 entfernt, weil sie Vue 3.5 eine zu alte `postcss`-Fassung aufgezwungen hätten.)
 - Prüfen: `yarn build`, eslint und `npx tsc --noEmit` vorher und nachher vergleichen, Backend-Tests, `yarn audit --groups dependencies --summary`, Änderungsprotokoll des Pakets gegen unsere Aufrufe lesen.
-- Im Browser vorher und nachher vergleichen: Seitenrundgang mit Programmfehlern und Vue-Warnungen je Seite, dazu die betroffenen Abläufe. Nach den Rauchtests: Rauchtests vorher und nachher.
+- Im Browser vorher und nachher vergleichen: Rauchtests vor und nach dem Update laufen lassen (`rauchtests/README.md`). Die Datei `rauchtests/ergebnisse/seiten.jsonl` enthält je Seite auch Vue-Warnungen, beide Fassungen vergleichen. Dazu die betroffenen Abläufe von Hand. Pull Requests mit riskanten Updates tragen immer das Label `rauchtests`.
 
 Stand der Versionen am 16.10.2026: Vite 2.9 (aktuell 8), Vue 3.5 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 6.0 (7), eslint 10 (10). Bekannte Sicherheitslücken nach PR #26: 169, davon 1 in den Programmpaketen (`quill`), der Rest in Entwicklungswerkzeugen (Verlauf in `docs/qualitaet.md`).
 
@@ -145,6 +146,7 @@ Vereinbart am 15.10.2026. Ziel: Für jeden Ablauf ist abgestimmt, wer was darf u
 3. Jede abgestimmte Regel bekommt einen Test, sobald sie umgesetzt wird. Weicht das Soll vom Ist ab, wird daraus ein Issue.
 
 **Schon gesammelte Fragen:**
+- **Rollen, vor jeder Änderung an Rechten** (Entscheidung vom 17.10.2026): Welche Rollen gibt es, was darf jede, wer erhält sie wann und wie? Dazu, wie die Oberfläche passt, z. B. was Suchen und Auswahllisten einer Rolle anzeigen. Betrifft #60 und die Rechte in jedem Ablauf. Sebastian hat Änderungswünsche am ganzen Rollenaufbau.
 - Anmelden: Welche Schritte und Abfragen bekommt jede neue Veranstaltung standardmäßig, welche wählt die Veranstaltungsleitung zusätzlich? Heute gibt die Standardvorlage „T-Shirts“ und „Lunch Pakete“ immer mit, das soll nicht so bleiben (Entscheidung vom 16.10.2026).
 - Anmelden: Wann soll die Buchungsoption gesperrt sein? Heute ist die Sperre im Anmeldeablauf immer aus (`views/newRegister/module/Participants.vue`, `blockBookingOption.value && …` im Template), und Stammesmitglieder landen ohne Buchungsoption in der Liste.
 - Anmelden: Wann gilt eine Anmeldung als bestätigt (#51)?
@@ -206,6 +208,7 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 | Fehler aus Issues: #19, #20, #23, #25 | #21, #22, #24, #27 |
 | Arbeitsweise: Vorlagen für Issues, Skills `issue-anlegen` und `grill-me` | #31, #36 |
 | Rauchtests 1a: Beispieldaten, Anleitung „lokal starten“, Keycloak in der Cloud | #59 |
+| Rauchtests 1b: jede Seite lädt, Prüfung auf GitHub per Label | #61 |
 | Doku und Übergaben | #8, #15, #28 |
 
 Einzelheiten stehen in den Beschreibungen der Pull Requests und in `docs/qualitaet.md`.
