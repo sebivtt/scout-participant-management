@@ -44,6 +44,7 @@ Grenzen:
 | Fremder Ort | `stammesleitung` | Einen Ort, den auch eine fremde Veranstaltung nutzt, ändern: Fehlermeldung, die Seite lädt nicht neu (#20). |
 | Lagerbeitrag ändern und anlegen | `leitung` | Danach auf der Veranstaltung bleiben, auch zwischendurch nicht auf eine andere Adresse springen (#20). |
 | Ort ändern | `leitung` | Ebenso (#20). |
+| Fenster am Handy | `teilnehmer` | Personen- und Reise-Fenster stehen am unteren Rand und der Hintergrund deckt den Bildschirm ab (#37). Am Laptop prüfen der ganze Anmeldeablauf und „unverändert speichern“ zusätzlich, dass die Fenster mittig stehen. |
 
 Fehler zählen wie bei den Seiten. Erwartete Fehler stehen beim Test, mit Issue oder Grund, z. B. die gewollte Ablehnung beim fremden Ort. Sie müssen auftreten, sonst scheitert der Test. Damit fällt auch auf, wenn eine Prüfung im Backend nicht mehr greift.
 
@@ -67,7 +68,7 @@ npx playwright install chromium   # nur auf dem Mac nötig, in der Cloud-Sitzung
 yarn test
 ```
 
-Ein Lauf dauert etwa 3,5 Minuten. Am Ende steht „55 passed“ oder eine Liste der gescheiterten Seiten und Abläufe. Einzelne Seiten oder Abläufe: `yarn test -g "Auswertung"`, nur der Anmeldeablauf: `yarn test tests/anmeldeablauf.spec.ts`.
+Ein Lauf dauert knapp 4 Minuten. Am Ende steht „56 passed“ oder eine Liste der gescheiterten Seiten und Abläufe. Einzelne Seiten oder Abläufe: `yarn test -g "Auswertung"`, nur der Anmeldeablauf: `yarn test tests/anmeldeablauf.spec.ts`.
 
 Beispieldaten von vor dem 17.10.2026 passen nicht zu den Tests zum Anmeldeablauf. Die Einrichtung meldet das und nennt die Befehle, Anleitung in `docs/lokal-starten.md`, Teil 2.
 
