@@ -93,6 +93,9 @@ def test_fremden_ort_darf_die_leitung_der_fahrt_nicht_aendern(beispieldaten, api
     # der Fehlerfall der Rauchtests grün sein, weil der Ort gar nicht geteilt ist.
     # Die Gegenprobe für einen nicht geteilten Ort macht der Rauchtest beim
     # Beispiellager (die Leitung dort ist im Tool Staff, im Test hier nicht).
+    # PATCH statt PUT wie im Frontend: Beide laufen durch dieselbe Rechteprüfung
+    # (update in EventLocationViewSet), PATCH braucht aber keine Postleitzahl,
+    # die es in der Testdatenbank nicht gibt.
     stammesleitung = CustomUser.objects.get(username='stammesleitung')
     fahrt = Event.objects.get(technical_name=TRIP_TECHNICAL_NAME)
     response = api(stammesleitung).patch(f'/event/event-location/{fahrt.location_id}/',

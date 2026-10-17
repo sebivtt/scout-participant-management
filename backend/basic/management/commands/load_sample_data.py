@@ -46,10 +46,12 @@ STAMM_LEVEL_ID = 5
 # zum Anmeldeteam (Staff) und darf jeden Ort ändern, der Fehlerfall träte nie ein.
 TRIP_LEADER = 'stammesleitung'
 SHARED_LOCATION_NAME = 'Geteilter Zeltplatz'
+# Die technischen Namen sind so gewählt, dass niemand sie für eine eigene
+# Veranstaltung nimmt: --reset löscht Veranstaltungen mit diesen Namen.
 TRIP_EVENT_NAME = 'Beispielfahrt'
-TRIP_TECHNICAL_NAME = 'beispielfahrt'
+TRIP_TECHNICAL_NAME = 'bspdaten-fahrt'
 FOREIGN_EVENT_NAME = 'Fremdes Lager'
-FOREIGN_TECHNICAL_NAME = 'fremdeslager'
+FOREIGN_TECHNICAL_NAME = 'bspdaten-fremd'
 # Leitet das fremde Lager. Ein Konto ohne Login in Keycloak genügt dafür.
 FOREIGN_LEADER = 'fremde-leitung'
 
@@ -84,6 +86,11 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Legt die Beispieldaten an, wenn das Beispiellager fehlt oder --reset gesetzt ist.
+
+        Ist das Beispiellager schon da, bleibt alles unverändert. Fehlen dabei die
+        Teile für die Rauchtests zum Anmeldeablauf, gibt es einen Hinweis auf --reset.
+        """
         # Im Echtbetrieb würde der Befehl erfundene Konten und eine erfundene
         # Veranstaltung zwischen echte Daten mischen.
         if not settings.DEBUG:
@@ -101,13 +108,6 @@ class Command(BaseCommand):
                 'Es gibt keinen Stamm. Zuerst die Stammdaten laden: python manage.py loaddata data/main/*.json'
             )
 
-        member_stamm = ScoutHierarchy.objects.filter(level_id=STAMM_LEVEL_ID, name=MEMBER_STAMM_NAME).first()
-        if member_stamm is None:
-            raise CommandError(
-                f'Der Stamm „{MEMBER_STAMM_NAME}“ fehlt. Zuerst die Stammdaten laden: '
-                'python manage.py loaddata data/main/*.json'
-            )
-
         with transaction.atomic():
             if Event.objects.filter(technical_name=SAMPLE_TECHNICAL_NAME).exists() and not options['reset']:
                 self.stdout.write(
@@ -120,6 +120,12 @@ class Command(BaseCommand):
                         'Bitte einmal mit --reset neu anlegen.'
                     ))
                 return
+            member_stamm = ScoutHierarchy.objects.filter(level_id=STAMM_LEVEL_ID, name=MEMBER_STAMM_NAME).first()
+            if member_stamm is None:
+                raise CommandError(
+                    f'Der Stamm „{MEMBER_STAMM_NAME}“ fehlt. Zuerst die Stammdaten laden: '
+                    'python manage.py loaddata data/main/*.json'
+                )
             # Anmeldungen hängen an der Veranstaltung und werden mitgelöscht.
             Event.objects.filter(
                 technical_name__in=[SAMPLE_TECHNICAL_NAME, TRIP_TECHNICAL_NAME, FOREIGN_TECHNICAL_NAME]

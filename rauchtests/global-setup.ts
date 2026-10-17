@@ -11,7 +11,7 @@ import {
 
 // An den technischen Namen erkennt load_sample_data seine Veranstaltungen.
 const SAMPLE_TECHNICAL_NAME = 'beispieldaten';
-const TRIP_TECHNICAL_NAME = 'beispielfahrt';
+const TRIP_TECHNICAL_NAME = 'bspdaten-fahrt';
 const SAMPLE_GROUP_NAME = 'Testgruppe Lagerteam';
 
 /** Meldet ein Konto über die Anmeldeseite an und speichert die Sitzung für die Tests. */

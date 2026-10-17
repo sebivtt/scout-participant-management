@@ -3,9 +3,9 @@
 // Rauchtests“).
 //
 // Anders als seiten.spec.ts klicken diese Tests ganze Abläufe durch und prüfen,
-// was dabei herauskommt. Was sie im Backend anlegen oder ändern, räumen sie
-// selbst wieder auf, auch wenn sie unterwegs scheitern. Vor dem Start räumen sie
-// außerdem Reste eines abgebrochenen früheren Laufs weg.
+// was dabei herauskommt. Was sie im Backend anlegen oder ändern, setzen sie vor
+// und nach jedem Test auf die Werte aus load_sample_data zurück, auch wenn sie
+// unterwegs scheitern oder ein früherer Lauf abgebrochen wurde.
 import fs from 'node:fs';
 import { test, expect, type Locator, type Page, type TestInfo } from '@playwright/test';
 import { api, apiGet } from '../api';
@@ -13,6 +13,16 @@ import { type ExpectedError, type Findings, unexpectedErrors, watchPage } from '
 import { FINDINGS_FILE, IDS_FILE, type SampleIds, storageStateFor } from '../environment';
 
 const ids: SampleIds = fs.existsSync(IDS_FILE) ? JSON.parse(fs.readFileSync(IDS_FILE, 'utf8')) : null;
+
+// Werte aus backend/basic/management/commands/load_sample_data.py. Auf sie setzen
+// die Tests zurück. Feste Werte statt der beim Start gelesenen: Hätte ein
+// abgebrochener Lauf etwas verändert, würde sonst der veränderte Stand bewahrt.
+const SAMPLE_PRICE = 15;
+const SAMPLE_ADDRESS = 'Am Lagerfeuer 1';
+const SHARED_ADDRESS = 'Am Bach 2';
+// Stammesmitglieder von teilnehmer. Alle anderen Personen, die er gespeichert hat,
+// stammen aus einem Testlauf.
+const SAMPLE_MEMBERS = ['Ben Probe', 'Mia Beispiel'];
 
 // Wie bei Nutzenden in Deutschland. Sonst zeigt der Browser Geburtstage, die das
 // Backend als Mitternacht deutscher Zeit speichert, einen Tag zu früh an, und
@@ -61,6 +71,7 @@ function errorMessage(page: Page): Locator {
   return page.getByText('Fehler', { exact: true }).locator('..');
 }
 
+/** Klickt „weiter“ und wartet, bis der nächste Schritt (erkennbar an der Adresse) geöffnet ist. */
 async function next(page: Page, urlPart: RegExp): Promise<void> {
   await page.getByRole('button', { name: 'weiter' }).click();
   await page.waitForURL(urlPart);
@@ -138,11 +149,25 @@ interface RegistrationRead {
   attributes: Attribute[];
 }
 
-/** Löscht alle Anmeldungen von `teilnehmer` im Beispiellager. Er hat dort sonst keine. */
-async function deleteRegistrationsOfParticipant(): Promise<void> {
+/**
+ * Entfernt, was die Tests als `teilnehmer` hinterlassen können.
+ *
+ * Das sind seine Anmeldungen im Beispiellager (er hat dort sonst keine) und
+ * Personen, die das Backend beim Absenden dauerhaft speichert („Person dauerhaft
+ * speichern“ ist im Dialog vorausgewählt). Heute entstehen dabei keine, aber
+ * sonst erschienen sie im nächsten Lauf unter „Stammesmitglied anmelden“.
+ */
+async function cleanUpParticipant(): Promise<void> {
   const registrations = await apiGet<{ id: string; event: { id: string } }[]>('teilnehmer', '/event/my-registrations/');
   for (const registration of registrations.filter((r) => r.event.id === ids.eventId)) {
     await api('teilnehmer', 'DELETE', `/event/registration/${registration.id}/`);
+  }
+  const members = await apiGet<{ results: { id: string; firstName: string; lastName: string }[] }>(
+    'teilnehmer', '/auth/my-members/');
+  for (const member of members.results) {
+    if (!SAMPLE_MEMBERS.includes(`${member.firstName} ${member.lastName}`)) {
+      await api('teilnehmer', 'DELETE', `/auth/my-members/${member.id}/`);
+    }
   }
 }
 
@@ -166,8 +191,8 @@ async function checkFindings(page: Page, testInfo: TestInfo, findings: Findings,
 test.describe('teilnehmer', () => {
   test.use({ storageState: storageStateFor('teilnehmer') });
 
-  test.beforeEach(deleteRegistrationsOfParticipant);
-  test.afterEach(deleteRegistrationsOfParticipant);
+  test.beforeEach(cleanUpParticipant);
+  test.afterEach(cleanUpParticipant);
 
   test('Personen hinzufügen, ändern, umbenennen und löschen (#19, #23)', async ({ page }, testInfo) => {
     const findings = watchPage(page);
@@ -200,7 +225,7 @@ test.describe('teilnehmer', () => {
     await expect.poll(async () => (await personList(page)).sort())
       .toEqual([expect.stringMatching(/^Ben Probe/), expect.stringMatching(/^Ina Probe/)]);
 
-    // Beide löschen, dann eine neue Person: Sie erscheint sofort.
+    // Vor #23 erschien eine neue Person nach dem Löschen erst nach dem Neuladen.
     await row('Ben Probe').getByText('löschen').click();
     await row('Ina Probe').getByText('löschen').click();
     await expect(stepContent(page).getByText('Noch keine Person')).toBeVisible();
@@ -307,7 +332,6 @@ test.describe('stammesleitung', () => {
   test.use({ storageState: storageStateFor('stammesleitung') });
 
   test('Gespeicherte Person unverändert speichern ohne Dublettenmeldung (#19)', async ({ page }, testInfo) => {
-    const before = await apiGet<RegistrationRead>('stammesleitung', `/event/registration-read/${ids.registrationId}/`);
     const findings = watchPage(page);
     await page.goto(`/registrations-details/${ids.registrationId}`);
     await page.getByRole('button', { name: /^Mia Beispiel/ }).click();
@@ -315,45 +339,55 @@ test.describe('stammesleitung', () => {
     await page.locator('dd', { hasText: 'Geburtsdatum' }).getByRole('button').first().click();
     const dialog = page.getByRole('dialog');
     await expect(field(dialog, 'Vorname*')).toHaveValue('Mia');
+    // Mit einer Dublettenmeldung bliebe der Dialog offen.
     await dialog.getByRole('button', { name: 'Speichern' }).click();
     await expect(dialog).toHaveCount(0);
-    await expect(errorMessage(page)).toHaveCount(0);
     await expect(page.getByRole('button', { name: /^Mia Beispiel/ })).toHaveCount(1);
 
-    // Unverändert gespeichert heißt: Die Daten sind dieselben wie vorher, auch der
-    // Geburtstag (er könnte sich durch Zeitzonen um einen Tag verschieben).
-    const after = await apiGet<RegistrationRead>('stammesleitung', `/event/registration-read/${ids.registrationId}/`);
-    const summary = (r: RegistrationRead) => r.registrationparticipantSet
-      .map((p) => [p.id, p.firstName, p.lastName, p.birthday, p.address, p.zipCode?.zipCode, p.bookingOption?.id])
-      .sort();
-    expect(summary(after)).toEqual(summary(before));
+    // Unverändert gespeichert heißt: Die Daten sind noch die aus load_sample_data,
+    // auch der Geburtstag (er könnte sich durch Zeitzonen um einen Tag verschieben).
+    // Feste Werte statt eines Vorher-Nachher-Vergleichs: Sonst gälte ein schon
+    // verschobener Geburtstag beim nächsten Lauf als richtig. Scheitert der Test
+    // hier, die Beispieldaten mit load_sample_data --reset neu anlegen.
+    const saved = await apiGet<RegistrationRead>('stammesleitung', `/event/registration-read/${ids.registrationId}/`);
+    const mia = saved.registrationparticipantSet.filter((p) => p.firstName === 'Mia');
+    expect(mia).toHaveLength(1);
+    expect(mia[0]).toMatchObject({ lastName: 'Beispiel', address: SAMPLE_ADDRESS });
+    expect(new Date(mia[0].birthday).toLocaleDateString('de-DE', { timeZone: 'Europe/Berlin' })).toBe('4.5.2012');
 
     await checkFindings(page, testInfo, findings, [MEMBER_SEARCH_403]);
   });
 
   test('Ort, den eine fremde Veranstaltung nutzt: Fehlermeldung statt Neuladen (#20)', async ({ page }, testInfo) => {
-    const trip = await apiGet<{ location: { id: number; address: string } }>(
-      'stammesleitung', `/event/event-read/${ids.tripEventId}/`);
-    const findings = watchPage(page);
-    await page.goto(`/event-details/${ids.tripEventId}`);
-    await page.waitForLoadState('networkidle');
-    const addresses = watchAddresses(page);
+    const trip = await apiGet<{ location: { id: number } }>('stammesleitung', `/event/event-read/${ids.tripEventId}/`);
+    // Zurücksetzen als leitung: Sie gehört zum Anmeldeteam und darf jeden Ort
+    // ändern. Gerade wenn die Sperre versagt, muss der Ort wieder stimmen.
+    const restore = () => api('leitung', 'PATCH', `/event/event-location/${trip.location.id}/`, { address: SHARED_ADDRESS });
+    await restore();
+    try {
+      const findings = watchPage(page);
+      await page.goto(`/event-details/${ids.tripEventId}`);
+      await page.waitForLoadState('networkidle');
+      const addresses = watchAddresses(page);
 
-    await locationEditButton(page).click();
-    const dialog = page.getByRole('dialog');
-    await field(dialog, 'Adresse des Veranstaltungortes').fill('Rauchtestweg 9');
-    await dialog.getByRole('button', { name: 'Änderung speichern' }).click();
-    await expect(errorMessage(page)).toContainText('Speichern fehlgeschlagen');
-    // Das Formular bleibt mit der Eingabe offen, die Seite lädt nicht neu.
-    await expect(field(dialog, 'Adresse des Veranstaltungortes')).toHaveValue('Rauchtestweg 9');
-    expect(addresses, 'Seite hat neu geladen oder die Adresse gewechselt').toEqual([]);
-    const after = await apiGet<{ location: { address: string } }>('stammesleitung', `/event/event-read/${ids.tripEventId}/`);
-    expect(after.location.address).toBe(trip.location.address);
+      await locationEditButton(page).click();
+      const dialog = page.getByRole('dialog');
+      await field(dialog, 'Adresse des Veranstaltungortes').fill('Rauchtestweg 9');
+      await dialog.getByRole('button', { name: 'Änderung speichern' }).click();
+      await expect(errorMessage(page)).toContainText('Speichern fehlgeschlagen');
+      // Das Formular bleibt mit der Eingabe offen, die Seite lädt nicht neu.
+      await expect(field(dialog, 'Adresse des Veranstaltungortes')).toHaveValue('Rauchtestweg 9');
+      expect(addresses, 'Seite hat neu geladen oder die Adresse gewechselt').toEqual([]);
+      const after = await apiGet<{ location: { address: string } }>('stammesleitung', `/event/event-read/${ids.tripEventId}/`);
+      expect(after.location.address).toBe(SHARED_ADDRESS);
 
-    await checkFindings(page, testInfo, findings, [{
-      text: `Backend antwortet 403: PUT /event/event-location/${trip.location.id}/`,
-      issue: 'gewollt: Den Ort nutzt auch das fremde Lager',
-    }]);
+      await checkFindings(page, testInfo, findings, [{
+        text: `Backend antwortet 403: PUT /event/event-location/${trip.location.id}/`,
+        issue: 'gewollt: Den Ort nutzt auch das fremde Lager',
+      }]);
+    } finally {
+      await restore();
+    }
   });
 });
 
@@ -394,6 +428,7 @@ interface BookingOption { id: number; name: string; price: string }
 
 const TEST_OPTION = 'Rauchtest-Option';
 
+/** Buchungsoptionen des Beispiellagers, gelesen als dessen Leitung. */
 async function bookingOptions(): Promise<BookingOption[]> {
   return apiGet<BookingOption[]>('leitung', `/event/event/${ids.eventId}/booking-options/`);
 }
@@ -409,9 +444,13 @@ test.describe('leitung', () => {
   test.use({ storageState: storageStateFor('leitung') });
 
   test('Lagerbeitrag ändern und anlegen, danach auf der Veranstaltung bleiben (#20)', async ({ page }, testInfo) => {
-    await deleteTestOption();
     const standard = (await bookingOptions()).find((o) => o.name === 'Standard');
     if (!standard) throw new Error('Buchungsoption „Standard“ des Beispiellagers fehlt');
+    const restore = async () => {
+      await api('leitung', 'PATCH', `/event/event/${ids.eventId}/booking-options/${standard.id}/`, { price: SAMPLE_PRICE });
+      await deleteTestOption();
+    };
+    await restore();
     const eventPage = `/event-details/${ids.eventId}`;
     try {
       const findings = watchPage(page);
@@ -437,13 +476,14 @@ test.describe('leitung', () => {
 
       await checkFindings(page, testInfo, findings, []);
     } finally {
-      await api('leitung', 'PATCH', `/event/event/${ids.eventId}/booking-options/${standard.id}/`, { price: standard.price });
-      await deleteTestOption();
+      await restore();
     }
   });
 
   test('Ort ändern, danach auf der Veranstaltung bleiben (#20)', async ({ page }, testInfo) => {
-    const event = await apiGet<{ location: { id: number; address: string } }>('leitung', `/event/event-read/${ids.eventId}/`);
+    const event = await apiGet<{ location: { id: number } }>('leitung', `/event/event-read/${ids.eventId}/`);
+    const restore = () => api('leitung', 'PATCH', `/event/event-location/${event.location.id}/`, { address: SAMPLE_ADDRESS });
+    await restore();
     const eventPage = `/event-details/${ids.eventId}`;
     try {
       const findings = watchPage(page);
@@ -460,7 +500,7 @@ test.describe('leitung', () => {
 
       await checkFindings(page, testInfo, findings, []);
     } finally {
-      await api('leitung', 'PATCH', `/event/event-location/${event.location.id}/`, { address: event.location.address });
+      await restore();
     }
   });
 });

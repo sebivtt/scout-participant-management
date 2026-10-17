@@ -44,10 +44,11 @@ export async function api<T = unknown>(account: AccountName, method: string, pat
     body: body === undefined ? undefined : JSON.stringify(body),
   }));
   if (!response.ok) throw new Error(`${method} ${path} als ${account}: ${response.status} ${(await response.text()).slice(0, 200)}`);
-  // Löschen antwortet ohne Inhalt.
+  // Löschen antwortet ohne Inhalt, response.json() bräche dann ab.
   return (response.status === 204 ? null : await response.json()) as T;
 }
 
+/** Liest als Testkonto vom Backend (Kurzform von `api` mit GET). */
 export function apiGet<T>(account: AccountName, path: string): Promise<T> {
   return api<T>(account, 'GET', path);
 }

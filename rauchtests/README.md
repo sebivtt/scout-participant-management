@@ -47,14 +47,14 @@ Grenzen:
 
 Fehler zählen wie bei den Seiten. Erwartete Fehler stehen beim Test, mit Issue oder Grund, z. B. die gewollte Ablehnung beim fremden Ort. Sie müssen auftreten, sonst scheitert der Test. Damit fällt auch auf, wenn eine Prüfung im Backend nicht mehr greift.
 
-**Aufräumen:** Was die Tests im Backend anlegen oder ändern (die neue Anmeldung, Lagerbeiträge, Adressen), setzen sie am Ende zurück, auch wenn sie unterwegs scheitern. Vor dem Start räumen sie Reste eines abgebrochenen Laufs weg. Die Beispieldaten bleiben so bei jedem Lauf gleich.
+**Aufräumen:** Was die Tests im Backend anlegen oder ändern (die neue Anmeldung, Lagerbeiträge, Adressen), setzen sie vor und nach jedem Test auf die Werte aus `load_sample_data` zurück, auch wenn sie unterwegs scheitern oder ein früherer Lauf abgebrochen wurde. Die Beispieldaten bleiben so bei jedem Lauf gleich. Einzige Ausnahme: Verändert das unveränderte Speichern einer Person ihre Daten (der Fehler, den der Test sucht), bleibt der Test rot, bis die Beispieldaten mit `python manage.py load_sample_data --reset` neu angelegt sind.
 
 Die Tests laufen mit deutscher Zeitzone, wie bei Nutzenden. Sonst zeigt der Browser Geburtstage einen Tag zu früh an.
 
 Grenzen:
 
 - Geprüft wird mit Chromium, nicht mit Safari. Der Fehler aus #20 trat nur manchmal auf (die Seite sprang zur falschen Adresse und lud gleichzeitig neu). Deshalb zählt jede Adresse, die die Seite zwischendurch zeigt.
-- Die Tests sind nachgeprüft: Mit den alten, fehlerhaften Fassungen der Behebungen von #19, #20, #23 und #25 scheitern sie (Pull Request zu Schritt 1c).
+- Die Tests sind nachgeprüft: Mit den alten, fehlerhaften Fassungen der Behebungen von #19, #20, #23 und #25 scheitern sie. Wie das geprüft wurde, steht im Pull Request zu Schritt 1c.
 
 ## Starten
 
