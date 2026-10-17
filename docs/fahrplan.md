@@ -50,6 +50,10 @@ Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `mai
      - `views/newRegister/Container.vue`: `nextLink` liefert als Rückfall den ungültigen Seitennamen „Custom“, `console.log(routeObj)` läuft bei jeder Änderung.
      - `components/stepper/StepperNavSmall.vue`: `:key="step.name"` ist bei mehreren Zusatzschritten doppelt (alle heißen „Custom“), besser die Kennung des Schritts.
      - `src/router.ts` (Wache vor jedem Seitenwechsel): Ohne Login ruft sie die Anmeldung auf, ohne den Seitenwechsel abzuschließen. vue-router meldet dann im Entwicklungsmodus „Invalid navigation guard“ (nur in der Fehlerkonsole, gefunden am 16.10.2026). Die Prüfung auf `landing` greift nie, weil im `some` das `return` fehlt.
+     - Drei Stellen aus dem übernommenen Code (2023/2024), gefunden als Vue-Warnungen der Rauchtests am 17.10.2026. Sie sind vermutlich sichtbar und stehen auf Sebastians Wunsch hier statt als Issue. Danach müssen die Warnungen in `rauchtests/results/pages.jsonl` fehlen:
+       - `group/views/detail/tabs/Requests.vue`: lädt den Baustein für die leere Liste als `ListItemEmpty`, benutzt ihn aber als `PersonListItemEmpty`. Bei leerer Liste fehlt vermutlich der Hinweis.
+       - `event/components/statistic/summary/RegSearchList.vue`: benutzt `PlusIcon` und `FolderOpenIcon`, ohne sie zu laden (Seite „Auswertung“, Reiter „Anmeldungen“).
+       - `landing/views/MapMain.vue` und `event/components/statistic/map/DetailList.vue`: rufen `useRoute()` in `mounted()` auf statt in `setup`. Vue warnt „inject() can only be used inside setup()“.
      - `components/stepper/StepFrame.vue`: `isLoading` ist zugleich Prop und eigener Wert `ref(false)`. Die Knöpfe zeigen deshalb nie den Ladezustand, obwohl neun Seiten ihn übergeben. Den eigenen Wert entfernen.
      - Tote Dateien löschen: `modules/event/views/newRegister/module/Person.vue`, `modules/help/store/index.ts`.
      - Ungenutzter Code mit fehlender Variable `eventData` in `event/components/statistic/payments/CashItem.vue`.
