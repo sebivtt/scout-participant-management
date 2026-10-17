@@ -100,7 +100,7 @@ async function startRegistration(page: Page): Promise<void> {
  * Trägt die Postleitzahl ein und wartet, bis das Backend sie geprüft hat.
  *
  * Wer „Speichern“ klickt, solange diese Prüfung noch läuft, dem passiert nichts,
- * ohne Meldung (neu gefunden bei Issue #37, Issue folgt). Bis zur Behebung
+ * ohne Meldung (Issue #66). Bis zur Behebung
  * wartet der Test wie ein Mensch, der nicht sofort klickt.
  */
 async function fillZipCode(page: Page, dialog: Locator, zipCode: string): Promise<void> {
