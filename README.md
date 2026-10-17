@@ -9,6 +9,7 @@ Das Projekt baut auf dem archivierten DPV-Tool auf ([scout-tool-backend](https:/
 | `backend/` | Django 5.2 LTS REST API (Python 3.11 bis 3.13) | `scout-tool-backend`, Zweig `main` (451ace1, 12.03.2025) |
 | `frontend/` | Vue 3 + Vite + Tailwind | `scout-tool-frontend`, Commit `ce97a2d` (23.03.2025), der letzte lauffähige Stand |
 | `dev/` | Lokale Entwicklungsumgebung | neu |
+| `rauchtests/` | Automatische Klicktests im Browser gegen das ganze Tool | neu |
 
 Neben dem Anmeldetool enthält das Backend weitere Module (Essensplanung, Inspi, Nachrichten, Gruppenverwaltung). Sie bleiben lauffähig, werden aber vorerst nicht weiterentwickelt.
 

@@ -6,6 +6,26 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-17 · Rollen klären, bevor Rechte geändert werden
+
+**Entscheidung:**
+- Bevor Rechte geändert werden, wird geklärt, welche Rollen es gibt, was jede Rolle darf und wann wer welche Rolle wie erhält. Dazu gehört, wie die Oberfläche dazu passt, z. B. was Suchen und Auswahllisten einer Rolle anzeigen.
+- Die Klärung ist der erste Punkt in Strang 2 („Rollen und Rechte“), vor „Anmelden“. Rechte kommen in jedem Ablauf vor, so muss die Tabelle „wer darf was“ nicht in jedem Ablauf neu entschieden und später umgebaut werden. Ersetzt im Eintrag „Reihenfolge nach der Aufräumrunde“ (16.10.2026) „zuerst mit ‚Anmelden‘“.
+- Issue #60 (anmeldende Leitung findet beim Hinzufügen einer verantwortlichen Person niemanden) kommt in Schritt 6 zu den Fehlern und wartet auf diese Klärung. Die Regel „könnte durch eine KI-Änderung entstanden sein, kommt direkt dran“ gilt hier ausdrücklich nicht.
+
+**Begründung:** Sebastian möchte den ganzen Rollenaufbau ändern. Einzelne Rechte vorher anzupassen, würde Arbeit erzeugen, die danach wieder umgebaut werden müsste.
+**Umsetzung:** `docs/fahrplan.md` (Strang 2, Punkt 1; Schritt 6; „Schon gesammelte Fragen“), Issue #60.
+
+## 2026-10-17 · Rauchtests: nur bei Bedarf auf GitHub
+
+**Entscheidung:**
+- Auf GitHub laufen die Rauchtests nur, wenn ein Pull Request das Label `rauchtests` trägt, oder wenn jemand sie von Hand startet. Ersetzt im Eintrag „Rauchtests: Werkzeug und Aufbau“ (16.10.2026) „auf GitHub bei jeder Änderung“.
+- Die riskanten Updates (Fahrplan, Schritt 3) bekommen das Label immer. Sonst entscheidet die KI im Einzelfall, etwa bei Änderungen an Login, Navigation oder vielen Seiten, und begründet das in der Beschreibung des Pull Requests. Sebastian kann das Label jederzeit setzen oder entfernen.
+- In der Cloud-Sitzung lässt die KI die Rauchtests vor jedem Pull Request laufen, der Code ändert, und nennt das Ergebnis in der Beschreibung.
+
+**Begründung:** Das Repository ist privat, GitHub stellt dafür nur ein begrenztes Kontingent an Rechenzeit bereit (2.000 Minuten im Monat im kostenlosen Tarif). Vom 14. bis 16.10.2026 liefen 55 Prüfläufe mit je mindestens 4 Minuten, bei diesem Tempo wäre das Kontingent im Monat schon ausgeschöpft. Ein Lauf der Rauchtests dauert auf GitHub gut 6,5 Minuten, abgerechnet werden 7. Die Läufe in der Cloud kosten nichts und fangen auch Brüche bei Änderungen ab, die niemand für riskant gehalten hätte.
+**Umsetzung:** `.github/workflows/rauchtests.yml`, Label `rauchtests` auf GitHub (PR #61).
+
 ## 2026-10-16 · Rauchtests: Werkzeug und Aufbau
 
 **Entscheidung:**

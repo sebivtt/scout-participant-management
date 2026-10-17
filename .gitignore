@@ -7,3 +7,9 @@ node_modules
 .DS_Store
 .idea/
 .vscode/
+
+# Rauchtests: gespeicherte Anmeldungen und Berichte
+rauchtests/.auth/
+rauchtests/test-results/
+rauchtests/playwright-report/
+rauchtests/results/

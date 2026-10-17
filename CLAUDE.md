@@ -34,6 +34,7 @@ Lies und befolge `CONTRIBUTING.md`. Kurzfassung:
   ```bash
   ruff check . && pytest
   ```
+- Vor jedem Pull Request, der Code ändert: Rauchtests in der Cloud-Sitzung laufen lassen (`rauchtests/README.md`) und das Ergebnis in die Beschreibung schreiben. Ob der Pull Request das Label `rauchtests` für den Lauf auf GitHub bekommt, im Einzelfall entscheiden und begründen (Entscheidung vom 17.10.2026). Riskante Updates bekommen es immer.
 - Änderungen an Keycloak-Anbindung oder Rechten zusätzlich gegen ein echtes Keycloak 26.7 testen (siehe `dev/`, in der Cloud-Sitzung `docs/arbeitsumgebung.md`), nicht nur gegen den Test-Ersatz.
 - **Unabhängige Prüfung vor jedem Pull Request:** Eine zweite KI-Instanz ohne Kenntnis des bisherigen Gesprächs prüft den Diff gegen `CONTRIBUTING.md` und auf Fehler. Ihre Befunde werden behoben oder im Pull Request begründet.
 - Pull-Request-Beschreibung nach `CONTRIBUTING.md` Abschnitt 6, für Nicht-Programmierer verständlich.

@@ -57,6 +57,9 @@ Erprobt am 16.10.2026: Keycloak 26.7.5, Postgres, Redis, Backend und Frontend la
 - **Frontend**, im Ordner `frontend/`: `cp ../dev/frontend.env.example .env.local`, installieren wie oben, dann im Hintergrund `exec yarn dev`.
 - **Login im Browser** mit Playwright: http://localhost:8080 aufrufen, das Frontend leitet zur Keycloak-Anmeldeseite weiter, dort `#username`, `#password` ausfüllen und `#kc-login` klicken. Nach dem Login landet man unter „Veranstaltungen“ auf „Einladungen“, nicht auf der ursprünglich aufgerufenen Seite.
 
+- **Rauchtests** bei laufendem Tool: `cd rauchtests && yarn install --frozen-lockfile && yarn test` (`rauchtests/README.md`). Playwright findet Chromium über `PLAYWRIGHT_BROWSERS_PATH`, deshalb ist die Version von `@playwright/test` auf 1.56.0 festgelegt, passend zum vorinstallierten Browser. Beim Anheben der Version prüfen, ob die Cloud-Sitzung den passenden Browser hat (`ls /opt/pw-browsers`).
+- **GitHub-Protokolle** lassen sich aus der Cloud nicht herunterladen (die Ablage liegt auf einem gesperrten Server). Ob ein Lauf grün war, zeigen `gh api repos/…/actions/runs/<id>` und `…/jobs` mit den einzelnen Schritten.
+
 ## Browser und Nachstellen von Frontend-Fehlern
 
 - **In der Cloud-Sitzung gibt es einen Browser** (Korrektur vom 16.10.2026). Chromium mit Playwright ist vorinstalliert (`/opt/pw-browsers`, Playwright unter `/opt/npm-tools/node_modules/playwright`, `PLAYWRIGHT_BROWSERS_PATH` ist gesetzt). Am 15.10. wurde nur an den Standardorten gesucht und fälschlich „kein Browser“ festgehalten. Keycloak läuft ebenfalls, siehe „Ganzes Tool in der Cloud starten“ (nur die Docker-Abbilder und Maven sind gesperrt).
