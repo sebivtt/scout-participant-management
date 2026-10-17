@@ -6,6 +6,16 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-17 · Texteditor: bei Quill bleiben und auf Quill 2 aktualisieren
+
+**Entscheidung:**
+- Der Texteditor in Formularen (Einladungstext, Beschreibung eines Bausteins) bleibt Quill. `@vueup/vue-quill` geht von 1.2.0 auf 1.5.5 und bringt `quill` 2.0.2 mit. Kein Wechsel zu einem anderen Editor wie TipTap (Sebastian, auf Vorschlag der KI).
+- Bestehende Texte und Formulare müssen nicht zwingend unverändert ins neue Format übernommen werden. Sebastian erneuert sie ohnehin (Sebastian).
+- Technisch (KI): `Html.vue` übersetzt beim Laden mit Quills eigener Umwandlung in das Format von Quill 2 und speichert gewöhnliches HTML (`getSemanticHTML`), nicht das rohe HTML des Editors. `@vueup/vue-quill` steht in `package.json` fest auf 1.5.5 wie `axios`, damit eine neue Fassung nur gezielt kommt und vorher geprüft wird, ob sie wieder `quill` 2.0.3 zulässt.
+
+**Begründung (Zusammenfassung der KI):** `quill` 1.3.7 war die einzige gemeldete Sicherheitslücke in Code, der im Browser läuft, und Quill 1 wird nicht mehr gepflegt. Ein Wechsel des Editors brächte neue Pakete, ein anderes Aussehen und mehr Risiko. Quill 2 speichert Listen intern in einem eigenen Format. Ohne Übersetzung verschwänden gespeicherte Aufzählungen beim Öffnen, und neue erschienen außerhalb des Editors nummeriert. Auch ohne alte Texte ist die Übersetzung nötig, weil jeder neu gespeicherte Text beim erneuten Bearbeiten wieder geladen wird. Nachteil: Quill wird schwach gepflegt (letzte Fassung November 2024), und 2.0.3 hat eine eigene, unbehobene Lücke. Deshalb schließt `@vueup/vue-quill` sie aus, und es bleibt bei 2.0.2. Das Update schließt die Warnung der Sicherheitsprüfung, schützt aber nicht davor, dass jemand mit Bearbeitungsrecht schädliches HTML speichert: Das Backend filtert gespeichertes HTML nicht.
+**Umsetzung:** `frontend/package.json`, `frontend/src/components/field/Html.vue`, Rauchtest „Einladungstext mit Listen im Texteditor …“ in `rauchtests/tests/anmeldeablauf.spec.ts`.
+
 ## 2026-10-17 · Rauchtests 1c: alle Pflichtpunkte in einem Pull Request
 
 **Entscheidung:**

@@ -560,6 +560,91 @@ test.describe('leitung', () => {
     }
   });
 
+  test('Einladungstext mit Listen im Texteditor laden, speichern und wieder öffnen', async ({ page }, testInfo) => {
+    // Seit Quill 2 hat der Editor ein eigenes Listenformat. Html.vue übersetzt
+    // beim Laden und Speichern zwischen diesem und gewöhnlichem HTML. Ohne die
+    // Übersetzung verschwinden gespeicherte Aufzählungen beim Öffnen, und neue
+    // stehen außerhalb des Editors als nummerierte Liste da.
+    const restore = (longDescription: string) =>
+      api('leitung', 'PATCH', `/event/event/${ids.eventId}/`, { longDescription });
+    const editButton = () => page.locator('h3', { hasText: 'Namen und Texte' }).locator('..').getByRole('button');
+    const dialog = page.getByRole('dialog');
+    const editor = dialog.locator('.ql-editor');
+    // Wie ihn Quill 1 gespeichert hat: gewöhnliches HTML.
+    await restore('<p>Vorher</p><ul><li>alte Aufzählung</li></ul>');
+    try {
+      const findings = watchPage(page);
+      await page.goto(`/event-details/${ids.eventId}`);
+      await editButton().click();
+      await expect(editor.locator('li[data-list="bullet"]')).toHaveText(['alte Aufzählung']);
+
+      await editor.click();
+      await page.keyboard.press('ControlOrMeta+A');
+      await page.keyboard.press('Delete');
+      await page.keyboard.type('Rauchtest ');
+      await page.keyboard.press('ControlOrMeta+B');
+      await page.keyboard.type('fett');
+      await page.keyboard.press('ControlOrMeta+B');
+      await page.keyboard.press('Enter');
+      await dialog.locator('button.ql-list[value="bullet"]').click();
+      await page.keyboard.type('eins');
+      await page.keyboard.press('Enter');
+      await page.keyboard.type('zwei');
+      await page.keyboard.press('Enter');
+      await page.keyboard.press('Enter');
+      await dialog.locator('button.ql-list[value="ordered"]').click();
+      await page.keyboard.type('erstens');
+      await dialog.getByRole('button', { name: 'Speichern' }).click();
+      await expect(dialog).toHaveCount(0);
+
+      await expect.poll(async () => (await apiGet<{ longDescription: string }>('leitung', `/event/event-read/${ids.eventId}/`)).longDescription)
+        .toBe('<p>Rauchtest <strong>fett</strong></p><ul><li>eins</li><li>zwei</li></ul><ol><li>erstens</li></ol>');
+
+      await page.reload();
+      await editButton().click();
+      await expect(editor.locator('li[data-list="bullet"]')).toHaveText(['eins', 'zwei']);
+      await expect(editor.locator('li[data-list="ordered"]')).toHaveText(['erstens']);
+
+      await checkFindings(page, testInfo, findings, []);
+    } finally {
+      await restore('');
+    }
+  });
+
+  test('Texteditor: Handy-Tastatur und Link-Fenster überschreiben den Text nicht', async ({ page }, testInfo) => {
+    // Base.vue hängt einen Zuhörer für Eingaben an jedes Feld. Beim Editor kam er
+    // auf dem äußeren Rahmen an: Die Adresse im Link-Fenster ersetzte den ganzen
+    // Text, und eine Eingabe wie bei Handy-Tastaturen (Komposition) leerte ihn.
+    const restore = () => api('leitung', 'PATCH', `/event/event/${ids.eventId}/`, { longDescription: '' });
+    const dialog = page.getByRole('dialog');
+    const editor = dialog.locator('.ql-editor');
+    await restore();
+    try {
+      const findings = watchPage(page);
+      await page.goto(`/event-details/${ids.eventId}`);
+      await page.locator('h3', { hasText: 'Namen und Texte' }).locator('..').getByRole('button').click();
+      await editor.click();
+      await page.keyboard.type('Hallo Welt ');
+      // Komposition, wie sie Android-Tastaturen und Tottasten am Mac erzeugen
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Input.imeSetComposition', { text: 'a', selectionStart: 1, selectionEnd: 1 });
+      await cdp.send('Input.imeSetComposition', { text: 'ab', selectionStart: 2, selectionEnd: 2 });
+      await cdp.send('Input.insertText', { text: 'abc' });
+      await expect(editor).toHaveText('Hallo Welt abc');
+
+      await page.keyboard.press('Shift+Home');
+      await dialog.locator('button.ql-link').click();
+      await dialog.locator('.ql-tooltip input[type=text]').fill('https://beispiel.de');
+      await expect(editor).toHaveText('Hallo Welt abc');
+      await page.keyboard.press('Enter');
+      await expect(editor.locator('a[href="https://beispiel.de"]')).toHaveText('Hallo Welt abc');
+
+      await checkFindings(page, testInfo, findings, []);
+    } finally {
+      await restore();
+    }
+  });
+
   test('Ort ändern, danach auf der Veranstaltung bleiben (#20)', async ({ page }, testInfo) => {
     const event = await apiGet<{ location: { id: number } }>('leitung', `/event/event-read/${ids.eventId}/`);
     const restore = () => api('leitung', 'PATCH', `/event/event-location/${event.location.id}/`, { address: SAMPLE_ADDRESS });
