@@ -183,7 +183,7 @@ Gemessen am 14.10.2026, aktualisiert am 15.10.2026 nach dem Wechsel auf eslint 1
 | eslint-Warnungen | 2.795 (mit eslint 8: 2.780; nach PR #17 2.796, eine weniger seit PR #21; v. a. ungenutzte Variablen und Formatierung) |
 | Meldungen der Typprüfung (`npx tsc --noEmit`) | 86 (mit TypeScript 4.6: 107; seit PR #18 bringt `uuid` eigene Typen mit) |
 | Tests | keine |
-| Größte Programmdatei nach dem Bauen | 1,2 MB (seit Vue 3.5 rund 29 KB mehr), wird bei jedem Aufruf komplett geladen |
+| Größte Programmdatei nach dem Bauen | 1,2 MB (seit Vue 3.5 rund 29 KB mehr), wird bei jedem Aufruf komplett geladen. Seit Vite 8 (19.10.2026): 550 KB, weil Vite den Code anders aufteilt. Beim ersten Aufruf lädt der Browser aber weiterhin rund 1 MB, jetzt aus 39 Dateien (gemessen mit Vite 2.9 am selben Tag: eine Datei mit 1.013 KB) |
 
 ### Wechsel auf eslint 10 und TypeScript 6 (PR #17)
 
@@ -213,7 +213,7 @@ Gemessen am 15.10.2026 mit `yarn audit` im Ordner `frontend/`, vor und nach dem 
 | Pakete des Programms (`--groups dependencies`) | 63 (1 kritisch, 31 hoch, 30 mittel, 1 niedrig) | 4 (2 hoch, 2 mittel) |
 | alle Pakete, auch Entwicklungswerkzeuge | 329 | 242 |
 
-Nach PR #17 (eslint 10, TypeScript 6): alle Pakete 172. Das alte eslint brachte viele veraltete Hilfspakete mit. Nach PR #18 (`uuid` 14): alle Pakete 171, in den Programmpaketen 3 (`quill`, zweimal `@vue/server-renderer`). Nach PR #26 (Vue 3.5): alle Pakete 169, in den Programmpaketen 1 (`quill`). Mit dem Update von `quill` (17.10.2026, `@vueup/vue-quill` 1.5.5 mit `quill` 2.0.2): alle Pakete 168, in den Programmpaketen 0.
+Nach PR #17 (eslint 10, TypeScript 6): alle Pakete 172. Das alte eslint brachte viele veraltete Hilfspakete mit. Nach PR #18 (`uuid` 14): alle Pakete 171, in den Programmpaketen 3 (`quill`, zweimal `@vue/server-renderer`). Nach PR #26 (Vue 3.5): alle Pakete 169, in den Programmpaketen 1 (`quill`). Mit dem Update von `quill` (17.10.2026, `@vueup/vue-quill` 1.5.5 mit `quill` 2.0.2): alle Pakete 168, in den Programmpaketen 0. Nach dem Update von Vite auf 8.3 (19.10.2026, PR #82): alle Pakete 125, in den Programmpaketen 0. Weggefallen sind die 19 Meldungen von Vite 2 selbst und die 24 von Vitest 0.9, das eine eigene Kopie von Vite 2 mitbrachte.
 
 Übrig sind im Programm nur die bewusst offenen Pakete (Stand bis PR #17; `uuid` ist mit PR #18 geschlossen, `@vue/server-renderer` mit PR #26, `quill` mit dem Update auf Quill 2 am 17.10.2026, seither keines mehr): `@vue/server-renderer` (zweimal gezählt, weil zwei Vue-Fassungen enthalten sind), `uuid` und `quill`. Sie folgen mit den großen Versionssprüngen (Phase 3d). Die übrigen 238 (Stand PR #16) betreffen Entwicklungswerkzeuge wie Vite, eslint und Cypress, die nur auf dem eigenen Rechner bzw. beim Bauen laufen. Darunter erscheinen auch `axios` und `uuid` noch einmal: Das Startwerkzeug `wait-on` bringt eine alte axios-Fassung (0.25) mit, Cypress eine eigene uuid-Fassung. Sie gehören nicht zum Programm.
 
