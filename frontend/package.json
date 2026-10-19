@@ -2,6 +2,7 @@
   "name": "vite-ts-tailwind-starter",
   "version": "2.1.0",
   "scripts": {
+    "predev": "CYPRESS_INSTALL_BINARY=0 yarn install --frozen-lockfile",
     "dev": "vite --port 8080",
     "build": "vite build",
     "lint": "eslint src",
