@@ -6,6 +6,16 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-19 · Möglichkeiten von Vite 8 einordnen
+
+**Entscheidung** (Sebastian, auf Vorschlag der KI):
+- Tests für einzelne Funktionen der Oberfläche mit einer aktuellen Fassung von Vitest kommen als technischer Schritt in den Fahrplan, als erster Pull Request in Schritt 4, vor eslint. Dabei wird Cypress entfernt. Den Zeitpunkt für Cypress legt schon der Eintrag „Rauchtests: Werkzeug und Aufbau“ (16.10.2026) fest, Schritt 4; er ändert sich nicht.
+- „Schneller laden“ (Seiten erst bei Bedarf laden) stand bisher unter „Irgendwann, ohne festen Platz“. Man spürt es, also wird es nach der Regel „Was Nutzende sehen oder spüren, ist ein Issue“ (16.10.2026) Issue #85 mit Wichtigkeit „Wäre schön“. Es wartet auf keinen Ablauf, weil es keine Funktion ändert, nur die Geschwindigkeit (Einordnung durch die KI).
+- „Tool wie eine App auf den Startbildschirm legen“ ist eine Anforderung, die man sieht, und wird Issue #84 mit Wichtigkeit „Wäre schön“. Es wartet auf den Ablauf „Konto und persönliche Daten“ (Strang 2). Dort wird mitgeklärt, was auf dem Handy gespeichert bleiben darf, siehe „Browserspeicher“ unter „Vor dem ersten Echtbetrieb“ (Einordnung durch die KI).
+
+**Begründung (Zusammenfassung der KI):** Vite selbst ändert nichts, was Nutzende sehen. Die Tests und die installierbare App setzen ein aktuelles Vite voraus. Seiten bei Bedarf laden ging schon vorher, Vite 8 bietet dafür aber genauere Einstellungen. Das Frontend hat bisher keinen einzigen Test für einzelne Funktionen, obwohl `CONTRIBUTING.md` für jeden behobenen Fehler einen Test verlangt. Ein solcher Test hätte etwa den Fehler aus #80 sofort gezeigt (Enddatum vor Beginn, wenn der Starttag ein Sonntag ist). Deshalb kommen die Tests vor die Aufräumarbeiten aus dem eslint-Schritt. Den Vorschlag, schneller laden als technischen Schritt in den Fahrplan zu nehmen, hat die unabhängige Prüfung als Widerspruch zur Regel vom 16.10.2026 erkannt. Deshalb ist es ein Issue.
+**Umsetzung:** `docs/fahrplan.md` (Schritt 4, Schritt 6 „Wäre schön“, „Irgendwann“), Issues #84 und #85.
+
 ## 2026-10-19 · `yarn dev` installiert die Pakete selbst
 
 **Entscheidung:**
