@@ -41,6 +41,7 @@ Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `mai
 3. **Riskante Versionssprünge im Frontend** (Updates von Bausteinen, auf denen die Oberfläche aufbaut), einzeln, je ein Pull Request mit Rauchtests und Klickliste, in dieser Reihenfolge (siehe „Vorgehen für künftige Updates“):
    - [x] `quill`, der Texteditor in Formularen (über `@vueup/vue-quill`, ggf. Ersatz). Zuerst, weil es die einzige verbliebene Sicherheitslücke in Code ist, der im Browser läuft. (PR #68)
    - [x] Vite 2.9 → 8, das Werkzeug, das die Oberfläche baut und lokal startet. Dabei die unbenutzten Pakete `@vue-leaflet/vue-leaflet` und Vitest entfernt (Entscheidung vom 19.10.2026). (PR #82)
+   - [x] `yarn dev` installiert vor dem Start selbst die passenden Pakete. Eingeschoben am 19.10.2026: Nach PR #68 lief auf Sebastians Mac neuer Code mit dem alten Quill 1, weil nach `git pull` niemand `yarn install` aufrief (daraus entstanden #79 und #81). Das soll bei den folgenden Updates nicht wieder passieren (Entscheidung vom 19.10.2026). (PR #83)
    - [ ] **← als Nächstes:** Pinia, der Zwischenspeicher der Oberfläche für geladene Daten
    - [ ] vue-router, die Navigation zwischen den Seiten
    - [ ] Tailwind, die Gestaltungsregeln (Farben, Abstände, Schriften). Zuletzt, weil es das Aussehen ändert: Sebastian prüft das Aussehen, und direkt danach folgen die Pop-ups, sodass er das neue Aussehen einmal statt zweimal anschauen muss.
@@ -210,7 +211,7 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 | Qualität: Regeln, ruff, Dokumentation, Messung | #7 |
 | Qualität II, Schritte 1a, 1b-1, 1b-2, 1d, 2a | #9 bis #14 |
 | Frontend: Sicherheitsupdates innerhalb der Hauptversionen, TypeScript 6 und eslint 10, `uuid` 14, Vue 3.5 | #16, #17, #18, #26 |
-| Frontend, riskante Updates: `quill` 2 (Texteditor), Vite 8 | #68, #82 |
+| Frontend, riskante Updates: `quill` 2 (Texteditor), Vite 8; Pakete automatisch beim Start | #68, #82, #83 |
 | Fehler aus Issues: #19, #20, #23, #25, #37 | #21, #22, #24, #27, #65 |
 | Arbeitsweise: Vorlagen für Issues, Skills `issue-anlegen` und `grill-me` | #31, #36 |
 | Rauchtests 1a: Beispieldaten, Anleitung „lokal starten“, Keycloak in der Cloud | #59 |

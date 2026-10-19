@@ -52,7 +52,8 @@ Das Tool besteht aus drei Teilen, die nebeneinander laufen: den Hilfsdiensten in
 8. `cd ~/Projekte/scout-participant-management/frontend`
    Keine Ausgabe.
 9. `yarn dev`
-   Nach einigen Sekunden steht dort „Local: http://localhost:8080/“. Das Fenster offen lassen.
+   Zuerst prüft `yarn dev`, ob die installierten Pakete zum aktuellen Stand passen. Meist steht dort „Already up-to-date“; haben sich Pakete geändert, installiert es sie vorher, das dauert dann einmalig etwas länger. Nach einigen Sekunden steht dort „Local: http://localhost:8080/“. Das Fenster offen lassen.
+   - Steht dort „Your lockfile needs to be updated“, startet das Frontend nicht. Dann passt der geholte Stand nicht zusammen. Nicht selbst reparieren, sondern Bescheid geben.
 10. Im Browser http://localhost:8080 öffnen und mit einem Testkonto anmelden.
 
 ## 2. Beispieldaten laden
@@ -128,13 +129,7 @@ Laufen Backend und Frontend noch, zuerst beide mit Control + C beenden (siehe Te
 
 Hat ein Pull Request die Datenbank verändert (eine sogenannte Migration), steht in seiner Beschreibung, was beim Zurückwechseln zu tun ist.
 
-Hat ein Pull Request die Pakete des Frontends geändert (etwa bei Updates), liegen nach dem Zurückwechseln noch seine Pakete auf dem Mac. Dann vor dem nächsten Start einmal:
-
-11. `cd ~/Projekte/scout-participant-management/frontend`
-    Keine Ausgabe.
-12. `CYPRESS_INSTALL_BINARY=0 yarn install --frozen-lockfile`
-    Am Ende steht „Done in …“.
-13. Beim nächsten Start einmal `yarn dev --force` statt `yarn dev`. Das `--force` sorgt dafür, dass Vite seinen Zwischenspeicher für die Pakete neu anlegt, statt den alten weiterzunutzen. Es erscheint zusätzlich „Forced re-optimization of dependencies“.
+Hat ein Pull Request die Pakete des Frontends geändert (etwa bei Updates), ist nach dem Zurückwechseln oder nach `git pull` nichts weiter zu tun: `yarn dev` installiert beim nächsten Start die passenden Pakete selbst (seit 19.10.2026).
 
 ## 4. Tool beenden
 

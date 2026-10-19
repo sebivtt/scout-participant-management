@@ -6,6 +6,16 @@ Format: Datum · Entscheidung · Begründung · Umsetzung
 
 ---
 
+## 2026-10-19 · `yarn dev` installiert die Pakete selbst
+
+**Entscheidung:**
+- Vor jedem Start mit `yarn dev` prüft das Frontend, ob die installierten Pakete zu `yarn.lock` passen, und installiert sie bei Bedarf nach (Sebastian, auf Empfehlung der KI; Variante „automatisch“ statt „nur die Anleitung ergänzen“).
+- Der Schritt ist im Fahrplan vor dem Update von Pinia eingeschoben, als technischer Schritt und nicht als Issue, weil Nutzende davon nichts sehen (Sebastian).
+- Technisch (KI): ein Skript `predev` in `frontend/package.json`, das Yarn vor `dev` von selbst aufruft: `yarn install --frozen-lockfile`, ohne den Browser von Cypress herunterzuladen. Passen `package.json` und `yarn.lock` nicht zusammen, startet das Frontend nicht, statt still andere Pakete zu installieren.
+
+**Begründung (Zusammenfassung der KI):** Nach PR #68 lief auf Sebastians Mac der neue Texteditor-Code mit dem alten Quill 1, weil nach `git pull` niemand `yarn install` aufrief. Daraus entstanden #79 und #81, die nach einer Neuinstallation verschwanden. Bei den nächsten Updates (Pinia, vue-router, Tailwind) droht dasselbe. Die Prüfung kostet bei aktuellen Paketen unter einer Sekunde. Sie arbeitet ohne Internet, solange nichts nachzuinstallieren ist. Erprobt mit dem Zustand von Sebastians Mac (Quill 1, Vite 2, neuer Code): `yarn dev` allein brachte alles auf den richtigen Stand, auch ohne `--force`.
+**Umsetzung:** `frontend/package.json`, `docs/lokal-starten.md` (PR #83).
+
 ## 2026-10-19 · Vite 8: Vitest schon jetzt entfernen
 
 **Entscheidung:**
