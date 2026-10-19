@@ -99,8 +99,6 @@ import {
 } from "@headlessui/vue";
 import { XMarkIcon } from "@heroicons/vue/24/outline";
 
-import Form from "./Form.vue"
-
 const props = defineProps({
   open: Boolean,
   header: String,

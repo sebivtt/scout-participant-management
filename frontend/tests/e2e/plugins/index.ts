@@ -9,7 +9,7 @@ export default function (
     return startDevServer({
       options,
       viteConfig: {
-        configFile: resolve(__dirname, '..', '..', '..', 'vite.config.ts'),
+        configFile: resolve(__dirname, '..', '..', '..', 'vite.config.mts'),
       },
     })
   })

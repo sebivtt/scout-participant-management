@@ -40,8 +40,8 @@ Arbeit erfolgt auf einem eigenen Branch je Thema, Pull Requests gehen gegen `mai
 2. [x] **#37** „Mich selbst anmelden“ und Reise-Dialog erscheinen mittig, geklärt mit `grill-me` am 17.10.2026 (PR #65).
 3. **Riskante Versionssprünge im Frontend** (Updates von Bausteinen, auf denen die Oberfläche aufbaut), einzeln, je ein Pull Request mit Rauchtests und Klickliste, in dieser Reihenfolge (siehe „Vorgehen für künftige Updates“):
    - [x] `quill`, der Texteditor in Formularen (über `@vueup/vue-quill`, ggf. Ersatz). Zuerst, weil es die einzige verbliebene Sicherheitslücke in Code ist, der im Browser läuft. (PR #68)
-   - [ ] **← als Nächstes:** Vite 2.9 → aktuell, das Werkzeug, das die Oberfläche baut und lokal startet. Dabei das unbenutzte Paket `@vue-leaflet/vue-leaflet` entfernen (wird nirgends eingebunden, die Karten nutzen `leaflet` direkt).
-   - [ ] Pinia, der Zwischenspeicher der Oberfläche für geladene Daten
+   - [x] Vite 2.9 → 8, das Werkzeug, das die Oberfläche baut und lokal startet. Dabei die unbenutzten Pakete `@vue-leaflet/vue-leaflet` und Vitest entfernt (Entscheidung vom 19.10.2026). (PR #82)
+   - [ ] **← als Nächstes:** Pinia, der Zwischenspeicher der Oberfläche für geladene Daten
    - [ ] vue-router, die Navigation zwischen den Seiten
    - [ ] Tailwind, die Gestaltungsregeln (Farben, Abstände, Schriften). Zuletzt, weil es das Aussehen ändert: Sebastian prüft das Aussehen, und direkt danach folgen die Pop-ups, sodass er das neue Aussehen einmal statt zweimal anschauen muss.
 4. [ ] **eslint in die automatische Prüfung auf GitHub** (eslint prüft den Code der Oberfläche auf typische Fehler, so wie ruff im Backend), dazu:
@@ -99,7 +99,7 @@ Betrieb:
 
 ### Irgendwann, ohne festen Platz
 
-- Die Hauptdatei des Frontends (1,2 MB) aufteilen, sodass Seiten erst bei Bedarf geladen werden.
+- Das Frontend so aufteilen, dass Seiten erst bei Bedarf geladen werden. Beim ersten Aufruf lädt der Browser heute rund 1 MB JavaScript, seit Vite 8 verteilt auf 39 Dateien (vorher eine Datei).
 - TypeScript 7: erst, wenn `typescript-eslint` es unterstützt (Stand 15.10.2026: nur bis 6.0). `moduleResolution: bundler` in `tsconfig.json` ist vorbereitet.
 - `django-stdimage` ist veraltet, Nachfolger `django-pictures`.
 - Fachliche Fragen für die Abstimmung, die keinem Ablauf zugeordnet sind: Beim Anmelden kann man jeden Stamm wählen, nicht nur den eigenen (PR #3). Feinabstimmung der Rechte des Anmeldeteams, Staff hat heute überall Admin (PR #2). Zentrale Verwaltung der Veranstaltungsorte (Entscheidung „Veranstaltungsorte“).
@@ -136,7 +136,7 @@ Für alle Versionssprünge im Frontend (Entscheidungen vom 15.10.2026):
 - Prüfen: `yarn build`, eslint und `npx tsc --noEmit` vorher und nachher vergleichen, Backend-Tests, `yarn audit --groups dependencies --summary`, Änderungsprotokoll des Pakets gegen unsere Aufrufe lesen.
 - Im Browser vorher und nachher vergleichen: Rauchtests vor und nach dem Update laufen lassen (`rauchtests/README.md`). Die Datei `rauchtests/results/pages.jsonl` enthält je Seite auch Vue-Warnungen, beide Fassungen vergleichen. Dazu die betroffenen Abläufe von Hand. Pull Requests mit riskanten Updates tragen immer das Label `rauchtests`.
 
-Stand der Versionen am 16.10.2026: Vite 2.9 (aktuell 8), Vue 3.5 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 6.0 (7), eslint 10 (10). Bekannte Sicherheitslücken nach PR #26: 169, davon 1 in den Programmpaketen (`quill`), der Rest in Entwicklungswerkzeugen (Verlauf in `docs/qualitaet.md`). Nach dem Update von `quill` am 17.10.2026 (`@vueup/vue-quill` 1.5.5, `quill` 2.0.2): 168, davon 0 in den Programmpaketen. `quill` 2.0.3 hat eine eigene, unbehobene Lücke und ist von `@vueup/vue-quill` ausgeschlossen. Erst eine neue Fassung von `@vueup/vue-quill` oder `quill` 2.0.4 hebt diese Grenze auf.
+Stand der Versionen am 16.10.2026: Vite 2.9 (aktuell 8), Vue 3.5 (3.5), vue-router 4.0 (5), Pinia 2 (4), Tailwind 3 (4), TypeScript 6.0 (7), eslint 10 (10). Bekannte Sicherheitslücken nach PR #26: 169, davon 1 in den Programmpaketen (`quill`), der Rest in Entwicklungswerkzeugen (Verlauf in `docs/qualitaet.md`). Nach dem Update von `quill` am 17.10.2026 (`@vueup/vue-quill` 1.5.5, `quill` 2.0.2): 168, davon 0 in den Programmpaketen. `quill` 2.0.3 hat eine eigene, unbehobene Lücke und ist von `@vueup/vue-quill` ausgeschlossen. Erst eine neue Fassung von `@vueup/vue-quill` oder `quill` 2.0.4 hebt diese Grenze auf. Nach dem Update von Vite auf 8.3 am 19.10.2026 (mit `@vitejs/plugin-vue` 6, ohne Vitest): 125, davon 0 in den Programmpaketen.
 
 ## Abstimmung der Funktionen und Abläufe
 
@@ -210,7 +210,7 @@ Die Tabelle fasst die Fehlerarten des Artikels vollständig zusammen und überse
 | Qualität: Regeln, ruff, Dokumentation, Messung | #7 |
 | Qualität II, Schritte 1a, 1b-1, 1b-2, 1d, 2a | #9 bis #14 |
 | Frontend: Sicherheitsupdates innerhalb der Hauptversionen, TypeScript 6 und eslint 10, `uuid` 14, Vue 3.5 | #16, #17, #18, #26 |
-| Frontend, riskante Updates: `quill` 2 (Texteditor) | #68 |
+| Frontend, riskante Updates: `quill` 2 (Texteditor), Vite 8 | #68, #82 |
 | Fehler aus Issues: #19, #20, #23, #25, #37 | #21, #22, #24, #27, #65 |
 | Arbeitsweise: Vorlagen für Issues, Skills `issue-anlegen` und `grill-me` | #31, #36 |
 | Rauchtests 1a: Beispieldaten, Anleitung „lokal starten“, Keycloak in der Cloud | #59 |

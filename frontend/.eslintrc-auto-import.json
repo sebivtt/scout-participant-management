@@ -60,7 +60,6 @@
     "useRoute": true,
     "useRouter": true,
     "useSlots": true,
-    "useStore": true,
     "watch": true,
     "watchEffect": true
   }
