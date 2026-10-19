@@ -10,11 +10,11 @@ if (process.env.NODE_ENV === 'production') {
   process.env.VITE_APP_BUILD_EPOCH = new Date().getTime().toString()
 }
 
-// Den Schalter __VUE_PROD_HYDRATION_MISMATCH_DETAILS__ setzt
-// @vitejs/plugin-vue seit Fassung 5 selbst (auf false), ein eigener
-// `define`-Eintrag ist nicht mehr nötig. Die frühere Einstellung
-// `esbuild.supported` für „top-level await“ kennt Vite 8 nicht mehr; mit
-// `target: 'esnext'` darf der gebaute Code diese Sprachmittel ohnehin nutzen.
+// Bewusst ohne eigene Sprachziele für Pakete im Entwicklungsmodus
+// (optimizeDeps): Vite 8 wählt dort eine Grundlinie aktueller Browser, und
+// keines unserer Pakete nutzt Sprachmittel darüber hinaus, etwa „top-level
+// await“ (geprüft beim Update auf Vite 8, Oktober 2026). Kommt ein solches
+// Paket hinzu, hier unter `optimizeDeps` ein passendes Ziel einstellen.
 export default defineConfig({
   build: {
     // Neueste Sprachmittel nicht umschreiben: Das Tool richtet sich an
