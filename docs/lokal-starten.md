@@ -52,7 +52,7 @@ Das Tool besteht aus drei Teilen, die nebeneinander laufen: den Hilfsdiensten in
 8. `cd ~/Projekte/scout-participant-management/frontend`
    Keine Ausgabe.
 9. `yarn dev`
-   Zuerst prüft `yarn dev`, ob die installierten Pakete zum aktuellen Stand passen. Meist steht dort „Already up-to-date“; haben sich Pakete geändert, installiert es sie vorher, das dauert dann einmalig etwas länger. Nach einigen Sekunden steht dort „Local: http://localhost:8080/“. Das Fenster offen lassen.
+   Zuerst prüft `yarn dev`, ob die installierten Pakete zum aktuellen Stand passen. Meist steht dort „Already up-to-date“; haben sich Pakete geändert, installiert es sie vorher, das dauert dann einmalig etwas länger und braucht Internet. Zeilen, die mit „warning“ beginnen, sind normal. Nach einigen Sekunden steht dort „Local: http://localhost:8080/“. Das Fenster offen lassen.
    - Steht dort „Your lockfile needs to be updated“, startet das Frontend nicht. Dann passt der geholte Stand nicht zusammen. Nicht selbst reparieren, sondern Bescheid geben.
 10. Im Browser http://localhost:8080 öffnen und mit einem Testkonto anmelden.
 
@@ -116,7 +116,7 @@ Laufen Backend und Frontend noch, zuerst beide mit Control + C beenden (siehe Te
    Zum Beispiel `git switch rauchtests-1a-beispieldaten`. Es erscheint „Switched to a new branch …“ oder „Switched to branch …“.
 5. `git pull`
    Wichtig, wenn der Branch schon einmal ausprobiert wurde: Ohne diesen Schritt läge noch der alte Stand vor, ohne spätere Korrekturen im Pull Request. Es erscheint „Already up to date.“ oder eine Liste geänderter Dateien. Jetzt liegt der aktuelle Stand des Pull Requests auf dem Mac.
-6. Nennt der Pull Request Zusatzschritte (neue Pakete, Änderungen an der Datenbank), diese jetzt ausführen.
+6. Nennt der Pull Request Zusatzschritte (etwa Änderungen an der Datenbank), diese jetzt ausführen. Neue Pakete installiert `yarn dev` selbst.
 7. Tool starten wie in Teil 1 und ausprobieren.
 
 **Zurück zum normalen Stand**, wenn das Ausprobieren fertig ist (Backend und Frontend vorher beenden):
